@@ -1,0 +1,75 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ioai
+      POSTGRES_PASSWORD: ioai
+      POSTGRES_DB: ioai
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ioai -d ioai"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+    environment:
+      IOAI_DATABASE_URL: postgresql+psycopg://ioai:ioai@postgres:5432/ioai
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bash -lc "uv run --with pydantic,fastapi,sqlalchemy,alembic,psycopg,pytest,ruff,pyright uvicorn ioai.entrypoints.api.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - '8000:8000'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  learn:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+    environment:
+      NEXT_PUBLIC_API_BASE: http://api:8000
+    depends_on:
+      api:
+        condition: service_started
+    command: sh -lc "pnpm install --frozen-lockfile && pnpm --dir frontend/apps/learn dev --hostname 0.0.0.0 --port 3000"
+    ports:
+      - '3000:3000'
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/problems"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  studio:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+    depends_on:
+      api:
+        condition: service_started
+    command: sh -lc "pnpm install --frozen-lockfile && pnpm --dir frontend/apps/studio dev --hostname 127.0.0.1 --port 3001"
+    ports:
+      - '3001:3001'
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/author/problems"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:

@@ -373,13 +373,13 @@ foundation must remain runnable with the four base services only.
   backend/frontend unit, type, lint, format, build, and migration checks. The
   fixture layer must not silently create public content. Suggested commit:
   `test(foundation): establish deterministic fixtures and commands`.
-- [ ] **R0-04011 — Add the base Docker Compose topology from R0-015, analysis
+- [x] **R0-04011 — Add the base Docker Compose topology from R0-015, analysis
   sections 2, 3, 9, and 10, and design section 14.** Add PostgreSQL, FastAPI,
   learner, and Studio services, one network, persistent database volume,
   readiness-based startup, health checks, environment examples, port bindings,
   and loopback Studio binding. Exclude Redis/Celery/Docling/MinIO/GPU/vector
   services. Suggested commit: `build(dev): add release 0 docker compose stack`.
-- [ ] **R0-04012 — Add local operations and migration/seed commands from R0-015,
+- [x] **R0-04012 — Add local operations and migration/seed commands from R0-015,
   analysis sections 3 and 10, and design sections 10 and 14.** Document and
   script start/stop, migration, deterministic vocabulary/fixture seed, health,
   logs, backup/restore rehearsal, and explicitly confirmed destructive reset.
