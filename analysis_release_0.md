@@ -597,3 +597,56 @@ The following paths need explicit tests in later phases:
 Each is a potential violation even if the normal learner route appears safe;
 the analysis therefore treats public isolation as a cross-layer invariant rather
 than a single endpoint feature (`R0-014`, `R0-015`, `AC-R0-015-13`).
+
+## 10. Risk and verification analysis
+
+### 10.1 Risk matrix
+
+Risk levels reflect the harm of an undetected failure to the trustworthy
+editorial loop, not implementation difficulty. High-risk items require a
+behavior-focused failing test before implementation, followed by the smallest
+test that proves the behavior at its owning boundary (`R0-015`,
+`AC-R0-015-18`).
+
+| Risk | Level | Failure consequence | First proof boundary | Requirement evidence |
+| --- | --- | --- | --- | --- |
+| Draft or unapproved revision appears in public list/detail/recommendation/build | Critical | Trust breach and incorrect learner content | Repository projection plus public API contract and E2E | `R0-014`, `AC-R0-014-12`, `AC-R0-015-13` |
+| Published revision changes without a new approved snapshot | Critical | Shared permanent URL becomes untrustworthy | Domain/repository transaction test | `R0-014`, `AC-R0-014-09` through `AC-R0-014-12` |
+| Invalid editorial transition, missing note, or partial publication succeeds | Critical | Unreviewed content becomes public or audit history is false | Pure workflow test plus PostgreSQL transaction test | `R0-014`, `AC-R0-014-01` through `AC-R0-014-08`, `AC-R0-015-09` |
+| Vocabulary code, type, parentage, or alias is misinterpreted | High | Problems use wrong curriculum identity or ambiguous topics | Parser/graph/domain tests and deterministic drift check | `R0-010`, `R0-013`, `R0-015`, `AC-R0-013-08`, `AC-R0-015-19` |
+| Release policy permits unsupported task/compute/scoring value | High | Unsupported workload or unsafe publication path | Availability policy unit test and publication integration test | `R0-012`, `R0-016`, `AC-R0-012-04`, `AC-R0-013-14` |
+| Scoring weights or response validation are incorrect | High | Learner receives misleading assessment | Pure response/scoring tests and API contract test | `R0-012`, `AC-R0-012-05` through `AC-R0-012-08` |
+| Autosave loses or overwrites author work | High | Content loss or silent revision corruption | State/use-case test with fake ports, then browser/component test | `R0-013`, `AC-R0-013-15` through `AC-R0-013-18` |
+| Stable slug or revision consistency fails under concurrency | High | Shared links break or show mixed content | PostgreSQL repository/concurrency test | `R0-014`, `AC-R0-014-09` through `AC-R0-014-12` |
+| Anonymous feedback or submission endpoint is abused | High | Noise, storage exhaustion, or unsafe responses | API boundary and rate/size-limit tests | `R0-012`, `R0-015`, `AC-R0-012-13`, `AC-R0-015-12` |
+| No-auth boundary leaks author commands or sensitive errors | High | Unauthenticated users mutate or inspect private data | Public/author contract tests and security-focused E2E | `R0-015`, `AC-R0-015-10` through `AC-R0-015-13` |
+| Local progress is treated as authoritative or fails silently | Medium | Misleading status/recommendation or broken anonymous loop | Browser storage adapter and component tests | `R0-012`, `AC-R0-012-09` through `AC-R0-012-11` |
+| Responsive or accessibility behavior hides status or blocks a workflow | High | Learners cannot discover or solve reliably | Testing Library/accessibility checks and Playwright widths | `R0-011`, `R0-015`, `AC-R0-011-12` through `AC-R0-011-14` |
+| Migration, backup, readiness, or deterministic build procedure fails | High | Data loss or unreproducible delivery | PostgreSQL/Alembic and operations smoke tests | `R0-015`, `AC-R0-015-08`, `AC-R0-015-14` through `AC-R0-015-19` |
+
+### 10.2 Test-boundary strategy
+
+| Boundary | Owns proof of | Required approach |
+| --- | --- | --- |
+| Pure domain unit | Identity, cardinality, status transitions, scoring totals, availability, stable slug rules, and typed references | Real domain objects, deterministic clocks/IDs, failing regression first; no framework imports |
+| Application/use-case unit | Workflow orchestration, ports, idempotency, transaction intent, safe errors, autosave recovery, recommendations | Fakes at narrow ports; assert calls and state outcomes rather than mocking domain behavior |
+| Vocabulary/import tests | Parser determinism, bilingual records, aliases, explicit parent graph, drift | Golden structured artifact plus invalid fixtures for missing parents, cycles, duplicates, and identity collisions |
+| PostgreSQL/Alembic integration | Constraints, composite keys, transaction rollback, revision/snapshot isolation, concurrency, migration safety | Real PostgreSQL; deterministic fixtures; upgrade/downgrade checks where safe |
+| FastAPI contract tests | Public/author route separation, schemas, pagination/filter errors, request IDs, safe error mapping, OpenAPI | Generated/derived contract checked against server; no ORM objects or draft fields in public responses |
+| Frontend unit/component | URL filters, hierarchy picker, status/evidence separation, responsive table/cards, validation, autosave state, preview warning, local storage failures | Accessible role/name queries with Testing Library and Vitest |
+| Playwright critical flows | Learner browse -> open -> submit -> feedback -> continue; author draft -> validate -> preview -> review -> publish -> public verify | Focused desktop/mobile workflows, with draft/public isolation assertions |
+| Operations checks | Compose health, loopback Studio binding, migrations, backup/restore, deterministic build and lockfiles | Isolated CI/local profile with documented prerequisites and safe fixtures |
+
+### 10.3 Red-green-refactor implications
+
+For each behavior-bearing implementation step, the relevant smallest test is
+written first and run to observe the expected failure. Implementation then
+passes that test before refactoring and expanding integration coverage. A
+documentation analysis can specify this gate but cannot claim that a runtime
+behavior is implemented merely because the requirement is listed (`R0-015`,
+`AC-R0-015-18`).
+
+The highest-priority initial tests are public/draft isolation, valid editorial
+transitions and atomic publication, vocabulary graph validation, scoring-total
+validation, and stable slug behavior. These tests protect the core trust loop
+before UI breadth or optional operational polish (`R0-014`, `R0-015`).

@@ -157,7 +157,7 @@ implementation choices recorded in requirements section 15.3.
   provider errors, or object keys could leak. State the repository/API boundary
   that must enforce published-only projections. Suggested commit:
   `docs(analysis): assess data access and draft isolation`.
-- [ ] **R0-028 — Build the risk and verification analysis from R0-015 and all
+- [x] **R0-028 — Build the risk and verification analysis from R0-015 and all
   affected story groups.** Create a risk-ranked matrix for domain invariants,
   vocabulary drift, migrations and PostgreSQL constraints, transaction safety,
   API contracts and generated clients, scoring, autosave, progress, feedback
