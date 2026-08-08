@@ -1290,3 +1290,63 @@ and no credentials, SQL, stack traces, or topology secrets (`R0-015`,
 Retry policy is explicit at each port; generic HTTP retries are not applied to
 non-idempotent commands without an idempotency key (`R0-012`, `R0-013`, `R0-014`,
 analysis sections 6-10).
+
+## 16. Design baseline and traceability
+
+### 16.1 Requirement-to-design matrix
+
+| Requirement group | Design evidence | Implementation proof deferred |
+| --- | --- | --- |
+| R0-010 goals, personas, assumptions, terminology, scope | Sections 1-3 and 12-14 define actors, boundaries, architecture, and excluded services | Phase 4 scaffolding and operations checks |
+| R0-011 learner discovery | Sections 6, 11, and 12 define public list/detail contracts, filters, stable URLs, projections, responsive/accessibility behavior | Phase 4/7 API, UI, accessibility, and E2E tests |
+| R0-012 learner solving loop | Sections 3-4, 6, 9-12, and 15 define response variants, scoring, attempts, progress, feedback, recommendation, and failure states | Phase 5/7 domain, API, UI, scoring, and browser tests |
+| R0-013 authoring | Sections 3-4, 7, 11, and 13 define draft aggregates, metadata, autosave, validation, preview, and recovery | Phase 6/7 authoring, API, component, and E2E tests |
+| R0-014 editorial publication | Sections 3-4, 7, 9-11, and 13 define revision/snapshot model, status commands, atomic publication, stable slugs, and isolation | Phase 6/7 workflow, persistence, contract, and E2E tests |
+| R0-015 quality and operations | Sections 1-2, 8-11, 14-15 define dependency direction, errors, transactions, privacy, Compose, observability, health, backup, and testing | Phase 4/7 quality, migration, operations, and CI checks |
+| R0-016 governance | This section and decision-index updates preserve requirement/analysis/design traceability | Review at every later design or implementation change |
+
+### 16.2 Analysis-to-design matrix
+
+| Analysis section | Design sections | Design conclusion |
+| --- | --- | --- |
+| 1-3 actors/context/trust | 1-2, 11, 14 | Four-service local pilot; public/author boundaries; no-auth port limitation |
+| 4 domain model | 3-4, 9-10 | Framework-free modules, aggregate invariants, PostgreSQL ownership, transactional snapshots |
+| 5 vocabulary governance | 5, 9 | Deterministic artifact, explicit taxonomy graph, composite identity, central policy |
+| 6 learner workflow | 6, 12, 15 | URL-owned discovery, snapshot-bound submission, local progress adapter, safe failures |
+| 7 authoring workflow | 4, 7, 13 | Versioned autosave, recovery, validation layers, preview isolation, distinct actions |
+| 8 editorial workflow | 7, 9-10, 13 | Explicit transitions, required notes, idempotent atomic publication, stable URLs |
+| 9 data access/isolation | 6-8, 11 | Semantically separate public/author ports and schemas; published-only enforcement below HTTP |
+| 10 risk/verification | 8, 10-11, 14-15 | Contract drift, PostgreSQL, accessibility, E2E, observability, backup, and leak tests |
+| 11 open decisions | 1, 8, 10, 14-15 | Resolved READ COMMITTED/row-lock policy; remaining deployment/tool choices recorded explicitly |
+
+### 16.3 Deferred proof and open implementation choices
+
+Design establishes behavior and boundaries but does not claim implementation
+proof. Phase 4+ must prove the design with real artifacts and tests, especially:
+
+- public/draft isolation across repository, API, build, cache, and E2E paths;
+- PostgreSQL constraints, migrations, transaction rollback, concurrency, and
+  snapshot consistency;
+- vocabulary parsing, graph validation, generated-artifact drift, and policy;
+- generated OpenAPI/client compatibility and public/author schema separation;
+- responsive/accessibility behavior and critical learner/author workflows;
+- Compose health, loopback Studio binding, backup/restore, and deterministic
+  quality commands.
+
+The exact API generator, browser version window, structured-log sink, backup
+retention/provider, local-progress storage limits, and anonymous rate/idempotency
+retention remain operational/tooling choices. They require an ADR or concrete
+implementation design before use and cannot weaken accepted requirements or
+introduce deferred features (`R0-015`, analysis section 11.2).
+
+### 16.4 Baseline decision
+
+The design contains no authentication, accounts, hosted notebooks, GPU or
+distributed execution, semantic retrieval, document ingestion, LLM generation,
+embeddings, vector database, broad analytics, or unapproved task types. It
+preserves the five Release 0 task types, three compute tiers, separate learner
+status/evidence/editorial/publication dimensions, stable URLs, published-only
+public projections, and the local Studio limitation (`R0-010` through `R0-016`).
+
+Material future changes must update the relevant requirements, analysis,
+design/ADR, and decision-index row in one reviewable commit.

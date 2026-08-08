@@ -43,14 +43,22 @@ Update this as artifacts land.
 | R0-027 | `requirement_release_0.md` R0-011/R0-012/R0-013/R0-014/R0-015 | `analysis_release_0.md` section 9 | Pending Phase 3/4/7 | Public/draft isolation tests |
 | R0-028 | `requirement_release_0.md` R0-015 and all affected groups | `analysis_release_0.md` section 10 | Pending Phase 3/4/7 | Risk matrix and quality gates |
 | R0-029 | `requirement_release_0.md` R0-010 through R0-016 | `analysis_release_0.md` section 11 | `docs/decisions/README.md` | Analysis baseline review |
-| R0-030 | Pending | Pending | Pending | Pending |
-| R0-031 | Pending | Pending | Pending | Pending |
-| R0-032 | Pending | Pending | Pending | Pending |
-| R0-033 | Pending | Pending | Pending | Pending |
-| R0-034 | Pending | Pending | Pending | Pending |
-| R0-035 | Pending | Pending | Pending | Pending |
-| R0-036 | Pending | Pending | Pending | Pending |
-| R0-037 | Pending | Pending | Pending | Pending |
+| R0-03001 | `requirement_release_0.md` R0-010/R0-015 | `design_release_0.md` sections 1-2 | Pending Phase 4 | Architecture and boundary tests |
+| R0-03002 | `requirement_release_0.md` R0-010/R0-015 | `design_release_0.md` section 2 | Pending Phase 4 | Dependency-boundary checks |
+| R0-03003 | `requirement_release_0.md` R0-012/R0-013/R0-014/R0-015 | `design_release_0.md` section 3 | Pending Phase 5/6 | Domain invariant tests |
+| R0-03004 | `requirement_release_0.md` R0-012/R0-013/R0-014/R0-015 | `design_release_0.md` section 4 | Pending Phase 5/6/7 | Use-case and port tests |
+| R0-03005 | `requirement_release_0.md` R0-010/R0-011/R0-012/R0-013/R0-016 | `design_release_0.md` section 5 | Pending Phase 5 | Import, graph, drift, and policy tests |
+| R0-03006 | `requirement_release_0.md` R0-011/R0-012/R0-015 | `design_release_0.md` section 6 | Pending Phase 4/7 | Public API and learner E2E tests |
+| R0-03007 | `requirement_release_0.md` R0-013/R0-014/R0-015 | `design_release_0.md` section 7 | Pending Phase 6/7 | Author API and workflow tests |
+| R0-03008 | `requirement_release_0.md` R0-011 through R0-015 | `design_release_0.md` section 8 | Pending Phase 4/7 | OpenAPI/client drift tests |
+| R0-03009 | `requirement_release_0.md` R0-012 through R0-015 | `design_release_0.md` section 9 | Pending Phase 4/6 | PostgreSQL repository tests |
+| R0-03010 | `requirement_release_0.md` R0-013 through R0-015 | `design_release_0.md` section 10 | Pending Phase 4/6/7 | Transaction and migration tests |
+| R0-03011 | `requirement_release_0.md` R0-014/R0-015 | `design_release_0.md` section 11 | Pending Phase 4/7 | Isolation, privacy, and error tests |
+| R0-03012 | `requirement_release_0.md` R0-011/R0-012/R0-015 | `design_release_0.md` section 12 | Pending Phase 4/7 | Learner component and E2E tests |
+| R0-03013 | `requirement_release_0.md` R0-013/R0-014/R0-015 | `design_release_0.md` section 13 | Pending Phase 4/7 | Studio component and E2E tests |
+| R0-03014 | `requirement_release_0.md` R0-015 | `design_release_0.md` section 14 | Pending Phase 4/7 | Compose and operations checks |
+| R0-03015 | `requirement_release_0.md` R0-015 and affected groups | `design_release_0.md` section 15 | Pending Phase 4/7 | Verification and quality gates |
+| R0-03016 | `requirement_release_0.md` R0-010 through R0-016 | `design_release_0.md` section 16 | `docs/decisions/README.md` | Design baseline review |
 | R0-040 | Pending | Pending | Pending | Pending |
 | R0-041 | Pending | Pending | Pending | Pending |
 | R0-042 | Pending | Pending | Pending | Pending |

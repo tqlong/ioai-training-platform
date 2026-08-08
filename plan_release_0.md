@@ -290,7 +290,7 @@ explicitly excluded from Release 0.
   safe errors, backup/restore, performance, browser, accessibility, and contract
   drift gates. Resolve open backup/observability decisions or record ADRs.
   Suggested commit: `docs(design): define verification and operations`.
-- [ ] **R0-03016 — Review and baseline the design against both governing
+- [x] **R0-03016 — Review and baseline the design against both governing
   artifacts.** Verify every design element maps to `requirement_release_0.md`
   R0-010 through R0-016, the corresponding `analysis_release_0.md` section,
   and each acceptance-criteria range. Remove speculative features and
