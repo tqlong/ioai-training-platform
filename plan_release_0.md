@@ -148,7 +148,7 @@ implementation choices recorded in requirements section 15.3.
   and archive/republication behavior. Document invalid transitions and partial
   failure outcomes without adding states. Suggested commit:
   `docs(analysis): model editorial publication workflow`.
-- [ ] **R0-027 — Analyze data access and strict public isolation from R0-011,
+- [x] **R0-027 — Analyze data access and strict public isolation from R0-011,
   R0-012, R0-013, R0-014, and R0-015.** Map public reads, submissions,
   recommendations, feedback, author commands, preview reads, and persistence
   paths. Identify revision consistency, transaction boundaries, idempotency

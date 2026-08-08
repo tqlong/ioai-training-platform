@@ -529,3 +529,71 @@ must be rejected without affecting the existing problem (`R0-014`,
 These conclusions constrain repository transactions and API commands. The
 specific database isolation level, locking strategy, and generated contract are
 Phase 3 design decisions, not reasons to weaken public stability or auditability.
+
+## 9. Data access and strict public isolation
+
+### 9.1 Access-path matrix
+
+| Access path | Consumer | Eligible source | Allowed data | Isolation requirement |
+| --- | --- | --- | --- | --- |
+| Public problem list/search | Learner UI and public API | Current published snapshots only | Public title, objective, stage/difficulty, approved metadata, type, time, compute, task status/evidence display context | Repository/API query must select published projection before filtering, sorting, or pagination (`AC-R0-011-01`, `AC-R0-014-12`) |
+| Public problem detail | Learner UI and permanent URL | Snapshot addressed by stable problem identity/slug | Published learner content, response form, prerequisites, public recommendation context | Never resolve a draft or revision preview through the public slug (`AC-R0-011-15`, `AC-R0-011-16`) |
+| Public submission | Learner UI/API | Current published response configuration | Bounded answer and safe result/feedback | Resolve against published snapshot; do not accept draft revision IDs or reveal hidden assessment data (`AC-R0-012-03`, `AC-R0-012-07`) |
+| Public recommendation | Learner UI/API | Published eligible candidate set | One public problem and plain-language reason | Exclude drafts, unavailable values, and archived-only problems (`AC-R0-012-15` through `AC-R0-012-17`) |
+| Public feedback | Learner UI/API | Published problem identity | Bounded category/message and moderation metadata | Do not expose author records, internal IDs, or unbounded anonymous data (`AC-R0-012-12` through `AC-R0-012-14`) |
+| Author draft list/detail | Studio/API | Draft revisions and editorial history | Internal revision fields, validation state, notes, preview context | Must be routed through author-safe contracts and never reused as public projections (`AC-R0-013-01`, `AC-R0-013-20`) |
+| Author preview | Studio/API | Current draft plus explicit unsaved state | Learner-shaped draft projection and author warnings | Requires explicit preview context; public build/search/cache must not consume it (`AC-R0-013-20`, `AC-R0-013-21`) |
+| Author workflow command | Studio/API | Target revision with current version | Transition command, note, idempotency context | Domain validates current status, approval, policy, slug, and version before mutation (`AC-R0-014-01` through `AC-R0-014-08`) |
+| Internal persistence and operations | Application/adapters | All authoritative records | Full domain state subject to operational controls | No SQL objects, provider errors, secrets, answer data, or object keys cross public error boundaries (`AC-R0-015-07`, `AC-R0-015-13`) |
+
+### 9.2 Published-only enforcement point
+
+Published-only eligibility must be enforced at the repository/application
+projection boundary, before a caller can add a public filter, sort, search,
+recommendation, or build query. An HTTP route check alone is insufficient:
+another endpoint, background build, cache warmer, or future client could call a
+broader repository method and leak a draft. Public response schemas must also
+omit draft fields so a projection mistake cannot become an accidental contract
+(`R0-011`, `R0-014`, `AC-R0-014-12`).
+
+The author side may read richer revision and editorial records, but it should
+request them through explicitly author-named use cases and response models.
+Public and author query paths should not share an unconstrained “problem” read
+that relies on callers to remember a status predicate (`R0-013`, `R0-015`).
+
+### 9.3 Consistency and transaction analysis
+
+Public detail and submission must resolve a consistent published snapshot. If a
+new revision is being published concurrently, a request already resolved to a
+snapshot should complete against that snapshot or return a documented conflict;
+it must not mix content from two revisions. Publication, snapshot eligibility,
+and transition history require one transaction boundary. Draft autosave and
+editorial commands require revision-version checks. Feedback and attempts can
+be separate bounded transactions, but must reference a public problem/snapshot
+context and never mutate editorial state (`R0-012`, `R0-013`, `R0-014`,
+`AC-R0-013-18`, `AC-R0-014-05`, `AC-R0-015-09`).
+
+Idempotency applies to retriable commands with externally visible effects:
+publication and learner submission at minimum. A duplicate submission may
+return the original assessment result or an equivalent safe result, but must
+not create uncontrolled attempts or alter a later published snapshot
+(`AC-R0-012-06`, `AC-R0-014-08`).
+
+### 9.4 Leak-path checklist
+
+The following paths need explicit tests in later phases:
+
+- list/search/filter queries that omit publication status;
+- direct slug lookup that accepts revision or preview identifiers;
+- recommendations built from all revisions instead of snapshots;
+- learner submission errors containing answer keys, hidden tests, or draft
+  explanations;
+- generated OpenAPI schemas that include author-only fields;
+- Next.js build-time data fetches using author repositories or draft fixtures;
+- cache keys that do not distinguish public snapshot from preview;
+- feedback or attempt responses that expose internal object keys or stack traces;
+- archived records returned by a stale index or pagination cursor.
+
+Each is a potential violation even if the normal learner route appears safe;
+the analysis therefore treats public isolation as a cross-layer invariant rather
+than a single endpoint feature (`R0-014`, `R0-015`, `AC-R0-015-13`).
