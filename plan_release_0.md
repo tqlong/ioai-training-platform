@@ -219,7 +219,7 @@ explicitly excluded from Release 0.
   drafting, validation, preview, editorial transitions, publication, listing,
   detail, submission/scoring, feedback, progress, and recommendation. Suggested
   commit: `docs(design): specify release 0 application use cases`.
-- [ ] **R0-03005 — Design vocabulary ingestion and availability policy from
+- [x] **R0-03005 — Design vocabulary ingestion and availability policy from
   R0-010, R0-011, R0-012, R0-013, R0-016, analysis section 5, and 11.** Define
   parser/import boundaries, structured artifact, composite identity, explicit
   topic graph validation, bilingual/alias search, proposals, drift detection,

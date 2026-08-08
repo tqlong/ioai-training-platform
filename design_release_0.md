@@ -343,3 +343,85 @@ history are one transaction. Draft autosave, learner submission, and feedback
 are separately bounded transactions with explicit idempotency/concurrency
 rules. A use case must not perform multiple independent writes and claim they
 are atomic (`R0-014`, `R0-015`, `AC-R0-014-05`, `AC-R0-015-09`).
+
+## 5. Vocabulary ingestion and Release 0 policy
+
+### 5.1 Generation pipeline
+
+```text
+vocab.md
+  -> deterministic parser
+  -> normalized typed records
+  -> graph/uniqueness/label validation
+  -> stable structured artifact
+  -> drift check + runtime package
+  -> idempotent PostgreSQL synchronization
+```
+
+The parser is an adapter owned outside the domain. It extracts declared values,
+labels, aliases, statuses, and explicit parent codes; it never infers topic
+parentage from Markdown heading position. The domain validator receives typed
+records and checks composite identity, parent resolution, self-parenting, cycles,
+branch ambiguity, bilingual labels, alias uniqueness, and status shape. A failed
+validation produces no synchronization write (`R0-010`, `R0-013`, `R0-015`,
+analysis section 5).
+
+The generated artifact is deterministic: records use stable vocabulary-type and
+code ordering, normalized field representation, and no timestamps or machine
+paths. The drift command parses the source and compares the generated result;
+it fails with a field-level diff when identity, labels, aliases, parentage, or
+status changes. Runtime and fixtures consume the artifact instead of parallel
+enums (`AC-R0-015-19`).
+
+### 5.2 Composite identity and search design
+
+```text
+VocabularyIdentity
+  vocabulary_type: canonical vocabulary family
+  code: stable uppercase canonical code
+```
+
+Every repository key, API selection, fixture, and problem metadata reference
+stores both fields. Search indexes may denormalize English labels, Vietnamese
+labels, and approved aliases, but the selected result resolves back to the
+composite identity before persistence. Competency and topic records with the
+same code remain distinct (`R0-010`, `R0-011`, `R0-013`, `AC-R0-011-07`,
+`AC-R0-013-08`).
+
+Topic records store explicit `parent_code` within the topic vocabulary. A
+hierarchical picker can return family, intermediate, and leaf records and can
+optionally expand descendants only when the caller supplies an explicit
+include-descendants option. The policy is shared by learner search and author
+selection but the projections differ (`AC-R0-011-08`, `AC-R0-013-09`).
+
+### 5.3 Availability policy
+
+Availability is a pure central policy evaluated at author validation,
+publication, public candidate selection, and any task fixture generation. It
+does not remove canonical future records.
+
+| Dimension | Release 0 enabled values | Design rule |
+| --- | --- | --- |
+| Task type | `QUIZ_SINGLE`, `QUIZ_MULTIPLE`, `NUMERIC_ANSWER`, `SHORT_ANSWER`, `CODE_FUNCTION` | Any other canonical task type is stored but publication-blocking |
+| Compute tier | `NONE`, `BROWSER`, `CPU_LIGHT` | GPU, distributed, and higher CPU values are publication-blocking |
+| Scoring | `EXACT_MATCH`, `UNIT_TESTS`, `PARTIAL_TESTS`, `RUBRIC_HUMAN` | Weights are decimal-safe and total exactly `1.0` |
+| Modality | `NONE` alone, or actual modalities without `NONE` | `NONE` is mutually exclusive with actual data modalities |
+
+The policy returns a typed decision with enabled/disabled status, reason code,
+and safe display message. A disabled value can be visible as unavailable to an
+author, but cannot be silently downgraded or published (`R0-012`, `R0-013`,
+`R0-016`, `AC-R0-012-04`, `AC-R0-013-14`).
+
+### 5.4 Proposals and synchronization
+
+“Can’t find the right value?” creates a bounded proposal associated with author
+context and a note. It does not create a vocabulary record and cannot satisfy a
+problem revision's canonical reference. Curriculum-owner approval changes the
+canonical source through the vocabulary workflow, after which regeneration and
+drift checks are required (`AC-R0-013-10`).
+
+Synchronization is idempotent by composite identity. Existing records may
+receive approved label/alias/status updates, but a changed type or code is a new
+identity and cannot repurpose the old record. The sync result reports added,
+updated, unchanged, rejected, and policy-disabled records without leaking
+provider or database details (`R0-015`, `AC-R0-015-07`).
