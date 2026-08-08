@@ -178,51 +178,108 @@ implementation choices recorded in requirements section 15.3.
 
 ## Phase 3 — Design
 
-Deliverable: `design_release_0.md`. Reference `ui_release_0.md`; do not duplicate
-its detailed visual specification unnecessarily.
+Deliverable: `design_release_0.md`.
 
-- [ ] **R0-030 — Design the system architecture.** Define the monorepo boundaries,
-  learner and Studio applications, FastAPI entrypoint, application use cases,
-  domain modules, ports/adapters, PostgreSQL access, generated OpenAPI client,
-  and dependency direction. Include a context and container diagram. Suggested
-  commit: `docs(design): define release 0 architecture`.
-- [ ] **R0-031 — Design application functions and use cases.** Specify inputs,
-  outputs, authorization assumptions, transactions, domain errors, and ports for
-  vocabulary import, problem drafting, validation, editorial transitions,
-  publication, public listing/detail, submission/scoring, feedback, and next-
-  problem recommendation. Suggested commit:
-  `docs(design): specify application use cases`.
-- [ ] **R0-032 — Design the API contract.** Define `/api/v1` public resources and
-  `/api/v1/author` commands, request/response schemas, pagination, filtering,
-  sorting, stable error codes, idempotency, draft-safe public projections, and
-  OpenAPI-to-TypeScript generation. Suggested commit:
+Design input and traceability rule: read and cite both
+`requirement_release_0.md` and `analysis_release_0.md` for every design
+decision. Requirements define accepted behavior and deferred scope; analysis
+defines actors, domain invariants, workflow semantics, public isolation risks,
+test boundaries, and open decisions. Reference `ui_release_0.md` for interface
+behavior without duplicating its detailed visual specification. Every design
+step must identify which choices are resolved, which are open, and which are
+explicitly excluded from Release 0.
+
+- [ ] **R0-030 — Design system architecture and dependency direction from
+  R0-010, R0-015, analysis sections 1-3, and 11.** Define monorepo boundaries,
+  learner and Studio applications, FastAPI entrypoint, application/domain/
+  adapter layers, PostgreSQL boundary, generated API-client boundary, local
+  browser state, and dependency direction. Include context and container
+  diagrams, actor-to-component responsibilities, public/author boundaries, and
+  the no-auth trust assumptions. Do not introduce external systems excluded by
+  requirements. Suggested commit: `docs(design): define release 0 architecture`.
+- [ ] **R0-031 — Design domain modules and application use cases from R0-012,
+  R0-013, R0-014, R0-015, analysis sections 4, 6-9, and 11.** Specify domain
+  module ownership and typed application use cases for vocabulary sync, draft
+  creation/editing, validation, preview, editorial transitions, publication,
+  public listing/detail, submission/scoring, feedback, local-progress
+  interaction, and next-problem recommendation. For each use case define input,
+  output, port dependencies, transaction intent, idempotency, version/conflict
+  behavior, safe domain errors, and public versus author projection. Suggested
+  commit: `docs(design): specify release 0 application use cases`.
+- [ ] **R0-032 — Design vocabulary and Release 0 policy integration from
+  R0-010, R0-011, R0-012, R0-013, R0-016, analysis section 5, and section 11.**
+  Define the structured artifact generated from `vocab.md`, parser/import
+  boundary, composite identity, explicit topic graph validation, bilingual
+  search/alias index, proposal handling, drift check, synchronization contract,
+  and central availability policy. Specify the five task types,
+  `NONE`/`BROWSER`/`CPU_LIGHT`, scoring methods, and modality rules without
+  deleting future canonical values. Suggested commit:
+  `docs(design): define vocabulary and release policy integration`.
+- [ ] **R0-033 — Design the API contract from R0-011 through R0-015 and
+  analysis sections 6-9.** Define versioned `/api/v1` public reads/submissions
+  and `/api/v1/author` commands, request/response schemas, public-safe
+  projections, pagination/filter/sort/query semantics, URL state, permanent
+  slugs, submission and feedback contracts, workflow commands, preview
+  isolation, stable machine-readable errors, request IDs, optimistic versions,
+  and idempotency keys. Specify deterministic OpenAPI generation and the
+  TypeScript client/drift-check ownership. Suggested commit:
   `docs(design): specify release 0 api contract`.
-- [ ] **R0-033 — Design the PostgreSQL model.** Provide an ER diagram, tables,
-  keys, composite vocabulary identity, topic relationships, revision/snapshot
-  model, editorial history, scoring weights, feedback, indexes, constraints,
-  transaction rules, migration strategy, and seed strategy. Suggested commit:
-  `docs(design): define release 0 database model`.
-- [ ] **R0-034 — Consolidate the UI implementation design.** Map learner and
-  author routes, pages, server/client component boundaries, state ownership,
-  local progress, URL filters, form architecture, autosave, preview, responsive
-  behavior, accessibility, and generated API types back to `ui_release_0.md`.
-  Suggested commit: `docs(design): map release 0 frontend architecture`.
-- [ ] **R0-035 — Design Docker Compose and local operations.** Specify services,
-  health checks, networks, named volumes, environment variables, startup order,
-  ports, migrations, seed commands, and development/CI profiles. The base
-  Release 0 stack must include PostgreSQL, FastAPI, learner Next.js, and Studio
-  Next.js. Add Redis/Celery or MinIO only behind explicit profiles if an accepted
-  requirement needs them. Suggested commit:
+- [ ] **R0-034 — Design the PostgreSQL model and transaction strategy from
+  R0-012 through R0-015, analysis sections 4, 8-10, and open decisions in
+  section 11.** Provide an ER diagram and table design for problems, revisions,
+  snapshots, vocabulary records, topic relationships, prerequisites, response
+  and scoring configuration, editorial history, attempts, feedback, and bounded
+  operational metadata. Define composite keys, indexes, constraints, unique
+  slugs, optimistic versioning, publication atomicity, snapshot consistency,
+  migration strategy, deterministic seeds, and the chosen isolation/locking
+  policy. Suggested commit: `docs(design): define release 0 database model`.
+- [ ] **R0-035 — Design public isolation, privacy, and error boundaries from
+  R0-014, R0-015, analysis sections 3 and 9-10.** Specify repository/application
+  projection rules that make published-only eligibility unavoidable, separate
+  public and author query/use-case paths, preview/cache/build boundaries,
+  no-auth command exposure assumptions, bounded anonymous submission/feedback,
+  redaction, safe error mapping, and leak-path tests. Record what a future
+  access-control layer would replace without adding authentication now. Suggested
+  commit: `docs(design): enforce public isolation and safe boundaries`.
+- [ ] **R0-036 — Consolidate learner and Studio UI architecture from R0-011,
+  R0-012, R0-013, R0-015, `ui_release_0.md`, and analysis sections 6-7.** Map
+  learner and author routes, page hierarchy, server/client boundaries, generated
+  API types, URL-filter state, local-progress ownership, recommendation state,
+  form sections, autosave/recovery, validation, preview banner, editorial
+  controls, responsive table/cards, accessibility/focus behavior, loading/error
+  states, and the distinct Learn/Studio visual language. Reference the UI spec
+  instead of restating its visual tokens. Suggested commit:
+  `docs(design): map release 0 frontend architecture`.
+- [ ] **R0-037 — Design Docker Compose and local operations from R0-015,
+  analysis sections 2, 3, 9-10, and section 11 open decisions.** Specify base
+  services for PostgreSQL, FastAPI, learner Next.js, and Studio Next.js;
+  health/readiness checks, networks, named volumes, environment variables,
+  startup/migration/seed order, ports and loopback Studio binding, development
+  and CI profiles, backup/restore rehearsal, and safe reset behavior. Add
+  Redis/Celery or MinIO only if an accepted requirement creates a concrete need;
+  otherwise document their exclusion. Suggested commit:
   `docs(design): define docker compose topology`.
-- [ ] **R0-036 — Design testing, observability, and failure handling.** Specify
-  unit/integration/E2E boundaries, PostgreSQL test isolation, fixture ownership,
-  structured logs, request IDs, health/readiness endpoints, safe error mapping,
-  backup/restore rehearsal, and quality commands. Suggested commit:
+- [ ] **R0-038 — Design testing, observability, and failure handling from
+  R0-015, analysis sections 9-10, and all affected acceptance criteria.** Define
+  unit/application/domain, vocabulary, PostgreSQL/Alembic, FastAPI contract,
+  frontend component, Playwright, and operations test ownership; PostgreSQL
+  isolation and fixture strategy; red-green-refactor evidence; structured logs,
+  request/operation IDs, redaction, health/readiness semantics, retry and
+  idempotency handling, safe error taxonomy, backup/restore checks, performance
+  budgets, browser matrix, accessibility checks, and generated-contract drift
+  gates. Resolve observability and backup choices from analysis section 11 or
+  record an ADR. Suggested commit:
   `docs(design): define verification and operations`.
-- [ ] **R0-037 — Review and baseline the design.** Verify every design element
-  traces to accepted requirements and analysis, remove speculative components,
-  record ADRs for material trade-offs, and update the traceability index.
-  Suggested commit: `docs(design): baseline release 0 design`.
+- [ ] **R0-039 — Review and baseline the design against
+  requirement_release_0.md and analysis_release_0.md.** Verify every design
+  element maps to R0-010 through R0-016 and the corresponding analysis section
+  and acceptance-criteria range. Remove speculative features and contradictions;
+  confirm public/draft isolation, five-type policy, compute limits, stable URLs,
+  state-dimension separation, no-auth assumptions, and deferred decisions.
+  Record material trade-offs as ADRs, update `docs/decisions/README.md` for
+  design traceability, and include a requirement-to-design matrix plus a list of
+  implementation proof still deferred to Phase 4+. Suggested commit:
+  `docs(design): baseline release 0 design`.
 
 ## Phase 4 — Executable project foundation
 
