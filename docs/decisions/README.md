@@ -59,14 +59,21 @@ Update this as artifacts land.
 | R0-03014 | `requirement_release_0.md` R0-015 | `design_release_0.md` section 14 | Pending Phase 4/7 | Compose and operations checks |
 | R0-03015 | `requirement_release_0.md` R0-015 and affected groups | `design_release_0.md` section 15 | Pending Phase 4/7 | Verification and quality gates |
 | R0-03016 | `requirement_release_0.md` R0-010 through R0-016 | `design_release_0.md` section 16 | `docs/decisions/README.md` | Design baseline review |
-| R0-040 | Pending | Pending | Pending | Pending |
-| R0-041 | Pending | Pending | Pending | Pending |
-| R0-042 | Pending | Pending | Pending | Pending |
-| R0-043 | Pending | Pending | Pending | Pending |
-| R0-044 | Pending | Pending | Pending | Pending |
-| R0-045 | Pending | Pending | Pending | Pending |
-| R0-046 | Pending | Pending | Pending | Pending |
-| R0-047 | Pending | Pending | Pending | Pending |
+| R0-04001 | `analysis_release_0.md` §§2,10; `design_release_0.md` §§1,2 | `design_release_0.md` §§1,2 | `pyproject.toml`, `.python-version`, `uv.lock` | `git commit` history |
+| R0-04002 | `analysis_release_0.md` §§4,10; `design_release_0.md` §2 | `design_release_0.md` §2 | `backend/src/ioai/...` package directories, `backend/tests/unit/test_smoke_imports.py` | `test_ioai_packages_import_without_side_effects` |
+| R0-04003 | `analysis_release_0.md` §§2,10; `design_release_0.md` §§1,2 | `design_release_0.md` §§1,2 | `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `frontend/packages/*` | `npm` scripts smoke checks in package manifests |
+| R0-04004 | `analysis_release_0.md` §§2,10; `design_release_0.md` §§2,8 | `design_release_0.md` §§2,8 | `frontend/packages/api-client`, `ui`, `vocabulary` | package smoke tests in each package |
+| R0-04005 | `analysis_release_0.md` §§6 | `design_release_0.md` §12 | `frontend/apps/learn` shell | `frontend/apps/learn/tests/problems.test.tsx` |
+| R0-04006 | `analysis_release_0.md` §§7 | `design_release_0.md` §13 | `frontend/apps/studio` shell | `frontend/apps/studio/tests/author-problems.test.tsx` |
+| R0-04007 | `analysis_release_0.md` §§2,3,10; `design_release_0.md` §§1,2 | `design_release_0.md` §§1,2 | `backend/src/ioai/entrypoints/api/{settings,factory,main}.py` | `backend/tests/unit/test_api_factory.py` |
+| R0-04008 | `analysis_release_0.md` §§9,10; `design_release_0.md` §§6-8,15 | `design_release_0.md` §§6-8,15 | `backend/src/ioai/entrypoints/api/{errors,openapi}` | `backend/tests/unit/test_health_endpoints.py`, `backend/tests/unit/test_openapi_contract_smoke.py` |
+| R0-04009 | `analysis_release_0.md` §§4,9,10; `design_release_0.md` §§9,10 | `design_release_0.md` §§9,10 | `backend/src/ioai/adapters/database`, `backend/alembic`, `backend/scripts/check_alembic_head.py` | `backend/tests/integration/test_database_readiness.py` |
+| R0-04010 | `analysis_release_0.md` §10; `design_release_0.md` §15 | `design_release_0.md` §15 | `backend/tests/fixtures`, `scripts/foundation_quality.sh` | `backend/tests/unit/test_fixtures.py` |
+| R0-04011 | `analysis_release_0.md` §§2,3,9,10; `design_release_0.md` §14 | `design_release_0.md` §14 | `docker-compose.yml` | `backend/tests/integration/test_foundation_stack_smoke.py` |
+| R0-04012 | `analysis_release_0.md` §§3,10; `design_release_0.md` §§10,14 | `design_release_0.md` §§10,14 | `docs/local-operations.md`, `scripts/dev_*`, `scripts/db_backup_restore.sh` | `backend/tests/unit/test_fixtures.py` |
+| R0-04013 | `analysis_release_0.md` §§3,9,10 | `design_release_0.md` §§11-15 | `backend/tests/integration/test_foundation_stack_smoke.py` | boundary smoke suite |
+| R0-04014 | `analysis_release_0.md` §10; `design_release_0.md` §§8,15 | `design_release_0.md` §§8,15 | `.github/workflows/release-0-ci.yml`, `scripts/openapi_drift_check.sh` | CI config review |
+| R0-04015 | `requirement_release_0.md`, `analysis_release_0.md`, `design_release_0.md` | same as row source | `docs/decisions/README.md` | traceability review checklist |
 | R0-050 | Pending | Pending | Pending | Pending |
 | R0-051 | Pending | Pending | Pending | Pending |
 | R0-052 | Pending | Pending | Pending | Pending |

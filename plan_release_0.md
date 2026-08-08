@@ -399,7 +399,7 @@ foundation must remain runnable with the four base services only.
   client drift, PostgreSQL integration, Compose health, and focused browser
   smoke checks with dependency caching. Fail closed on contract or public/draft
   isolation drift. Suggested commit: `ci: add release 0 quality pipeline`.
-- [ ] **R0-04015 — Review and baseline the executable foundation against
+- [x] **R0-04015 — Review and baseline the executable foundation against
   `requirement_release_0.md`, `analysis_release_0.md`, and
   `design_release_0.md`.** Verify repository shape, tool/lockfile discipline,
   dependency direction, four-service topology, health/readiness, loopback
