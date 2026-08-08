@@ -120,7 +120,7 @@ implementation choices recorded in requirements section 15.3.
   learning evidence, editorial status, revision state, and publication state.
   Document cardinalities, invariants, ownership, and lifecycle. Suggested
   commit: `docs(analysis): model release 0 domain concepts`.
-- [ ] **R0-023 — Analyze vocabulary ingestion and governance from R0-010,
+- [x] **R0-023 — Analyze vocabulary ingestion and governance from R0-010,
   R0-011, R0-012, R0-013, R0-015, and R0-016.** Explain the deterministic path
   from `vocab.md` to structured data; composite identity; bilingual labels and
   aliases; explicit topic parentage; missing-parent, self-parent, cycle, and

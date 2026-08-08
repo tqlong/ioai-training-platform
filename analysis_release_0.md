@@ -228,3 +228,114 @@ attempt from being interpreted as editorial evidence (`R0-010`, `R0-012`,
 These are domain ownership conclusions; database keys, ORM mappings, and
 transaction implementation are deferred to Phase 3 design (`R0-014`,
 `R0-015`, `AC-R0-014-09` through `AC-R0-014-12`).
+
+## 5. Vocabulary ingestion and governance
+
+### 5.1 Deterministic data flow
+
+`vocab.md` is the sole human-maintained canonical source. The analysis implies
+this repeatable pipeline:
+
+```text
+vocab.md
+   |
+   v  parse declared sections and table rows
+raw vocabulary records
+   |
+   v  normalize codes, labels, aliases, parents, and statuses
+validated structured representation
+   |
+   +--> checked-in/generated artifact used by runtime and fixtures
+   |
+   +--> deterministic drift check against vocab.md
+   |
+   +--> synchronization input for PostgreSQL vocabulary records
+```
+
+The parser may recognize the documented table structure, but Markdown heading
+position is presentation and cannot establish parentage. Every non-root topic
+must carry an explicit `parent_code`; a missing explicit relationship is an
+error rather than an inferred relationship (`R0-010`, `R0-013`, `R0-015`,
+`AC-R0-013-07`, `AC-R0-013-09`).
+
+The structured representation must retain vocabulary type, code, nested
+English/Vietnamese labels, approved aliases, explicit parent code, canonical
+status, and any fields needed by the availability policy. Runtime code consumes
+this validated representation rather than maintaining parallel hand-coded enum
+or label lists (`R0-010`, `R0-011`, `R0-013`, `AC-R0-011-07`,
+`AC-R0-013-08`).
+
+### 5.2 Identity and graph validation
+
+Canonical identity is the composite `(vocabulary_type, code)`. A competency and
+topic may share a code or label without being the same record. Therefore:
+
+- uniqueness is checked within composite identity, not code globally;
+- references carry vocabulary type as well as code;
+- duplicate canonical labels and aliases are rejected within a parent branch
+  when they would make selection ambiguous;
+- every non-root topic resolves to an existing parent of the topic vocabulary;
+- self-parenting is rejected;
+- cycles are rejected by graph traversal;
+- orphaned records and unresolved references fail validation before publication;
+- parent and descendant selection remains explicit rather than implicitly
+  including all descendants.
+
+These checks protect both author metadata selection and learner hierarchical
+search. They must produce actionable validation errors while preserving future
+canonical values that are valid but unavailable to Release 0 (`R0-011`,
+`R0-013`, `AC-R0-011-08`, `AC-R0-013-07` through `AC-R0-013-10`).
+
+### 5.3 Bilingual search and canonical selection
+
+Search indexes or in-memory lookup structures may include English labels,
+Vietnamese labels, and approved aliases. They are presentation/search inputs,
+not persisted task selections. A selected competency, topic, stage, task type,
+compute tier, scoring method, modality, or prerequisite target persists its
+canonical code with vocabulary type (`R0-011`, `R0-013`, `AC-R0-011-07`,
+`AC-R0-013-08`, `AC-R0-013-11`).
+
+If a record is missing or ambiguous, the author can submit a proposal note. The
+proposal is a separate review object and cannot be substituted into a problem
+revision as if it were canonical. This preserves the curriculum-owner boundary
+and prevents an unapproved value from entering a published snapshot
+(`R0-010`, `R0-013`, `AC-R0-013-10`).
+
+### 5.4 Release 0 availability policy
+
+Canonical completeness and release availability are separate decisions. The
+canonical representation retains future-facing values, while a central policy
+determines whether an author may publish them in Release 0.
+
+The approved Release 0 set is:
+
+| Policy dimension | Enabled values |
+| --- | --- |
+| Task type | `QUIZ_SINGLE`, `QUIZ_MULTIPLE`, `NUMERIC_ANSWER`, `SHORT_ANSWER`, `CODE_FUNCTION` |
+| Compute tier | `NONE`, `BROWSER`, `CPU_LIGHT` |
+| Scoring method | `EXACT_MATCH`, `UNIT_TESTS`, `PARTIAL_TESTS`, `RUBRIC_HUMAN` when appropriate to the response |
+| Data modality | `NONE`, or an actual modality when the task has an approved dataset; `NONE` is mutually exclusive with actual modalities |
+
+GPU, distributed, higher CPU, ranking-based, hidden-label, and otherwise
+unsupported capabilities remain canonical-but-unavailable and must be blocked
+at validation and publication, not deleted from vocabulary data (`R0-012`,
+`R0-013`, `R0-016`, `AC-R0-012-04`, `AC-R0-013-14`).
+
+### 5.5 Drift detection and synchronization
+
+Drift is any difference between the canonical source and the structured
+representation that changes identity, labels, aliases, parentage, status, or
+policy-relevant values. The deterministic drift check should:
+
+1. Parse `vocab.md` using the same normalization rules as generation.
+2. Generate the structured representation in a stable ordering.
+3. Compare it with the committed artifact or expected generated output.
+4. Fail with a field-level diff when records are missing, added, or changed.
+5. Run graph, uniqueness, bilingual-label, and availability validations before
+   synchronization to PostgreSQL.
+
+Database synchronization must be idempotent and must not repurpose an existing
+composite identity. A changed label or alias is a content update; a changed
+vocabulary type or code is a new identity requiring explicit migration or
+review, not an in-place reinterpretation (`R0-015`, `AC-R0-015-07`,
+`AC-R0-015-19`).
