@@ -359,7 +359,7 @@ foundation must remain runnable with the four base services only.
   initial contract-drift check. Prove public schemas cannot serialize ORM or
   author-only fields even before feature resources exist. Suggested commit:
   `feat(api): add health and contract foundation`.
-- [ ] **R0-04009 — Add SQLAlchemy 2 and Alembic infrastructure from R0-015,
+- [x] **R0-04009 — Add SQLAlchemy 2 and Alembic infrastructure from R0-015,
   analysis sections 4, 9, and 10, and design sections 9-10.** Configure typed
   session/unit-of-work boundaries, PostgreSQL settings, explicit transaction
   handling, migration environment, migration-head readiness check, and a
