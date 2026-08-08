@@ -141,7 +141,7 @@ implementation choices recorded in requirements section 15.3.
   optimistic-concurrency conflicts, validation, and learner preview. Identify
   state ownership, retry behavior, and the point at which each validation
   blocker is surfaced. Suggested commit: `docs(analysis): map authoring workflow`.
-- [ ] **R0-026 — Analyze editorial transitions and publication from R0-014.**
+- [x] **R0-026 — Analyze editorial transitions and publication from R0-014.**
   Model `DRAFT` -> `IN_REVIEW` -> `CHANGES_REQUESTED` -> `APPROVED` ->
   `PUBLISHED` -> `ARCHIVED`, required notes, audit history, publication
   idempotency, approval/publication separation, revision creation, stable slugs,

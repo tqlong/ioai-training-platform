@@ -466,3 +466,66 @@ pending translation warnings, and draft-only validation context; public list,
 detail, recommendation, search, build, and cache paths must never consume it.
 This is a design constraint for the later public projection analysis and API
 design (`R0-013`, `R0-014`, `AC-R0-013-20`, `AC-R0-013-21`).
+
+## 8. Editorial transitions and publication
+
+### 8.1 Transition table
+
+| Source | Target | Allowed actor/context | Required evidence | Invalid or partial outcome |
+| --- | --- | --- | --- | --- |
+| `DRAFT` | `IN_REVIEW` | Author submits from local Studio | All blocking validation passes and author note is present | Keep `DRAFT`; return field-level blockers; record no transition (`AC-R0-014-01`, `AC-R0-014-02`) |
+| `IN_REVIEW` | `CHANGES_REQUESTED` | Reviewer evaluates submitted revision | Reviewer note is present and identifies requested changes | Keep `IN_REVIEW`; no incomplete history entry (`AC-R0-014-03`, `AC-R0-014-16`) |
+| `IN_REVIEW` | `APPROVED` | Reviewer evaluates submitted revision | Reviewer approval note and current validation result | Keep `IN_REVIEW` if invalid or note is missing (`AC-R0-014-04`, `AC-R0-014-16`) |
+| `APPROVED` | `PUBLISHED` | Local Studio publication command | Current validation passes, stable slug is unique, approval exists, publication note/idempotency context is present | Publish neither snapshot nor transition if any check or transaction fails (`AC-R0-014-05`, `AC-R0-014-07`, `AC-R0-014-08`) |
+| `PUBLISHED` | new draft revision | Author begins edit | Stable problem identity and new revision identity | Keep current snapshot unchanged if draft creation fails (`AC-R0-014-09`, `AC-R0-014-10`) |
+| `PUBLISHED` | `ARCHIVED` | Reviewer archives with note | Required archival note and valid public-state transition | Keep public snapshot/state if validation or transaction fails (`AC-R0-014-14`) |
+| `ARCHIVED` | new review/publish flow | New revision follows normal validation and approval | No silent reactivation; new publication is explicit | Preserve archived history and reject invalid shortcut (`AC-R0-014-15`) |
+
+No other editorial states are inferred. Learner task status, learning evidence,
+validation severity, and publication eligibility are separate dimensions and do
+not create hidden workflow states (`R0-010`, `R0-014`, `AC-R0-014-16`).
+
+### 8.2 Required transition record
+
+Every accepted transition needs an immutable history record containing at least
+source status, target status, revision identity, timestamp, actor context
+available to the local workflow, and the required author/reviewer note. The
+record is an audit explanation, not a substitute for an identity provider. A
+publication record additionally identifies the resulting snapshot and stable
+slug without exposing those internal records through public responses
+(`R0-014`, `AC-R0-014-05`, `AC-R0-014-13`).
+
+The transition validator must check the current persisted status, not a client's
+claimed previous status. This prevents a stale Studio tab from applying a
+transition against a newer revision. Missing notes, invalid source/target pairs,
+stale versions, and unavailable policy values must fail before state mutation
+(`AC-R0-014-07`, `AC-R0-014-16`).
+
+### 8.3 Publication transaction and idempotency
+
+Publication has two externally visible consequences: the revision becomes
+published and a public snapshot becomes eligible. They must be committed as one
+logical transaction. If snapshot creation, slug uniqueness, validation, or
+history persistence fails, neither the public projection nor the successful
+publication transition is visible (`R0-014`, `R0-015`, `AC-R0-014-05`,
+`AC-R0-015-09`).
+
+The same publication request may be retried because of a network timeout. An
+idempotency key scoped to the revision and publication intent should return the
+original result when the request already succeeded, rather than creating a
+second snapshot or history event. A different revision or changed publication
+intent requires a new reviewable request (`AC-R0-014-08`).
+
+### 8.4 Stable URL and revision conclusions
+
+The stable slug belongs to the problem identity, not an editable revision. A
+published revision supplies the current snapshot contents at that slug. Editing
+creates a private revision; publishing the new revision atomically replaces the
+current public snapshot while preserving the URL. Archiving removes the problem
+from public eligibility but preserves its internal history. A conflicting slug
+must be rejected without affecting the existing problem (`R0-014`,
+`AC-R0-014-09` through `AC-R0-014-15`).
+
+These conclusions constrain repository transactions and API commands. The
+specific database isolation level, locking strategy, and generated contract are
+Phase 3 design decisions, not reasons to weaken public stability or auditability.
