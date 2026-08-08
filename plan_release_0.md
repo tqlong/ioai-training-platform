@@ -212,7 +212,7 @@ explicitly excluded from Release 0.
   attempt, progress, recommendation, feedback, and audit concepts to domain
   modules. Preserve cardinalities, state-dimension separation, and framework-free
   domain rules. Suggested commit: `docs(design): define domain boundaries`.
-- [ ] **R0-03004 — Design application use cases and ports from R0-012 through
+- [x] **R0-03004 — Design application use cases and ports from R0-012 through
   R0-015 and analysis sections 6-9.** Specify typed inputs, outputs, port
   dependencies, transaction intent, safe domain errors, idempotency, version/
   conflict behavior, and public versus author projections for vocabulary sync,

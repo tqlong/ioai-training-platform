@@ -267,3 +267,79 @@ invariants, but domain validation runs first to provide actionable errors
 This ownership prevents completion from becoming mastery, approval from becoming
 publication, or local progress from becoming identity (`R0-010`, `R0-012`,
 `R0-014`, `AC-R0-012-09`, `AC-R0-014-05`).
+
+## 4. Application use cases and ports
+
+### 4.1 Use-case catalog
+
+| Use case | Input/output boundary | Ports | Transaction/idempotency rule |
+| --- | --- | --- | --- |
+| Synchronize vocabulary | Source revision or parsed artifact -> validation report and sync result | `VocabularySource`, `VocabularyValidator`, `VocabularyRepository`, `Clock` | Validate complete artifact before an idempotent sync; never repurpose composite identity |
+| Create draft | Author draft intent -> problem/revision reference and initial status | `ProblemRepository`, `IdGenerator`, `Clock` | Allocate identity and initial revision atomically; no public snapshot |
+| Save draft revision | Versioned revision patch -> saved revision or conflict | `DraftRepository`, `Clock` | Optimistic version required; stale write returns conflict and does not overwrite |
+| Validate revision | Revision identity/version -> structured errors/warnings | `DraftRepository`, `VocabularyRepository`, `AvailabilityPolicy`, `Validator` | Read-consistent validation; no editorial mutation |
+| Preview revision | Draft/unsaved projection request -> author-only learner-shaped preview | `DraftRepository`, `PreviewProjector` | No public repository path; unsaved content is never persisted as a snapshot |
+| Submit for review | Revision/version/note -> `IN_REVIEW` transition | `DraftRepository`, `EditorialPolicy`, `TransitionRepository`, `Validator` | Validate blockers and note before atomic transition |
+| Request changes/approve | Revision/version/note -> editorial transition | `DraftRepository`, `EditorialPolicy`, `TransitionRepository`, `Validator` | Current status/version and required note; no partial history |
+| Publish revision | Approved revision/version/note/key -> snapshot/public result | `DraftRepository`, `SnapshotRepository`, `SlugRegistry`, `TransitionRepository`, `Clock` | One transaction; idempotency key returns prior result; unique slug and validation checked |
+| Archive problem | Published identity/version/note -> archived transition/public eligibility change | `ProblemRepository`, `SnapshotRepository`, `TransitionRepository` | Atomic public removal and audit history; preserve historical records |
+| List public problems | URL filters/sort/page -> public list projection | `PublishedProblemReader`, `LocalProgressReader` only at composition boundary | Query source is published-only; deterministic sort and explicit pagination |
+| Read public detail | Stable slug -> public snapshot projection | `PublishedProblemReader` | Resolve current published snapshot only; no revision IDs in public contract |
+| Submit answer | Public snapshot/response/idempotency key -> assessment result or pending | `PublishedProblemReader`, `AttemptRepository`, `AssessmentPolicy`, `Clock` | Bind assessment to resolved snapshot; duplicate key is safe and bounded |
+| Record feedback | Public problem/category/message -> accepted/rejected report | `PublishedProblemReader`, `FeedbackRepository`, `AbusePolicy`, `Clock` | Validate size/category/rate before bounded insert |
+| Recommend next problem | Stage/local history/current identity -> one public recommendation | `PublishedProblemReader`, `PrerequisiteReader`, `RecommendationPolicy` | Candidates are published and policy-eligible; no mastery inference |
+
+Use cases return application DTOs or typed outcomes, never SQLAlchemy entities,
+FastAPI responses, stack traces, or provider exceptions. Public readers and
+author commands are separate ports even when they share storage adapters
+(`R0-014`, analysis sections 4, 6-9).
+
+### 4.2 Port contracts
+
+Ports are narrow protocols owned by the application/domain boundary. Important
+port families are:
+
+- `PublishedProblemReader`: list/detail/candidate queries that cannot return a
+  non-published revision by type or method contract;
+- `DraftRepository`: revision reads and versioned writes for author use cases;
+- `SnapshotRepository`: immutable snapshot creation and current-public lookup;
+- `TransitionRepository`: append-only editorial history and current status;
+- `VocabularyRepository`: typed records, explicit topic graph, and sync status;
+- `AssessmentPort`: response-specific validation/scoring with safe result DTOs;
+- `AttemptRepository` and `FeedbackRepository`: bounded learner records;
+- `RecommendationPolicy` and `AvailabilityPolicy`: pure policy decisions;
+- `Clock`, `IdGenerator`, and `IdempotencyStore`: injected nondeterminism and
+  retry coordination.
+
+No port exposes a generic `get_problem()` that requires every caller to add a
+status predicate. Public and author reads must be semantically distinct to
+enforce the isolation analysis (`R0-014`, `R0-015`, analysis section 9).
+
+### 4.3 Error and outcome model
+
+Application outcomes use stable machine-readable categories such as:
+
+| Category | Examples | Public handling |
+| --- | --- | --- |
+| `VALIDATION_FAILED` | Missing objective, invalid response, bad weights | Field/section guidance; no mutation |
+| `VOCABULARY_INVALID` | Unknown composite identity, missing parent, ambiguous alias | Safe canonical-selection guidance |
+| `POLICY_DISALLOWED` | GPU, unsupported task type, unavailable scoring | Block publication/submission path |
+| `REVISION_CONFLICT` | Stale autosave, stale approval/publication | Preserve current state and request refresh/resolve |
+| `WORKFLOW_INVALID` | Missing note or invalid editorial transition | No state/history change |
+| `PUBLIC_NOT_FOUND` | No current published snapshot or archived problem | Safe public not-found response |
+| `IDEMPOTENCY_REPLAY` | Previously completed command key | Return original safe outcome |
+| `RATE_LIMITED` | Excessive anonymous feedback/submission | Bounded retry guidance |
+| `DEPENDENCY_UNAVAILABLE` | Database or assessment dependency unavailable | Retry-safe generic message, no infrastructure detail |
+
+Adapters map framework/provider failures into these categories at the
+application boundary. Public responses omit SQL, object keys, answer data,
+provider messages, and unpublished content (`R0-015`, `AC-R0-015-13`).
+
+### 4.4 Transaction ownership
+
+The use case owns transaction intent; the persistence adapter owns session
+mechanics. Publication, status transition, snapshot creation, and required
+history are one transaction. Draft autosave, learner submission, and feedback
+are separately bounded transactions with explicit idempotency/concurrency
+rules. A use case must not perform multiple independent writes and claim they
+are atomic (`R0-014`, `R0-015`, `AC-R0-014-05`, `AC-R0-015-09`).
