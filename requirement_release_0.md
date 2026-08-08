@@ -645,3 +645,132 @@ When I inspect the preview
 Then warnings remain visible to the author while no preview URL or API response
 is reachable through public learner routes.
 ```
+
+## 13. Editorial and publication stories
+
+### R0-014-01 — Submit and review a draft
+
+As an author, I want to submit a valid draft for editorial review so that a
+reviewer can make a traceable decision.
+
+```text
+AC-R0-014-01
+Given a draft passes all publication-blocking validation checks
+When the author submits it for review
+Then its editorial status changes from `DRAFT` to `IN_REVIEW`, the transition
+records time and an author-entered note, and further edits follow the defined
+revision rules.
+
+AC-R0-014-02
+Given a draft has blocking validation errors
+When the author tries to submit it for review
+Then the transition is rejected, the status remains unchanged, and the errors
+are returned with stable codes and actionable messages.
+
+AC-R0-014-03
+Given a reviewer inspects an `IN_REVIEW` draft
+When they request changes with a note
+Then the status changes to `CHANGES_REQUESTED`, the note is required and
+auditable, and the author can create a subsequent revision without changing any
+published snapshot.
+
+AC-R0-014-04
+Given a reviewer has checked a valid draft
+When they approve it with a note
+Then the status changes to `APPROVED`, the approval transition is recorded, and
+publication remains a separate action.
+```
+
+### R0-014-02 — Publish an approved revision
+
+As a reviewer, I want publishing to be a distinct confirmed action so that only
+approved, validated content becomes public.
+
+```text
+AC-R0-014-05
+Given a revision is `APPROVED` and still passes validation
+When an authorized local Studio workflow requests publication with a note
+Then the revision changes to `PUBLISHED`, an immutable public snapshot is
+created, and the permanent URL is shown for confirmation.
+
+AC-R0-014-06
+Given a revision is in `DRAFT`, `IN_REVIEW`, or `CHANGES_REQUESTED`
+When publication is requested
+Then it is rejected and neither the revision nor any public query changes.
+
+AC-R0-014-07
+Given an approved revision has become invalid or its canonical values are no
+longer Release 0-eligible
+When publication is requested
+Then publication is blocked with the validation and policy errors and no
+partial snapshot is visible.
+
+AC-R0-014-08
+Given publication is retried with the same revision and idempotency key
+When the original publication already succeeded
+Then the same public result is returned without creating a second snapshot or
+duplicating the editorial transition.
+```
+
+### R0-014-03 — Preserve stable URLs and isolate revisions
+
+As a learner, I want published content to remain stable while authors revise it
+so that shared links remain trustworthy.
+
+```text
+AC-R0-014-09
+Given a problem has a published snapshot at a unique slug
+When an author edits the problem
+Then the system creates a separate draft revision and the public slug continues
+to serve the last published snapshot unchanged.
+
+AC-R0-014-10
+Given a new revision is approved and published for an existing problem
+When the learner opens the existing permanent URL
+Then the URL remains stable and serves the newly published snapshot without
+revealing revision history, draft fields, or editorial notes.
+
+AC-R0-014-11
+Given a slug is already assigned to another problem
+When an author attempts to publish a conflicting slug
+Then publication is rejected with a stable uniqueness error and the existing
+public URL remains unaffected.
+
+AC-R0-014-12
+Given a public list, public detail request, recommendation, search index, or
+learner build is generated
+When its data source is queried
+Then only `PUBLISHED` snapshots are eligible and archived or unapproved content
+cannot leak through an alternate query path.
+```
+
+### R0-014-04 — Request changes, archive, and audit decisions
+
+As a reviewer, I want editorial decisions and archival to be explicit so that
+the content lifecycle remains explainable.
+
+```text
+AC-R0-014-13
+Given an editorial transition is requested
+When the transition is accepted
+Then its source status, target status, timestamp, actor context available to the
+local workflow, and required note are persisted as an immutable history entry.
+
+AC-R0-014-14
+Given a published problem should no longer be available to learners
+When an authorized reviewer archives it with a note
+Then the status changes to `ARCHIVED`, the public URL no longer returns it as a
+published problem, and the historical snapshot remains auditable internally.
+
+AC-R0-014-15
+Given an archived problem has a new valid revision
+When that revision follows the normal review and publication flow
+Then publication creates the current public snapshot without silently
+reactivating or mutating the archived history.
+
+AC-R0-014-16
+Given a request attempts an invalid status transition or omits its note
+When the workflow validates the request
+Then it returns a stable error, changes no state, and records no incomplete
+transition.
+```

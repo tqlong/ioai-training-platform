@@ -72,7 +72,7 @@ Deliverable: `requirement_release_0.md`.
   metadata selection, prerequisites, response/scoring configuration, autosave,
   recovery, validation, and learner-format preview. Suggested commit:
   `docs(requirements): add authoring stories`.
-- [ ] **R0-014 — Specify editorial and publication stories.** Add stories for
+- [x] **R0-014 — Specify editorial and publication stories.** Add stories for
   submitting a draft, requesting changes, approving, publishing, revising a
   published problem, archiving, audit notes, validation blockers, unique slugs,
   stable URLs, and strict draft/public isolation. Suggested commit:
