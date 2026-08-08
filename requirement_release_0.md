@@ -296,3 +296,175 @@ When I revisit its permanent URL
 Then the URL remains unchanged and shows only the current published snapshot;
 draft and unapproved revisions remain private.
 ```
+
+## 11. Learner solving-loop stories
+
+### R0-012-01 — Read a problem and its learning context
+
+As a learner, I want to understand the objective, prerequisites, and response
+instructions so that I know what the problem asks me to demonstrate.
+
+```text
+AC-R0-012-01
+Given I open a published permanent problem URL
+When the detail page loads
+Then it shows the title, stage and difficulty together, observable learning
+objective, prerequisites, statement, provided information or examples,
+constraints, response area, and available hints or explanation according to the
+published snapshot.
+
+AC-R0-012-02
+Given a published problem has English and Vietnamese content or a translation
+marked pending during authoring
+When I view the public page
+Then the available public content follows the published language policy and
+never exposes author-only translation warnings or draft fields.
+```
+
+### R0-012-02 — Use the approved Release 0 response types
+
+As a learner, I want a predictable response form so that I can answer without
+an advanced judge or hosted execution environment.
+
+Release 0 accepts exactly these canonical task types:
+
+- `QUIZ_SINGLE` — one selected choice.
+- `QUIZ_MULTIPLE` — one or more selected choices.
+- `NUMERIC_ANSWER` — a numeric value, with an optional unit and explicit
+  tolerance policy.
+- `SHORT_ANSWER` — a short written response assessed by configured exact,
+  keyword, or human-rubric guidance.
+- `CODE_FUNCTION` — a small function response evaluated under the published
+  language, signature, starter code, limits, and tests.
+- `CODE_DEBUGGING` — a bounded correction to supplied code evaluated by tests.
+- `CODE_COMPLETION` — a bounded completion to supplied code evaluated by tests.
+
+These types are available only with the `NONE`, `BROWSER`, or `CPU_LIGHT`
+compute tiers. All other canonical task types, scoring methods requiring hidden
+labels or ranking, and all GPU or distributed tiers are unavailable for Release
+0 publication. The vocabulary records remain canonical and are not deleted.
+
+```text
+AC-R0-012-03
+Given a published problem uses an accepted Release 0 task type
+When I open its response area
+Then the form matches that task type, identifies required inputs, supports
+keyboard and assistive-technology use, and does not request unavailable runtime
+resources.
+
+AC-R0-012-04
+Given a problem uses a task type or compute tier outside the Release 0 policy
+When an author attempts to publish it
+Then publication is blocked with a stable actionable error and the problem
+cannot appear in public reads or recommendations.
+
+AC-R0-012-05
+Given I submit an incomplete or malformed response
+When validation runs
+Then the response is rejected safely with field-level guidance, no attempt is
+recorded as completed, and no implementation or provider details are exposed.
+```
+
+### R0-012-03 — Submit and receive lightweight feedback
+
+As a learner, I want feedback after submission so that I can understand whether
+my answer met the problem's assessment criteria.
+
+```text
+AC-R0-012-06
+Given my response satisfies the published response contract
+When I submit it
+Then the system records an attempt and returns a safe result containing the
+outcome, score or rubric result when configured, actionable feedback, and any
+allowed next step.
+
+AC-R0-012-07
+Given a scoring configuration has weighted components
+When the submission is assessed
+Then the component weights are applied using decimal-safe arithmetic, their
+total is exactly `1.0`, and the response never reveals hidden answers, test
+data, unpublished explanations, or internal errors.
+
+AC-R0-012-08
+Given a manual or delayed assessment is required
+When the learner submits
+Then the UI clearly reports that assessment is pending and does not claim a
+completed result or learning evidence prematurely.
+```
+
+### R0-012-04 — Keep anonymous progress on the device
+
+As an anonymous learner, I want basic progress to survive a refresh so that I
+can continue on the same device without creating an account.
+
+```text
+AC-R0-012-09
+Given local storage is available
+When I open, attempt, or complete a published problem
+Then only the approved device-local progress data is persisted, using task
+status `NOT_STARTED`, `ATTEMPTED`, or `COMPLETED` and separate learning
+evidence when evidence is available.
+
+AC-R0-012-10
+Given I refresh the page or return to the library on the same device
+When local progress is readable
+Then the status, evidence display data, recent history, and recommendation
+context are restored without an account or server identity.
+
+AC-R0-012-11
+Given local storage is unavailable, corrupted, or cleared
+When I use the learner product
+Then browsing and solving remain available, progress is treated as temporary,
+and the UI explains the persistence limitation without exposing stored content.
+```
+
+### R0-012-05 — Send problem feedback
+
+As a learner, I want to report an issue from every public problem page so that
+content and usability problems can be reviewed.
+
+```text
+AC-R0-012-12
+Given I am viewing any published problem
+When I open the feedback mechanism
+Then it identifies the problem safely, offers the approved feedback categories,
+accepts a bounded message, and does not require an account.
+
+AC-R0-012-13
+Given feedback input is invalid or exceeds its limits
+When I submit it
+Then the request is rejected with a safe actionable error and no partial or
+unbounded record is stored.
+
+AC-R0-012-14
+Given valid feedback is submitted repeatedly from an anonymous device
+When abuse controls apply
+Then the system rate-limits or rejects excessive submissions without revealing
+whether private moderation data exists.
+```
+
+### R0-012-06 — Continue to the recommended problem
+
+As a learner, I want one clear next recommendation so that completing a
+problem leads naturally to another suitable problem.
+
+```text
+AC-R0-012-15
+Given I have no local history for the selected stage
+When the library or problem page shows a recommendation
+Then it labels the item “Recommended start” and uses the editorially chosen
+first published problem without claiming personalization.
+
+AC-R0-012-16
+Given I have attempted or completed problems locally
+When a recommendation is calculated
+Then it selects one published problem compatible with the selected stage,
+prerequisites, Release 0 availability policy, and editorial learning path,
+excluding the current problem when a suitable alternative exists.
+
+AC-R0-012-17
+Given I complete a problem and choose to continue
+When the next recommendation is opened
+Then it uses a permanent URL, preserves the selected stage context, and never
+redirects to a draft, archived-only revision, or unavailable task.
+```

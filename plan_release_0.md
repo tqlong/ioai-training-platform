@@ -60,7 +60,7 @@ Deliverable: `requirement_release_0.md`.
   selection, bilingual search, hierarchical topic filtering, sorting,
   responsive table/cards, empty/error states, and permanent URLs. Suggested
   commit: `docs(requirements): add learner discovery stories`.
-- [ ] **R0-012 — Specify learner solving-loop stories.** Add stories for opening
+- [x] **R0-012 — Specify learner solving-loop stories.** Add stories for opening
   a problem, viewing objectives and prerequisites, submitting each accepted
   Release 0 response type, receiving scoring feedback, recording anonymous
   local progress, sending feedback, and continuing to the editorially
