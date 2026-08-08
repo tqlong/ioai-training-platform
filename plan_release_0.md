@@ -106,7 +106,7 @@ implementation choices recorded in requirements section 15.3.
   responsibilities, triggers, outputs, and failure expectations. Produce an
   actor/responsibility table linked to the applicable `R0-010` requirements.
   Suggested commit: `docs(analysis): define release 0 actors`.
-- [ ] **R0-021 — Analyze context and trust boundaries from R0-010 and R0-015.**
+- [x] **R0-021 — Analyze context and trust boundaries from R0-010 and R0-015.**
   Produce a context diagram covering learner UI, local Studio, FastAPI,
   PostgreSQL, browser-local storage, and permitted external dependencies.
   Analyze anonymous operation, loopback Studio exposure, public versus author
