@@ -282,7 +282,7 @@ explicitly excluded from Release 0.
   profiles, backup/restore rehearsal, and safe reset. Keep Redis/Celery/MinIO
   excluded unless an accepted requirement creates a concrete need. Suggested
   commit: `docs(design): define docker compose topology`.
-- [ ] **R0-03015 — Design verification, observability, and failure handling from
+- [x] **R0-03015 — Design verification, observability, and failure handling from
   R0-015, analysis sections 9-10, and all affected criteria.** Define domain,
   application, vocabulary, PostgreSQL/Alembic, API contract, frontend,
   Playwright, and operations test ownership; fixtures/isolation; red-green-

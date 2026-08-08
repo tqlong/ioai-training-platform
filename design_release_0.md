@@ -1207,3 +1207,86 @@ but the procedure must prove restoration of vocabulary, revisions, snapshots,
 editorial history, attempts, and feedback. Browser-local learner progress is
 explicitly not recoverable from this backup because it is device-local
 (`R0-015`, `AC-R0-015-14`).
+
+## 15. Verification, observability, and failure handling
+
+### 15.1 Verification ownership
+
+| Boundary | Design proof | Required evidence |
+| --- | --- | --- |
+| Domain | Vocabulary identity/graph, aggregate cardinality, response variants, scoring total, status transitions, slug rules, availability | Pure tests with deterministic clocks/IDs; failing behavior test first |
+| Application | Use-case orchestration, ports, transactions, idempotency, safe errors, recommendations, autosave semantics | Port fakes and outcome assertions; no framework coupling |
+| Vocabulary | Parser, generated artifact, bilingual labels/aliases, explicit parents, drift, synchronization | Golden artifact and invalid graph/identity fixtures |
+| PostgreSQL/Alembic | Constraints, composite keys, migrations, rollback, snapshot isolation, concurrency, indexes | Real PostgreSQL integration tests and migration upgrade/downgrade checks where safe |
+| FastAPI | Public/author separation, request/response contracts, pagination/filter errors, request IDs, safe mapping, OpenAPI | Contract tests and generated-client compatibility/drift checks |
+| Learn/Studio components | URL filters, hierarchical picker, status/evidence separation, responsive table/cards, validation, autosave/recovery, preview warning | Vitest/Testing Library accessible role/name queries |
+| Critical browser flows | Learner browse -> open -> submit -> feedback -> continue; author draft -> validate -> preview -> review -> publish -> public verify | Focused Playwright desktop/mobile workflows including isolation assertions |
+| Operations | Compose health, migration readiness, loopback binding, backup/restore, production builds, lockfiles | Rehearsal scripts and CI quality pipeline |
+
+### 15.2 Quality gates and red-green-refactor
+
+Every behavior-bearing implementation step writes the smallest behavior test,
+runs it to observe the expected failure, implements the minimum behavior, then
+refactors with affected tests green. Documentation can specify this sequence but
+cannot claim runtime proof. The highest-priority red tests are:
+
+1. A public query cannot return a draft or unapproved revision.
+2. An invalid editorial transition or publication without approval cannot mutate
+   state.
+3. Publishing creates one complete immutable snapshot atomically.
+4. Vocabulary graph/identity/availability violations fail with actionable
+   errors.
+5. Scoring components must total exactly `1.0`.
+6. A stable slug remains unchanged across published revisions.
+7. Stale autosave cannot overwrite newer content.
+
+Quality commands follow the repository policy: `uv` backend formatting, lint,
+type checking, and tests; `pnpm` frontend lint, typecheck, unit tests, E2E, and
+build; migration validation; generated contract drift; and focused PostgreSQL/
+Compose checks (`R0-015`, `AC-R0-015-17` through `AC-R0-015-19`).
+
+### 15.3 Structured observability
+
+Every HTTP request and meaningful operation emits a structured event with:
+
+```text
+request_id / operation_id
+event_name
+safe outcome category
+duration_ms
+service/environment
+stable public or internal entity reference where safe
+```
+
+Events redact request bodies, answer data, hidden tests, author notes,
+credentials, tokens, object keys, provider messages, and direct identity claims.
+Validation and dependency failures preserve stable categories for diagnosis but
+return safe human-facing messages. Request IDs propagate from FastAPI into
+application/adapters and are returned in response headers or safe error bodies
+(`R0-015`, `AC-R0-015-13`, `AC-R0-015-15`).
+
+### 15.4 Health and readiness
+
+`/health/live` answers whether the API process can serve a liveness response. A
+separate readiness response reports required dependency state, especially
+PostgreSQL connectivity and migration-head compatibility. Readiness must fail
+closed for an unavailable or partially migrated database, while liveness remains
+useful for process supervision. Health responses contain machine-readable status
+and no credentials, SQL, stack traces, or topology secrets (`R0-015`,
+`AC-R0-015-16`).
+
+### 15.5 Failure and retry policy
+
+| Failure | Client behavior | Server invariant |
+| --- | --- | --- |
+| Validation/policy error | Show field/action guidance; do not retry blindly | No state mutation |
+| Revision conflict | Offer refresh/recover/resolve | Newer revision is never overwritten |
+| Dependency timeout | Offer bounded retry with request ID | Idempotent command does not duplicate effect |
+| Assessment pending | Show pending state | No premature score/completion claim |
+| Local storage unavailable | Continue with temporary progress explanation | No server identity or private-data fallback |
+| Public data unavailable | Preserve layout and show retry/feedback path | No draft/infrastructure detail leaks |
+| Migration/readiness failure | Keep dependent services unavailable | No API against partial schema |
+
+Retry policy is explicit at each port; generic HTTP retries are not applied to
+non-idempotent commands without an idempotency key (`R0-012`, `R0-013`, `R0-014`,
+analysis sections 6-10).
