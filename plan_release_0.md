@@ -195,7 +195,7 @@ behavior without duplicating its detailed visual specification. Every design
 step must identify which choices are resolved, which are open, and which are
 explicitly excluded from Release 0.
 
-- [ ] **R0-03001 — Design system context and boundaries from R0-010, R0-015,
+- [x] **R0-03001 — Design system context and boundaries from R0-010, R0-015,
   analysis sections 1-3, and 11.** Define actors, external dependencies,
   learner/Studio/API/PostgreSQL/browser-local boundaries, no-auth assumptions,
   loopback exposure, and the context/container diagrams. Exclude deferred
