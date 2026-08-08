@@ -226,7 +226,7 @@ explicitly excluded from Release 0.
   synchronization, and central policy for the five task types,
   `NONE`/`BROWSER`/`CPU_LIGHT`, scoring methods, and modality rules. Suggested
   commit: `docs(design): define vocabulary and release policy integration`.
-- [ ] **R0-03006 — Design public read and learner command contracts from R0-011,
+- [x] **R0-03006 — Design public read and learner command contracts from R0-011,
   R0-012, R0-015, analysis sections 6 and 9.** Define `/api/v1` list/detail,
   search/filter/sort/pagination, permanent URLs, recommendations, submissions,
   scoring feedback, local-progress interaction, and problem feedback. Include

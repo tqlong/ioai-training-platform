@@ -425,3 +425,107 @@ receive approved label/alias/status updates, but a changed type or code is a new
 identity and cannot repurpose the old record. The sync result reports added,
 updated, unchanged, rejected, and policy-disabled records without leaking
 provider or database details (`R0-015`, `AC-R0-015-07`).
+
+## 6. Public learner API design
+
+### 6.1 Resource surface
+
+All public resources are versioned under `/api/v1` and return published-safe
+DTOs. Proposed resource surface:
+
+| Method and path | Purpose | Source/projection |
+| --- | --- | --- |
+| `GET /api/v1/problems` | List/search/filter/sort/paginate public problems | `PublishedProblemReader` list projection |
+| `GET /api/v1/problems/{slug}` | Read a permanent problem URL | Current published snapshot projection |
+| `GET /api/v1/problems/{slug}/recommendation` | Get one editorially eligible next problem | Published recommendation projection |
+| `POST /api/v1/problems/{slug}/submissions` | Submit one accepted response | Snapshot-bound assessment result/pending projection |
+| `POST /api/v1/problems/{slug}/feedback` | Send bounded anonymous problem feedback | Accepted feedback receipt |
+| `GET /api/v1/vocabulary` | Public-safe hierarchy/search values for discovery | Canonical active vocabulary projection, no draft proposals |
+
+The API never accepts a revision ID, draft ID, preview token, or author-only
+field in a public problem read/submission path. A slug resolves to the current
+published snapshot, and a missing/archived/unpublished problem returns a safe
+public not-found contract (`R0-011`, `R0-012`, `R0-014`, analysis section 9).
+
+### 6.2 List query contract
+
+`GET /api/v1/problems` supports explicit query parameters for:
+
+- `stage`, `competency`, `topic`, `include_subtopics`, `difficulty`, `task_type`;
+- `task_status`, `learning_evidence`, `expected_minutes`, and `compute_tier`;
+- bilingual `q` search across approved public titles/objectives/labels/aliases;
+- `sort` limited to editorial order, newest, expected time, or title;
+- `page`, `page_size`, and a stable pagination shape.
+
+Selections use canonical composite vocabulary identity in query semantics, while
+labels and aliases are accepted only as search input. The API returns active
+filter state, result count, explicit page metadata, and at most two visible topic
+labels plus a remainder count. Parent topics include descendants only when
+`include_subtopics=true` is explicitly supplied (`R0-011`,
+`AC-R0-011-07` through `AC-R0-011-11`).
+
+Sort order is deterministic: the default is editorial learning-path order then
+difficulty, and every alternative sort has a stable tie-breaker by problem
+identity. Public pagination is evaluated over the published-only set before
+records are serialized, preventing a draft from shifting or leaking through a
+page boundary (`AC-R0-011-01`, `AC-R0-011-10`).
+
+### 6.3 Public response projections
+
+The list projection contains only learner-needed fields:
+
+```text
+ProblemListItem
+  stable_slug / public_short_id
+  title
+  observable_learning_objective
+  stage + difficulty
+  primary_competency
+  visible_topics[0:2] + remaining_topic_count
+  task_type_label
+  expected_minutes
+  compute_tier_label
+  local task_status/evidence overlay (client-composed)
+```
+
+The detail projection adds published learner blocks, prerequisites, response
+schema, allowed resource summary, hints/explanation policy, feedback affordance,
+and recommendation context. It omits revision IDs, editorial notes, draft
+warnings, internal answer keys, hidden tests, object keys, provider metadata,
+and unpublished translations (`R0-011`, `R0-012`, `R0-014`, `AC-R0-012-07`).
+
+### 6.4 Submission and feedback contracts
+
+Submission input is a discriminated union keyed by the published task type:
+
+```text
+SubmissionRequest
+  response_type: canonical task type
+  answer: type-specific bounded payload
+  client_submission_key: bounded idempotency key
+```
+
+The server resolves the slug to one snapshot, validates the union and resource
+limits, and returns one of `ACCEPTED_RESULT`, `PENDING_ASSESSMENT`, or a stable
+validation/dependency error. The result contains outcome, safe score/rubric
+summary, feedback, and task-status/evidence hints only; it never returns hidden
+answers or test data (`R0-012`, `AC-R0-012-05` through `AC-R0-012-08`).
+
+Feedback input contains a bounded canonical category and bounded message. The
+server verifies the public problem exists, applies abuse/size controls, and
+returns a receipt without exposing moderation internals. Duplicate or excessive
+requests return safe rate/idempotency outcomes (`AC-R0-012-12` through
+`AC-R0-012-14`).
+
+### 6.5 Errors, request IDs, and URL state
+
+Every response may include a request ID and errors use the application
+categories defined in section 4.3. Public mapping is deliberately coarse for
+dependency failures and never includes stack traces, SQL, filesystem paths,
+provider messages, answer data, or draft content (`R0-015`,
+`AC-R0-015-13`, `AC-R0-015-15`).
+
+The frontend owns the shareable filter query string and sends it to this API;
+the API does not store anonymous filter state. The permanent problem slug is
+stable across revisions and is the only public identity needed to reopen a
+published problem (`AC-R0-011-09`, `AC-R0-011-15`, `AC-R0-011-16`).
