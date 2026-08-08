@@ -55,7 +55,7 @@ Deliverable: `requirement_release_0.md`.
   success measures, story-ID convention, and acceptance-criteria format.
   Reconcile scope with `master_plan.md` and `ui_release_0.md`. Suggested commit:
   `docs(requirements): define release 0 scope and personas`.
-- [ ] **R0-011 — Specify learner discovery stories.** Add user stories and
+- [x] **R0-011 — Specify learner discovery stories.** Add user stories and
   Given/When/Then acceptance criteria for viewing published problems, stage
   selection, bilingual search, hierarchical topic filtering, sorting,
   responsive table/cards, empty/error states, and permanent URLs. Suggested
