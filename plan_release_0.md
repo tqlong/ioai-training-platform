@@ -4,6 +4,12 @@
 
 - One checklist item is one meaningful Git commit unless the item explicitly
   says it is a release checkpoint.
+- Checklist item IDs use the legacy `R0-<three digits>` form for the existing
+  phase anchors. A phase may contain more than ten steps: add dotted substep
+  IDs under the nearest anchor, such as `R0-039.01`, `R0-039.02`, and
+  `R0-039.03`. Substeps are ordered numerically and each remains one meaningful
+  commit. These plan-step IDs are distinct from the requirement/story IDs in
+  `requirement_release_0.md`.
 - Check an item only after its acceptance conditions are met and relevant
   quality gates pass. Include the checkbox update in that step's commit.
 - Keep every commit reviewable and green. For behavior changes, observe a
