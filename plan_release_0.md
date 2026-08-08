@@ -275,7 +275,7 @@ explicitly excluded from Release 0.
   forms, autosave/recovery, validation, preview banner, review controls,
   publication confirmation, focus behavior, responsive layout, and distinct
   Studio branding. Suggested commit: `docs(design): map studio frontend`.
-- [ ] **R0-03014 — Design Docker Compose and local operations from R0-015,
+- [x] **R0-03014 — Design Docker Compose and local operations from R0-015,
   analysis sections 2, 3, 9-10, and section 11.** Specify PostgreSQL, FastAPI,
   learner, and Studio services; health/readiness, networks, volumes, env vars,
   startup/migration/seed order, ports, loopback binding, development/CI

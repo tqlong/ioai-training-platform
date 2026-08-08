@@ -1124,3 +1124,86 @@ error after validation and returns to the invoking control after dialogs close.
 Preview and learner/public surfaces remain visually distinguishable through
 labels, banners, and structure, not color alone (`R0-013`, `R0-015`,
 `AC-R0-011-14`, `AC-R0-013-20`).
+
+## 14. Docker Compose and local operations
+
+### 14.1 Base topology
+
+```text
+ioai-network
+  postgres      internal :5432, named volume
+  api           internal :8000, depends on postgres readiness
+  learn         host :3000, depends on api readiness
+  studio        host 127.0.0.1:3001, depends on api readiness
+```
+
+The base Compose profile contains exactly PostgreSQL, FastAPI, learner Next.js,
+and Studio Next.js. PostgreSQL is reachable by service name from API, not
+published broadly by default. Studio binds to loopback. Learner may bind for
+classroom testing according to the UI specification, but no port is treated as
+security (`R0-015`, analysis sections 2-3).
+
+Each service has a health/readiness distinction:
+
+- PostgreSQL health checks connection availability.
+- FastAPI liveness checks process availability; readiness checks database and
+  migration state.
+- Learn and Studio readiness checks their local development server and API
+  dependency where applicable.
+- Dependent services wait for readiness, not merely process startup.
+
+### 14.2 Environment and persistence
+
+`.env.example` documents non-secret placeholders for database URL, API base URL,
+frontend ports, environment name, log level, and allowed origins. Secrets remain
+in ignored local environment files. The named PostgreSQL volume is persistent;
+uploaded binary storage is not added because Release 0 has no accepted upload or
+artifact use case (`R0-010`, requirement section 15.3).
+
+The Compose configuration uses service names for internal URLs, explicit port
+bindings for human-facing apps, a single named network, and no host-mounted
+source path that could accidentally expose secrets or generated artifacts. The
+reset command explicitly removes the development database volume only after a
+confirmation step; normal stop preserves data (`R0-015`, `AC-R0-015-12`).
+
+### 14.3 Startup, migration, and seed order
+
+```text
+start postgres
+  -> wait for postgres health
+  -> run Alembic upgrade head
+  -> run deterministic vocabulary/fixture seed when requested
+  -> start API readiness
+  -> start Learn and Studio
+```
+
+Migrations are not hidden in application import-time work. A failed migration
+keeps API readiness false and reports a safe operational error. Seed commands
+are explicit and deterministic; production-like startup never silently creates
+sample public problems (`R0-015`, `AC-R0-015-08`, `AC-R0-015-16`).
+
+### 14.4 Operations commands and profiles
+
+Documented commands will cover:
+
+- start/watch the base development stack;
+- stop without deleting the PostgreSQL volume;
+- run migrations and deterministic vocabulary/fixture seeds explicitly;
+- inspect health/readiness and service logs with request/operation IDs;
+- create and restore a PostgreSQL backup in a disposable rehearsal database;
+- reset development data with an explicit destructive confirmation;
+- start CI services without public host exposure.
+
+The base profile does not include Redis, Celery, Docling, MinIO, GPU runtimes,
+or a vector database. Optional profiles may be added only after an accepted
+requirement creates a concrete asynchronous, extraction, binary-artifact, or
+retrieval use case (`R0-010`, `R0-015`, analysis sections 3 and 11).
+
+### 14.5 Backup and restore assumption
+
+Release 0 uses PostgreSQL-native logical backup/restore commands for the local
+rehearsal. The exact retention provider and schedule remain deployment choices,
+but the procedure must prove restoration of vocabulary, revisions, snapshots,
+editorial history, attempts, and feedback. Browser-local learner progress is
+explicitly not recoverable from this backup because it is device-local
+(`R0-015`, `AC-R0-015-14`).
