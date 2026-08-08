@@ -135,7 +135,7 @@ implementation choices recorded in requirements section 15.3.
   recommendation. Include empty, loading, public-data failure, malformed
   submission, delayed scoring, local-storage failure, and unavailable-policy
   outcomes. Suggested commit: `docs(analysis): map learner workflows`.
-- [ ] **R0-025 — Analyze the authoring workflow from R0-013.** Map draft creation,
+- [x] **R0-025 — Analyze the authoring workflow from R0-013.** Map draft creation,
   published-problem revision, bilingual editing, metadata and prerequisite
   selection, response/scoring configuration, autosave states, local recovery,
   optimistic-concurrency conflicts, validation, and learner preview. Identify

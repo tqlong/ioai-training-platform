@@ -397,3 +397,72 @@ This separation explains why a cleared local store affects recommendation
 context but must not make a public URL invalid, and why a public-data failure
 must not render cached draft-like content (`R0-011`, `R0-012`, `AC-R0-011-09`,
 `AC-R0-012-11`).
+
+## 7. Authoring workflow
+
+### 7.1 Authoring state table
+
+| State / step | Entry condition | Main behavior | Success output | Failure or recovery behavior |
+| --- | --- | --- | --- | --- |
+| Draft list | Author opens local Studio | List internal problem identities, revisions, editorial status, and last-save metadata | Author can resume or create a draft | Public learner routes never consume this list (`AC-R0-013-01`) |
+| New draft | Author chooses create | Allocate problem and revision identities; initialize `DRAFT` | Structured editor opens without public snapshot | Initialization is atomic; no partial public identity is exposed (`AC-R0-013-02`) |
+| Published revision edit | Published problem selected | Create a new draft revision under stable problem identity | Existing snapshot remains unchanged | Failed revision creation leaves current public snapshot intact (`AC-R0-013-03`) |
+| Content editing | Draft exists | Edit bilingual learner blocks in reading order and observable objective | Structured content is locally editable and previewable | Missing translation is an author warning, not a public warning (`AC-R0-013-04`, `AC-R0-013-05`) |
+| Metadata editing | Draft exists | Select canonical stage, difficulty, competencies, topics, prerequisites, modality, and resources | Composite vocabulary references and typed prerequisites are stored | Ambiguous, missing, invalid, or proposed values remain blocking/actionable (`AC-R0-013-07` through `AC-R0-013-11`) |
+| Response/scoring editing | Task type selected | Render only fields for the selected accepted type; configure tests/tolerance/rubric and weights | Response contract is internally consistent and weights sum exactly `1.0` | Disallowed type, tier, resource, or malformed assessment blocks validation (`AC-R0-013-12` through `AC-R0-013-14`) |
+| Autosave | Local draft changes become idle | Send a versioned draft save after the configured idle period | UI reports `Saving...` then `Saved` for the targeted revision | Server failure reports `Save failed` and keeps recoverable local copy (`AC-R0-013-15`, `AC-R0-013-16`) |
+| Recovery | Local copy or stale version exists | Compare local/server revision and ask author to restore, discard, or resolve | Explicit author choice creates a new valid save | No silent overwrite or silent discard; stale write returns conflict (`AC-R0-013-17`, `AC-R0-013-18`) |
+| Validation | Author requests validation or review | Check content, vocabulary, prerequisites, response, scoring, resources, and publication fields | Errors and warnings grouped by section and field | Blocking errors prevent review; warnings remain visible (`AC-R0-013-19`) |
+| Learner preview | Draft is previewable | Render learner page with unsaved state and persistent warning | Author sees learner-format result and pending-translation warnings | Preview is not public, not indexed, and cannot be mistaken for publication (`AC-R0-013-20`, `AC-R0-013-21`) |
+
+### 7.2 State ownership and save semantics
+
+The editor owns transient form state. A draft revision store owns the last
+server-accepted structured revision. A browser-local recovery copy owns only
+unsynced author edits and must be explicitly restored or discarded. The server
+revision version is the concurrency authority; a local copy cannot overwrite a
+newer server revision by default (`R0-013`, `AC-R0-013-16` through
+`AC-R0-013-18`).
+
+Autosave is therefore a versioned write protocol, not a background mutation
+that can be ignored. The minimum semantic sequence is:
+
+1. Form changes mark the current revision dirty.
+2. An idle timer coalesces changes and sends the revision version plus content.
+3. Success advances the server version and clears the recoverable copy for the
+   acknowledged fields.
+4. Failure preserves the copy and exposes retry/recovery state.
+5. A version conflict stops automatic overwrite and requests an explicit
+   resolution.
+
+The exact idle duration, local storage key format, and conflict merge UI are
+Phase 3 design decisions. They cannot weaken recoverability, explicit choice,
+or optimistic-concurrency behavior (`R0-013`, `R0-015`, `AC-R0-013-15` through
+`AC-R0-013-18`).
+
+### 7.3 Validation layering
+
+Validation has three analytically distinct layers:
+
+- Structural validation checks required fields, bilingual block shape, positive
+  time, exact numeric resources, response-specific fields, and decimal-safe
+  scoring totals.
+- Canonical validation checks vocabulary identity, labels/aliases, topic
+  parentage, prerequisites, modality exclusivity, and Release 0 availability.
+- Publication validation checks unique stable slug, learner preview readiness,
+  approval state, and absence of publication blockers.
+
+The layers may run together in the UI, but each error must identify its source
+field and stable error category. A valid structure is not sufficient for review;
+an approved revision is not sufficient for publication unless the current
+policy and snapshot checks also pass (`R0-013`, `R0-014`, `AC-R0-013-19`,
+`AC-R0-014-05`, `AC-R0-014-07`).
+
+### 7.4 Preview isolation conclusion
+
+Preview needs a learner-shaped projection to reveal content and responsive
+problems, but it must remain an author projection. It may include unsaved fields,
+pending translation warnings, and draft-only validation context; public list,
+detail, recommendation, search, build, and cache paths must never consume it.
+This is a design constraint for the later public projection analysis and API
+design (`R0-013`, `R0-014`, `AC-R0-013-20`, `AC-R0-013-21`).
