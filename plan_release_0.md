@@ -36,12 +36,12 @@ Before checking an implementation item:
   `master_plan.md`, `ui_release_0.md`, `vocab.md`, and this delivery plan as the
   governing Release 0 baseline. Suggested commit:
   `chore(repo): initialize release 0 planning baseline`.
-- [ ] **R0-001 — Add repository contribution guidance.** Create a concise
+- [x] **R0-001 — Add repository contribution guidance.** Create a concise
   `README.md` describing the product, governing documents, planned workspace
   layout, prerequisite tool versions, and the rule that commands must use `uv`
   or `pnpm`. Do not claim setup commands work before scaffolding exists.
   Suggested commit: `docs(repo): add release 0 contribution guide`.
-- [ ] **R0-002 — Add decision and traceability indexes.** Create a lightweight
+- [x] **R0-002 — Add decision and traceability indexes.** Create a lightweight
   `docs/decisions/README.md` for architecture decision records and a traceability
   table mapping user-story IDs to analysis, design, implementation, and tests.
   Suggested commit: `docs(governance): add decision and traceability indexes`.
