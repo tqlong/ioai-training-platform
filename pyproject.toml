@@ -1,0 +1,40 @@
+[project]
+name = "ioai-training-platform"
+version = "0.0.0"
+description = "IOAI Training Platform monorepo for Release 0."
+requires-python = ">=3.12"
+dependencies = [
+]
+
+[project.optional-dependencies]
+dev = [
+]
+
+[dependency-groups]
+backend = []
+backend-dev = []
+frontend = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+src = ["backend/src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.pyright]
+include = ["backend/src"]
+pythonVersion = "3.12"
+reportMissingTypeStubs = false
+
+[tool.pytest.ini_options]
+pythonpath = ["backend/src"]
+addopts = "-q"
+
+[tool.uv]
+package = false

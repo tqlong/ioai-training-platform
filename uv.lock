@@ -1,0 +1,16 @@
+version = 1
+revision = 3
+requires-python = ">=3.12"
+
+[[package]]
+name = "ioai-training-platform"
+version = "0.0.0"
+source = { virtual = "." }
+
+[package.metadata]
+provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+backend = []
+backend-dev = []
+frontend = []

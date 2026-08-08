@@ -309,7 +309,7 @@ their commit. Every step must read and trace to `requirement_release_0.md`,
 features excluded by requirements section 15.3 or design section 16. The
 foundation must remain runnable with the four base services only.
 
-- [ ] **R0-04001 — Establish the Python/uv workspace from R0-010, R0-015,
+- [x] **R0-04001 — Establish the Python/uv workspace from R0-010, R0-015,
   analysis sections 2 and 10, and design sections 1-2.** Add Python 3.12+
   constraints, root `pyproject.toml`, `.python-version` if selected, uv groups,
   reproducible scripts, and committed `uv.lock`. Keep secrets/local artifacts

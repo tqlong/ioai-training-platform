@@ -58,8 +58,23 @@ Use only managed tool entrypoints for reproducible environments:
 Avoid ad hoc global environment scripts when these project-managed tools are
 available.
 
+## Baseline release commands
+
+- Python:
+  - `uv sync --all-groups`
+  - `uv run ruff format --check .`
+  - `uv run ruff check .`
+  - `uv run pyright`
+  - `uv run pytest`
+- Frontend:
+  - `pnpm install --frozen-lockfile`
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm test:e2e`
+  - `pnpm build`
+
 ## Setup status
 
 This baseline currently captures Release 0 planning and governance. Code scaffolding
 commands may be added as the repository is implemented in later phases.
-
