@@ -322,12 +322,12 @@ foundation must remain runnable with the four base services only.
   Pyright or mypy configuration, and the smallest smoke test proving the package
   imports without framework side effects. Suggested commit:
   `build(backend): establish package boundaries and checks`.
-- [ ] **R0-04003 — Establish the pnpm frontend workspace from R0-010, R0-011,
+- [x] **R0-04003 — Establish the pnpm frontend workspace from R0-010, R0-011,
   R0-013, R0-015, analysis sections 2 and 10, and design sections 1-2.** Add
   `pnpm-workspace.yaml`, root `package.json` scripts, committed `pnpm-lock.yaml`,
   strict shared TypeScript configuration, ESLint, Vitest, and deterministic
   workspace commands. Suggested commit: `build(frontend): scaffold pnpm workspace`.
-- [ ] **R0-04004 — Create shared frontend package boundaries and contract
+- [x] **R0-04004 — Create shared frontend package boundaries and contract
   placeholders from R0-011, R0-013, R0-015, analysis section 9, and design
   sections 2 and 8.** Add empty-but-buildable `api-client`, `ui`, and
   `vocabulary` packages with ownership rules, smoke tests, and generated-artifact

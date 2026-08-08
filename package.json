@@ -1,0 +1,17 @@
+{
+  "name": "ioai-training-platform",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Release 0 monorepo scaffold",
+  "packageManager": "pnpm@10.16.0",
+  "scripts": {
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "test:e2e": "pnpm -r run test:e2e",
+    "build": "pnpm -r run build"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
