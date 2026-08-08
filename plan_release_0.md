@@ -50,7 +50,7 @@ Before checking an implementation item:
 
 Deliverable: `requirement_release_0.md`.
 
-- [ ] **R0-010 — Establish the requirements document.** Define Release 0 goals,
+- [x] **R0-010 — Establish the requirements document.** Define Release 0 goals,
   personas, assumptions, terminology, in-scope behavior, explicit exclusions,
   success measures, story-ID convention, and acceptance-criteria format.
   Reconcile scope with `master_plan.md` and `ui_release_0.md`. Suggested commit:
