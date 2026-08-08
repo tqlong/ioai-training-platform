@@ -339,3 +339,61 @@ composite identity. A changed label or alias is a content update; a changed
 vocabulary type or code is a new identity requiring explicit migration or
 review, not an in-place reinterpretation (`R0-015`, `AC-R0-015-07`,
 `AC-R0-015-19`).
+
+## 6. Learner discovery and solving workflow
+
+### 6.1 State and transition table
+
+| State / step | Entry condition | Main behavior | Success output | Failure or retry behavior |
+| --- | --- | --- | --- | --- |
+| Library loading | Learner opens `/problems` or changes URL filters | Request published list with stage, search, taxonomy, sort, and pagination state | Skeleton retains layout; results contain public fields only | Retry action and safe feedback path; no infrastructure detail (`AC-R0-011-03`) |
+| Library ready | Public list response succeeds | Show stage selector, recommendation, compact filters, result count, and dense table/cards | Learner can navigate or refine without losing URL state | No-result state identifies active filters and offers clear (`AC-R0-011-11`) |
+| Stage/filtering | Learner changes a stage or filter | Normalize display input to canonical codes and update query string | Shareable URL reproduces the selected state; parent topics include descendants only explicitly | Invalid or unavailable values are rejected or disabled without broadening results (`AC-R0-011-06`, `AC-R0-011-08`, `AC-R0-011-09`) |
+| Problem open | Learner selects a published row/card or direct slug | Resolve stable problem identity to current published snapshot | Learner sees objective, prerequisites, content blocks, response area, and recommendation context | Draft, unapproved, archived-only, or missing snapshot is not returned as public content (`AC-R0-011-15`, `AC-R0-011-16`) |
+| Response entry | Published detail is ready | Render one of five accepted response forms and validate client-side hints without trusting them | Complete response can be submitted | Incomplete or malformed response remains editable and produces field guidance (`AC-R0-012-03`, `AC-R0-012-05`) |
+| Submission pending | Valid response sent | Server validates published snapshot, response contract, limits, and idempotency context | Assessment result or explicit pending state | Retry is safe; duplicate request does not duplicate the logical attempt (`AC-R0-012-06`, `AC-R0-012-08`) |
+| Feedback received | Assessment completes | Show safe outcome, score/rubric result, component feedback, and permitted explanation | Learner can understand next action; status may become attempted/completed according to policy | Hidden answers, test data, provider errors, and unpublished explanation remain private (`AC-R0-012-07`) |
+| Local progress update | Open, attempt, completion, or evidence event occurs | Validate and persist approved device-local state if storage works | Refresh restores status, evidence display data, and recent context | Storage failure leaves product usable and explains non-persistence (`AC-R0-012-09` through `AC-R0-012-11`) |
+| Feedback sent | Learner opens problem feedback | Validate category/message and apply anonymous abuse controls | Bounded feedback record associated with public problem | Safe validation or rate-limit result; no partial/unbounded record (`AC-R0-012-12` through `AC-R0-012-14`) |
+| Continue | Learner completes or chooses recommendation | Select one editorially eligible next problem | Stable URL opens next published problem with stage context | Exclude current item where possible; never route to unavailable or private content (`AC-R0-012-15` through `AC-R0-012-17`) |
+
+### 6.2 Response and scoring analysis
+
+The public response contract is determined by the canonical task type in the
+published snapshot. Release 0 supports `QUIZ_SINGLE`, `QUIZ_MULTIPLE`,
+`NUMERIC_ANSWER`, `SHORT_ANSWER`, and `CODE_FUNCTION`; each must have an
+explicit response schema and cannot be treated as generic free text. Resource
+execution is limited to `NONE`, `BROWSER`, or `CPU_LIGHT` (`R0-012`, `R0-016`).
+
+Assessment is a separate step from response validation. Validation answers
+“can this response be assessed under the published contract?”; scoring answers
+“what result follows from the configured components?”; feedback translates that
+result into safe learner-facing guidance. A malformed response must not create a
+completed task, and a delayed/manual assessment must not claim a result before
+one exists (`AC-R0-012-05`, `AC-R0-012-08`).
+
+Scoring components are decimal-safe and total exactly `1.0`. `EXACT_MATCH`,
+`UNIT_TESTS`, and `PARTIAL_TESTS` support lightweight automated assessment;
+`RUBRIC_HUMAN` supports manual review. Hidden answers, hidden test data, and
+provider implementation details are assessment inputs, not public feedback
+fields (`AC-R0-012-07`).
+
+### 6.3 Recommendation analysis
+
+Recommendation is editorially constrained rather than a claim of advanced
+personalization. With no local history, the system returns the editorially
+chosen first problem and labels it “Recommended start.” With local history, it
+uses the selected stage, published eligibility, prerequisite relationships,
+learning path order, and current problem exclusion where possible. It must not
+infer mastery from task completion or expose a draft while finding a candidate
+(`R0-011`, `R0-012`, `AC-R0-012-15` through `AC-R0-012-17`).
+
+### 6.4 Client-state and failure conclusions
+
+The URL is the shareable source of discovery filters; the server snapshot is the
+source of public problem content; browser-local state is the source of
+anonymous convenience progress. None may silently substitute for another.
+This separation explains why a cleared local store affects recommendation
+context but must not make a public URL invalid, and why a public-data failure
+must not render cached draft-like content (`R0-011`, `R0-012`, `AC-R0-011-09`,
+`AC-R0-012-11`).

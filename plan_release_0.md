@@ -128,7 +128,7 @@ implementation choices recorded in requirements section 15.3.
   detection. Include the five approved task types, `NONE`/`BROWSER`/`CPU_LIGHT`,
   approved scoring methods, and the `NONE` modality rule. Suggested commit:
   `docs(analysis): define vocabulary data flow`.
-- [ ] **R0-024 — Analyze the learner discovery and solving workflow from R0-011
+- [x] **R0-024 — Analyze the learner discovery and solving workflow from R0-011
   and R0-012.** Map stage selection, search, hierarchy filtering, sorting,
   permanent URLs, problem reading, each accepted response type, scoring
   feedback, device-local status/evidence, problem feedback, and continue-next
