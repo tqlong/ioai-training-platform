@@ -386,7 +386,7 @@ foundation must remain runnable with the four base services only.
   Keep migration failures from making API readiness green and document that
   browser-local progress is not in PostgreSQL backups. Suggested commit:
   `build(dev): add local operations commands`.
-- [ ] **R0-04013 — Prove the foundation stack and critical boundary smoke flows
+- [x] **R0-04013 — Prove the foundation stack and critical boundary smoke flows
   from R0-011, R0-013, R0-014, R0-015, analysis sections 3, 9, and 10, and
   design sections 11-15.** Add focused tests that services start in dependency
   order, health/readiness are distinct, Studio binds to loopback, Learn and
