@@ -941,3 +941,90 @@ and use cases without changing the public isolation rule (`AC-R0-015-10`,
 
 This matrix makes isolation a cross-layer acceptance property rather than a
 single route implementation (`R0-014`, `R0-015`, analysis sections 9-10).
+
+## 12. Learner frontend architecture
+
+### 12.1 Routes and page responsibilities
+
+| Route | Page responsibility | Data/state boundary |
+| --- | --- | --- |
+| `/problems` | Stage selector, recommendation, compact filters, topic shortcuts, results table/cards, learning-path support | Server-fetched public list; URL owns filters; browser-local adapter overlays status/evidence |
+| `/problems/[slug]` | Published problem content, response area, hints/explanation, feedback, recommendation | Server-fetched current published snapshot; client owns response interaction and local progress |
+| Public error/not-found states | Safe unavailable/retry/not-found presentation | No infrastructure details; no draft fallback |
+
+The permanent slug is the public route identity. Return navigation preserves
+filter query and list position through URL/history state rather than a server
+session (`R0-011`, `AC-R0-011-09`, `AC-R0-011-15`, `AC-R0-011-16`).
+
+### 12.2 Component and state ownership
+
+```text
+Learn app shell
+  +- accessible header / language and feedback affordance
+  +- ProblemsPage
+      +- StageSelector
+      +- RecommendationCard
+      +- FilterBar + HierarchicalTopicPicker
+      +- ActiveFilterTokens
+      +- ProblemResultsTable (>= 768 px)
+      +- ProblemResultCards (< 768 px)
+      +- LearningPathSidebar
+      +- Pagination / Empty / Loading / Error states
+
+ProblemDetailPage
+  +- ProblemContentBlocks
+  +- Prerequisites
+  +- ResponseForm(task-type discriminated)
+  +- SubmissionFeedback
+  +- ProblemFeedbackDialog
+  +- ContinueRecommendation
+```
+
+Server components or route loaders own public data fetching and safe error
+translation. Client components own URL filter interaction, response input,
+focus, dialogs, local storage, submission pending state, and progress overlay.
+No component fetches author data or imports Studio application code. Generated
+API types flow through `packages/api-client`; shared UI primitives remain
+presentation-only (`R0-011`, `R0-012`, `R0-015`, analysis sections 2, 6, and 9).
+
+### 12.3 Discovery state
+
+The URL query string is the source of truth for selected stage, search, canonical
+filters, explicit descendant inclusion, sorting, pagination, and result position.
+The page derives removable filter tokens from it and restores the state when a
+learner returns from detail. The topic picker exposes family/intermediate/leaf
+hierarchy and requires an explicit “Include subtopics” choice
+(`AC-R0-011-06`, `AC-R0-011-08`, `AC-R0-011-09`).
+
+The recommendation card is a single editorial candidate. Without local history
+it says “Recommended start”; with local history it shows a safe reason based on
+stage, prerequisites, and editorial path, without claiming personalization or
+mastery (`AC-R0-012-15`, `AC-R0-012-16`).
+
+### 12.4 Local progress adapter
+
+The client-local adapter stores only approved anonymous progress fields:
+schema version, stable public problem identity, task status, learning evidence
+display data, recent completion context, timing/hint counters where approved,
+and weekly-goal/path context if implemented. It validates and bounds reads,
+handles missing/corrupt storage, and exposes an unavailable-storage state.
+
+The adapter never stores or authorizes draft data, hidden answers, editorial
+status, credentials, or an identity claim. Clearing or disabling storage leaves
+public browsing and solving available and explains that progress is temporary
+(`R0-012`, `AC-R0-012-09` through `AC-R0-012-11`).
+
+### 12.5 Responsive and accessibility design
+
+At widths below 768 px, results render as cards with all critical metadata
+available without squeezing desktop columns. At desktop widths, the dense table
+uses sticky headers and keeps stage/difficulty, status/evidence, competency,
+topics, type, time, and compute scannable. Intermediate widths move or collapse
+secondary information according to `ui_release_0.md` rather than silently
+removing it (`R0-011`, `R0-015`, `AC-R0-011-12`, `AC-R0-011-13`).
+
+Controls use visible labels, accessible names, keyboard-safe dialogs, focus
+return, text/icon status cues, and non-color-only feedback. Loading preserves
+layout dimensions; empty states identify active filters; public errors provide
+retry and feedback paths without draft/infrastructure details
+(`AC-R0-011-03`, `AC-R0-011-11`, `AC-R0-011-14`).

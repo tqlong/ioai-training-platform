@@ -263,7 +263,7 @@ explicitly excluded from Release 0.
   paths; define preview, build, and cache boundaries; specify no-auth exposure,
   bounded anonymous data, redaction, safe errors, and leak-path checks. Suggested
   commit: `docs(design): enforce public isolation and safe boundaries`.
-- [ ] **R0-03012 — Design learner frontend architecture from R0-011, R0-012,
+- [x] **R0-03012 — Design learner frontend architecture from R0-011, R0-012,
   R0-015, `ui_release_0.md`, and analysis section 6.** Map learner routes,
   page hierarchy, server/client ownership, generated API types, URL filters,
   stage/recommendation state, local progress, list/table/card behavior,
