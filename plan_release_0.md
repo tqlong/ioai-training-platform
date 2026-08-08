@@ -232,7 +232,7 @@ explicitly excluded from Release 0.
   scoring feedback, local-progress interaction, and problem feedback. Include
   safe public projections, URL state, validation errors, request IDs, bounded
   inputs, and idempotency. Suggested commit: `docs(design): specify learner api`.
-- [ ] **R0-03007 — Design author and editorial command contracts from R0-013,
+- [x] **R0-03007 — Design author and editorial command contracts from R0-013,
   R0-014, R0-015, analysis sections 7-9.** Define `/api/v1/author` draft,
   autosave/recovery, validation, preview, review, request-changes, approval,
   publication, revision, and archive commands. Include notes, optimistic

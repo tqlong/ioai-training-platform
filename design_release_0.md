@@ -529,3 +529,104 @@ The frontend owns the shareable filter query string and sends it to this API;
 the API does not store anonymous filter state. The permanent problem slug is
 stable across revisions and is the only public identity needed to reopen a
 published problem (`AC-R0-011-09`, `AC-R0-011-15`, `AC-R0-011-16`).
+
+## 7. Author and editorial API design
+
+### 7.1 Command surface
+
+Author commands are versioned under `/api/v1/author` and are separate from
+public resources:
+
+| Method and path | Purpose | Required command data |
+| --- | --- | --- |
+| `GET /api/v1/author/problems` | List draft/revision work | Internal status, version, last-save metadata; author-safe only |
+| `POST /api/v1/author/problems` | Create a draft problem | Draft initialization intent |
+| `GET /api/v1/author/problems/{problem_id}` | Read current author aggregate | Revision and validation context |
+| `POST /api/v1/author/problems/{problem_id}/revisions` | Start edit of published problem | Base published identity/version |
+| `PUT /api/v1/author/revisions/{revision_id}` | Versioned autosave | Revision version and structured patch/full draft |
+| `POST /api/v1/author/revisions/{revision_id}/validate` | Validate draft | Revision version |
+| `POST /api/v1/author/revisions/{revision_id}/preview` | Create/read preview projection | Revision version and explicit preview context |
+| `POST /api/v1/author/revisions/{revision_id}/submit-review` | Submit for review | Current version and required note |
+| `POST /api/v1/author/revisions/{revision_id}/request-changes` | Request changes | Current version and required reviewer note |
+| `POST /api/v1/author/revisions/{revision_id}/approve` | Approve revision | Current version and required reviewer note |
+| `POST /api/v1/author/revisions/{revision_id}/publish` | Publish approved revision | Current version, note, idempotency key |
+| `POST /api/v1/author/problems/{problem_id}/archive` | Archive public problem | Current public version and required note |
+
+The exact path names remain subject to the final OpenAPI design, but the public
+versus author separation and command semantics are fixed here. A future access
+control layer can wrap these commands without changing public DTOs; Release 0
+does not infer authentication from the route or port (`R0-014`, `R0-015`,
+analysis sections 3 and 9).
+
+### 7.2 Draft and revision contracts
+
+Draft responses may include revision ID, editorial status, validation issues,
+pending translation indicators, autosave version, internal notes, and preview
+context. They must never be serializable by public schemas or accepted by public
+routes. A draft write includes:
+
+```text
+DraftWrite
+  revision_id
+  expected_version
+  structured_revision_patch or complete_revision
+  client_save_key (optional bounded retry key)
+```
+
+The server returns the accepted version, normalized revision data, save status,
+and warnings. A stale `expected_version` returns `REVISION_CONFLICT` with the
+current version reference but does not merge or overwrite automatically
+(`R0-013`, `AC-R0-013-15` through `AC-R0-013-18`).
+
+### 7.3 Validation and preview contracts
+
+Validation returns a stable report:
+
+```text
+ValidationReport
+  revision_id
+  revision_version
+  errors[]: { code, section, field_path, message }
+  warnings[]: { code, section, field_path, message }
+  publication_eligible: boolean
+```
+
+Errors cover structural fields, canonical references, Release 0 policy,
+resources, scoring total, stable slug, and workflow prerequisites. Warnings may
+include pending translations but cannot override a publication blocker
+(`R0-013`, `AC-R0-013-19`).
+
+Preview returns a learner-shaped draft projection with a persistent
+`Draft preview - not public` marker and author-only warning metadata outside the
+learner content. Preview requests are never resolved by public slug and are not
+eligible for list/search/recommendation/build caches (`AC-R0-013-20`,
+`AC-R0-013-21`).
+
+### 7.4 Editorial command contracts
+
+Every transition request includes `revision_id`, `expected_version`, a bounded
+human-entered `note`, and an idempotency key when the command has a public or
+history side effect. The application checks current status, validation, policy,
+slug uniqueness, and version before writing an immutable transition history
+entry. Allowed transitions are exactly:
+
+```text
+DRAFT -> IN_REVIEW -> CHANGES_REQUESTED
+                    \-> APPROVED -> PUBLISHED -> ARCHIVED
+```
+
+`CHANGES_REQUESTED` returns the revision to author editing according to the
+workflow policy; published edits create a new revision rather than mutating the
+current snapshot. Approval and publication remain distinct commands. Publication
+creates the immutable snapshot and successful history transition atomically;
+replaying the same publication idempotency key returns the original public
+result (`R0-014`, `AC-R0-014-01` through `AC-R0-014-16`).
+
+### 7.5 Author error and response safety
+
+Author responses may explain validation and workflow errors more fully than
+public responses, but they still omit stack traces, SQL, provider errors,
+secrets, object storage keys, and unrelated drafts. A missing note, stale
+version, invalid transition, unavailable policy value, or conflicting slug
+returns a stable error and changes no state (`R0-014`, `R0-015`,
+`AC-R0-014-11`, `AC-R0-014-16`).
