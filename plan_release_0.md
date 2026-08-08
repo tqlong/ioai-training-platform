@@ -251,7 +251,7 @@ explicitly excluded from Release 0.
   feedback, and operational metadata. Define composite keys, unique slugs,
   constraints, indexes, and deterministic seed ownership. Suggested commit:
   `docs(design): define release 0 database model`.
-- [ ] **R0-03010 — Design transaction, concurrency, and migration strategy from
+- [x] **R0-03010 — Design transaction, concurrency, and migration strategy from
   R0-013 through R0-015, analysis sections 7-10, and open decisions in section
   11.** Choose transaction boundaries, isolation/locking, optimistic versioning,
   atomic publication, snapshot consistency, submission/autosave idempotency,

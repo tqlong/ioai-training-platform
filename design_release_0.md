@@ -785,3 +785,71 @@ must not fabricate parallel vocabulary values. A migration cannot rewrite an
 already-shared revision; a new migration is required. Fixture snapshots must
 include both published and draft cases for isolation tests, while public seed
 queries return only published records (`R0-015`, `AC-R0-015-08`).
+
+## 10. Transactions, concurrency, and migrations
+
+### 10.1 Transaction policy
+
+Release 0 uses PostgreSQL's default `READ COMMITTED` isolation with explicit
+row locks and optimistic version checks where the workflow needs a stronger
+decision. This is sufficient for the small editorial pilot while keeping
+transaction behavior understandable; an ADR is required before changing the
+isolation model (`R0-014`, `R0-015`, analysis sections 8-10).
+
+| Operation | Transaction boundary | Concurrency control | Failure result |
+| --- | --- | --- | --- |
+| Vocabulary sync | Validate artifact before one synchronization transaction | Composite identity upsert/update; reject identity repurposing | Roll back all writes or return a structured rejected diff |
+| Draft create | Problem identity and initial revision | Unique identity/slug constraints | No partial draft/public identity |
+| Draft autosave | One versioned revision update | `expected_version` compare-and-increment | `REVISION_CONFLICT`; preserve newer server revision and local recovery copy |
+| Submit/request changes/approve | Status check, transition insert, revision version update | Row lock on revision or compare-and-increment | No status/history mutation on invalid or stale request |
+| Publish | Lock current problem/revision; validate; create immutable snapshot; append transition; update current-public pointer | Row lock plus unique slug constraint and idempotency key | Entire transaction rolls back; no partial public snapshot |
+| Archive | Lock current public problem; append archive transition; remove public eligibility | Version check and unique current-public constraint | Existing public snapshot remains available if transaction fails |
+| Learner submission | Resolve one published snapshot; insert bounded attempt/result | Scoped idempotency key; snapshot immutable | Replay original result or return safe dependency error |
+| Feedback | Validate and insert one bounded report | Rate/idempotency policy | No partial/unbounded record |
+
+The application use case owns the semantic transaction boundary; the adapter
+opens, commits, rolls back, and closes the SQLAlchemy transaction. No endpoint
+performs multiple independent repository calls and assumes atomicity
+(`R0-014`, `AC-R0-014-05`, `AC-R0-015-09`).
+
+### 10.2 Publication consistency
+
+Publication locks the problem identity and target revision, rechecks current
+status/version, validates current policy and slug uniqueness, creates the
+snapshot, writes the transition note, and updates the current-public reference
+before commit. Public readers either see the old complete snapshot or the new
+complete snapshot; they never see an intermediate state. A public submission
+resolves a snapshot identity at the start and assesses against that immutable
+configuration (`R0-012`, `R0-014`, analysis sections 8-9).
+
+Editing a published problem never updates the current snapshot. It creates a
+new revision with its own version and status. A failed draft save, review
+transition, or publication cannot change the prior public revision
+(`AC-R0-014-09`, `AC-R0-014-10`, `AC-R0-014-16`).
+
+### 10.3 Idempotency and retry design
+
+Commands with externally visible effects accept a bounded idempotency key scoped
+to operation and target identity. The idempotency record stores request digest,
+status, and safe result reference. A matching replay returns the original result;
+the same key with a different payload returns a stable conflict. Keys do not
+contain answer data or secrets and their retention period is an open operations
+choice that cannot allow duplicate publication or uncontrolled attempts
+(`R0-012`, `R0-014`, analysis sections 6, 8, and 9).
+
+### 10.4 Migration discipline
+
+All schema changes use Alembic with descriptive revisions. Each migration:
+
+1. Has deterministic upgrade behavior and a safe downgrade where supported.
+2. Adds constraints/indexes in an order compatible with existing data.
+3. Does not rewrite an already-shared migration.
+4. Includes deterministic data changes when a data migration is unavoidable.
+5. Is tested against PostgreSQL, not SQLite compatibility assumptions.
+6. Keeps canonical vocabulary synchronization separate from schema migration
+   unless a schema invariant requires both in a reviewed transaction.
+
+Migration validation runs in CI and in the Compose startup procedure before the
+API is marked ready. A failed migration leaves the database unavailable rather
+than starting an API against a partially upgraded schema (`R0-015`,
+`AC-R0-015-08`, `AC-R0-015-16`).
