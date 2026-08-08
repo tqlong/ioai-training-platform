@@ -238,7 +238,7 @@ explicitly excluded from Release 0.
   publication, revision, and archive commands. Include notes, optimistic
   versions, conflict errors, publication idempotency, preview isolation, and
   author-safe response schemas. Suggested commit: `docs(design): specify author api`.
-- [ ] **R0-03008 — Design OpenAPI and generated-client governance from R0-011
+- [x] **R0-03008 — Design OpenAPI and generated-client governance from R0-011
   through R0-015, analysis sections 9-10.** Define deterministic OpenAPI
   generation, schema ownership, TypeScript client generation, compatibility
   checks, drift detection, error-code stability, and the contract test that

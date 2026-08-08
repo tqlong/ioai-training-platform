@@ -630,3 +630,78 @@ secrets, object storage keys, and unrelated drafts. A missing note, stale
 version, invalid transition, unavailable policy value, or conflicting slug
 returns a stable error and changes no state (`R0-014`, `R0-015`,
 `AC-R0-014-11`, `AC-R0-014-16`).
+
+## 8. OpenAPI and generated-client governance
+
+### 8.1 Contract ownership
+
+FastAPI/Pydantic response and request models are the source of the HTTP
+contract. The OpenAPI document is generated from the application entrypoint in
+a deterministic command that does not require a live database, wall-clock data,
+random IDs, or network access. The generated document is committed or produced
+as a reproducible CI artifact according to the repository policy chosen in
+Phase 4 (`R0-015`, analysis sections 9-11).
+
+The frontend `packages/api-client` is generated from that OpenAPI document. It
+owns transport types and typed request functions, not domain logic. The learner
+and Studio apps consume it rather than manually duplicating request/response
+schemas. Vocabulary and shared UI packages may expose stable presentation types
+but cannot redefine API contracts (`R0-010`, `R0-015`, analysis section 2).
+
+### 8.2 Generation and drift pipeline
+
+```text
+Pydantic/FastAPI contracts
+          |
+          v
+deterministic OpenAPI JSON
+          |
+          v
+generated TypeScript api-client
+          |
+          +--> contract compatibility tests
+          +--> committed/generated drift check
+```
+
+The pipeline must:
+
+1. Generate a stable OpenAPI document with sorted output and no environment-
+   specific server URLs or timestamps.
+2. Generate TypeScript types/client functions using one pinned toolchain.
+3. Fail when generated output differs from the committed artifact, if artifacts
+   are committed, or when the client is generated from a different contract.
+4. Run compatibility checks for public and author response projections,
+   pagination/filter contracts, stable errors, idempotency headers/fields, and
+   draft-safe schema separation.
+5. Make the command discoverable through `uv`/`pnpm` scripts and CI.
+
+The final generator/tool choice is an open implementation decision from analysis
+section 11.2; the invariants above are not open (`AC-R0-015-19`).
+
+### 8.3 Schema separation rules
+
+Public schemas are named and tested separately from author schemas:
+
+- Public list/detail/submission/feedback schemas contain published learner
+  content and safe assessment results only.
+- Author draft/revision/validation/preview/workflow schemas may contain internal
+  revision IDs, versions, warnings, notes, and editorial status.
+- Shared fields are copied through explicit projection models, not inheritance
+  from an author schema into a public schema.
+- SQLAlchemy models, Pydantic ORM serialization, object keys, hidden answers,
+  and provider exceptions never cross the HTTP contract boundary.
+
+The contract test should construct a representative draft containing every
+author-only field and assert that each public response remains free of it. It
+should also assert that a public request cannot name a revision or preview
+identifier (`R0-014`, `R0-015`, `AC-R0-014-12`, `AC-R0-015-13`).
+
+### 8.4 Compatibility and evolution
+
+Adding an optional response field is compatible; removing or changing the
+meaning/type of a public field requires an explicit versioning decision. Stable
+problem URLs and canonical codes are data contracts and cannot be changed as a
+shortcut for API evolution. Author-only additions must not widen public
+projections. Contract changes update the generated client, affected tests,
+documentation, and traceability entry in one reviewable change (`R0-011`,
+`R0-014`, `R0-016`).
