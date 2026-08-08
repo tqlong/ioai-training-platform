@@ -346,13 +346,13 @@ foundation must remain runnable with the four base services only.
   metadata/branding, accessible navigation, safe error boundaries, and a tested
   `/author/problems` route shell. Keep the port organizational, not an auth
   mechanism. Suggested commit: `feat(studio): add author application shell`.
-- [ ] **R0-04007 — Add the FastAPI factory and settings shell from R0-015,
+- [x] **R0-04007 — Add the FastAPI factory and settings shell from R0-015,
   analysis sections 2-3 and 10, and design sections 1-2.** Add typed settings,
   application factory, environment-safe configuration, dependency injection
   hooks, stable error mapping, request IDs, and smoke coverage without putting
   domain or publication rules in endpoints. Suggested commit:
   `feat(api): add fastapi application shell`.
-- [ ] **R0-04008 — Add API health/readiness and deterministic OpenAPI foundation
+- [x] **R0-04008 — Add API health/readiness and deterministic OpenAPI foundation
   from R0-015, analysis sections 9-10, and design sections 6-8 and 15.** Add
   `/health/live`, `/health/ready`, machine-readable safe responses, migration/
   dependency readiness semantics, deterministic OpenAPI generation, and the
