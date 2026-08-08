@@ -1028,3 +1028,99 @@ return, text/icon status cues, and non-color-only feedback. Loading preserves
 layout dimensions; empty states identify active filters; public errors provide
 retry and feedback paths without draft/infrastructure details
 (`AC-R0-011-03`, `AC-R0-011-11`, `AC-R0-011-14`).
+
+## 13. Studio frontend architecture
+
+### 13.1 Routes and page responsibilities
+
+| Route | Responsibility | State/projection |
+| --- | --- | --- |
+| `/author/problems` | Draft/revision list, editorial status, last save, resume/create actions | Author API only; never learner public list |
+| `/author/problems/new` | Initialize a structured draft | Server draft identity plus local form state |
+| `/author/problems/[id]` | Edit current revision and show autosave/validation state | Author revision contract and versioned local recovery |
+| `/author/problems/[id]/preview` | Learner-shaped draft preview | Explicit author preview projection with persistent warning |
+| `/author/review/[revision_id]` | Review, request changes, approve, publish, archive | Author/editorial command contracts and audit notes |
+
+The final route composition may combine pages, but the Studio application owns
+all author/reviewer navigation and uses distinct “IOAI Studio” identity. A
+different port is not access control; the API and domain still validate every
+command (`R0-013`, `R0-014`, `AC-R0-015-10`, `AC-R0-015-11`).
+
+### 13.2 Editor section architecture
+
+```text
+StudioShell
+  +- ProblemsList
+  +- DraftEditor
+      +- ContentSection: bilingual structured blocks
+      +- ObjectiveEditor
+      +- CurriculumMetadata: stage/difficulty/competency/topic pickers
+      +- PrerequisiteEditor
+      +- ResponseEditor: five task-type variants
+      +- ScoringEditor: components + decimal-safe total
+      +- ResourcesEditor: exact limits + policy warnings
+      +- AutosaveStatus / RecoveryDialog
+      +- ValidationPanel
+      +- LearnerPreviewLink
+  +- ReviewPanel
+      +- TransitionHistory
+      +- RequiredNoteField
+      +- RequestChanges / Approve / Publish / Archive actions
+```
+
+Each section owns field-level presentation and accessible error linkage; the
+draft form coordinator owns normalized state, dirty fields, version, autosave,
+validation report, and explicit save/recovery decisions. Canonical pickers show
+vocabulary type where codes/labels overlap and persist composite identities.
+Response fields are discriminated by the selected task type and never expose
+fields for unsupported types (`R0-013`, `AC-R0-013-07` through `AC-R0-013-14`).
+
+### 13.3 Autosave and recovery UI
+
+The top bar presents `Saving...`, `Saved`, or `Save failed` for the targeted
+revision. The client coalesces idle edits, sends `expected_version`, and keeps a
+schema-versioned local recovery copy on failure. A recovery dialog clearly
+offers restore, discard, or resolve; it never silently overwrites server work or
+deletes unsaved content (`AC-R0-013-15` through `AC-R0-013-18`).
+
+Autosave is not a substitute for an explicit editorial action. Save, validate,
+preview, submit for review, request changes, approve, publish, and archive use
+separate buttons, confirmations, and API commands. Publication confirmation
+shows the permanent URL and distinguishes it from preview (`R0-013`, `R0-014`,
+`AC-R0-014-05`).
+
+### 13.4 Validation, preview, and editorial states
+
+Validation panel groups errors and warnings by Content, Curriculum, Assessment,
+Resources, and Publication. Each item links to its field. Blocking errors
+disable review/publication; warnings remain visible and explain their impact.
+The preview uses learner page structure but carries a persistent
+`Draft preview - not public` banner and author-visible pending-translation
+warnings. Preview data cannot enter learner routes, search, recommendations,
+builds, or caches (`AC-R0-013-19` through `AC-R0-013-21`).
+
+Review controls render from the current editorial status and server version:
+
+```text
+DRAFT              -> Submit for review
+IN_REVIEW          -> Request changes | Approve
+CHANGES_REQUESTED  -> Edit and resubmit
+APPROVED           -> Publish
+PUBLISHED          -> Create revision | Archive
+ARCHIVED           -> Start new valid revision flow
+```
+
+The UI disables impossible actions for orientation, but the API/domain remains
+the authority. Every accepted transition requires a note and displays status
+with text/icon cues rather than color alone (`R0-014`, `AC-R0-014-01` through
+`AC-R0-014-16`).
+
+### 13.5 Responsive and accessibility rules
+
+Studio forms remain usable at the UI-specified mobile widths by grouping fields
+into sections, avoiding squeezed multi-column tables, keeping error summaries
+reachable, and making dialogs keyboard-safe. Focus moves to the first blocking
+error after validation and returns to the invoking control after dialogs close.
+Preview and learner/public surfaces remain visually distinguishable through
+labels, banners, and structure, not color alone (`R0-013`, `R0-015`,
+`AC-R0-011-14`, `AC-R0-013-20`).

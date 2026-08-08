@@ -269,7 +269,7 @@ explicitly excluded from Release 0.
   stage/recommendation state, local progress, list/table/card behavior,
   submission/feedback/continue states, accessibility, responsive widths, and
   loading/error behavior. Suggested commit: `docs(design): map learner frontend`.
-- [ ] **R0-03013 — Design Studio frontend architecture from R0-013, R0-014,
+- [x] **R0-03013 — Design Studio frontend architecture from R0-013, R0-014,
   R0-015, `ui_release_0.md`, and analysis section 7.** Map author routes,
   structured form sections, canonical pickers, prerequisites, response/scoring
   forms, autosave/recovery, validation, preview banner, review controls,
