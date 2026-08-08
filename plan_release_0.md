@@ -83,7 +83,7 @@ Deliverable: `requirement_release_0.md`.
   assumptions, observability, deterministic builds, migration safety, and test
   coverage of changed behavior. Suggested commit:
   `docs(requirements): add release 0 quality requirements`.
-- [ ] **R0-016 — Review and baseline requirements.** Resolve duplicates and
+- [x] **R0-016 — Review and baseline requirements.** Resolve duplicates and
   contradictions, number all acceptance criteria, identify deferred stories,
   and complete the requirements-to-source traceability table. Record unresolved
   product decisions instead of guessing. Suggested commit:

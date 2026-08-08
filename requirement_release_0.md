@@ -326,7 +326,8 @@ never exposes author-only translation warnings or draft fields.
 As a learner, I want a predictable response form so that I can answer without
 an advanced judge or hosted execution environment.
 
-Release 0 accepts exactly these canonical task types:
+Release 0 accepts exactly these canonical task types, matching the Release 0 UI
+response specification:
 
 - `QUIZ_SINGLE` — one selected choice.
 - `QUIZ_MULTIPLE` — one or more selected choices.
@@ -336,13 +337,14 @@ Release 0 accepts exactly these canonical task types:
   keyword, or human-rubric guidance.
 - `CODE_FUNCTION` — a small function response evaluated under the published
   language, signature, starter code, limits, and tests.
-- `CODE_DEBUGGING` — a bounded correction to supplied code evaluated by tests.
-- `CODE_COMPLETION` — a bounded completion to supplied code evaluated by tests.
 
 These types are available only with the `NONE`, `BROWSER`, or `CPU_LIGHT`
 compute tiers. All other canonical task types, scoring methods requiring hidden
-labels or ranking, and all GPU or distributed tiers are unavailable for Release
-0 publication. The vocabulary records remain canonical and are not deleted.
+labels or ranking, `CODE_DEBUGGING`, `CODE_COMPLETION`, and all GPU or
+distributed tiers are unavailable for Release 0 publication. The vocabulary
+records remain canonical and are not deleted. The broader master-plan list for
+those two code types is treated as a later-release capability, not an expansion
+of this Release 0 scope.
 
 ```text
 AC-R0-012-03
@@ -926,3 +928,62 @@ When the quality pipeline runs
 Then deterministic contract generation and drift checks fail if the committed
 client and server contract disagree.
 ```
+
+## 15. Requirements baseline review
+
+### 15.1 Coverage and source traceability
+
+The following matrix is the Phase 1 baseline. Later analysis, design, and
+implementation artifacts must retain these IDs rather than replacing them with
+unstable component or endpoint names.
+
+| Requirement group | Primary source | Required downstream evidence |
+| --- | --- | --- |
+| R0-010 goals, personas, scope, terminology | `master_plan.md`, `ui_release_0.md`, `vocab.md`, `code_standard.md` | Analysis boundary and product documentation |
+| R0-011 learner discovery | `ui_release_0.md` sections 5 and 7-8; `vocab.md` learner rules | Public API, learner UI, accessibility, and E2E tests |
+| R0-012 solving loop | `master_plan.md` sections 1, 3, and 5; `ui_release_0.md` sections 6.5 and 8 | Submission/scoring contracts, local-progress tests, and learner E2E |
+| R0-013 authoring | `ui_release_0.md` sections 6.1-6.7 and 6.9 | Author use cases, validation tests, autosave tests, and preview tests |
+| R0-014 editorial publication | `master_plan.md` release boundaries; `ui_release_0.md` section 6.8 | Domain workflow tests, repository isolation tests, and author E2E |
+| R0-015 quality and operations | `code_standard.md`, `AGENTS.md`, `ui_release_0.md` section 8 | CI, migration, accessibility, performance, security, and operations checks |
+| R0-016 baseline governance | `plan_release_0.md` and all governing documents | Traceability review and change-control records |
+
+Acceptance criteria are numbered continuously within each story group:
+`AC-R0-011-01` through `AC-R0-011-16`, `AC-R0-012-01` through
+`AC-R0-012-17`, `AC-R0-013-01` through `AC-R0-013-21`, `AC-R0-014-01`
+through `AC-R0-014-16`, and `AC-R0-015-01` through `AC-R0-015-19`.
+
+### 15.2 Resolved scope choices
+
+- Release 0 enables `QUIZ_SINGLE`, `QUIZ_MULTIPLE`, `NUMERIC_ANSWER`,
+  `SHORT_ANSWER`, and `CODE_FUNCTION` only. `CODE_DEBUGGING` and
+  `CODE_COMPLETION` remain canonical but deferred because the UI specification
+  places them outside its Release 0 response list.
+- Release 0 compute tiers are `NONE`, `BROWSER`, and `CPU_LIGHT`. GPU,
+  distributed, and higher CPU tiers remain unavailable even if canonical.
+- Manual scoring is represented by `RUBRIC_HUMAN`; lightweight automated
+  scoring uses `EXACT_MATCH`, `UNIT_TESTS`, or `PARTIAL_TESTS` when the task
+  contract supports it. Component weights must total exactly `1.0`.
+- Anonymous progress is device-local and not an account substitute. Server
+  records for attempts and feedback are bounded operational records, not an
+  identity system.
+
+### 15.3 Deferred stories and implementation decisions
+
+The following are intentionally deferred and must not be inferred as Release 0
+requirements: accounts and authentication, saved cross-device progress,
+leaderboards, contests, social features, GPU or hosted execution, semantic
+retrieval, document ingestion, LLM generation, embeddings, broad analytics, and
+the task types not listed in 15.2.
+
+The exact retention period and provider for backups, the final browser version
+window, and the concrete observability sink remain implementation decisions for
+the Phase 3/4 design and operations work. They cannot weaken the measurable
+requirements in R0-015 or the public/draft isolation rules.
+
+### 15.4 Contradiction record
+
+The master plan names seven lightweight task types for a later public-learning
+release, while the Release 0 UI response section names five. The narrower,
+Release 0-specific UI list governs this baseline; the two additional code types
+are recorded as deferred rather than silently enabled. No other contradiction
+between the governing sources remains unresolved in Phase 1.

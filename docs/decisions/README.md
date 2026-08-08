@@ -26,13 +26,13 @@ Update this as artifacts land.
 | R0-000 | Governing baseline established in `plan_release_0.md` | N/A | N/A | N/A |
 | R0-001 | `AGENTS.md`, `master_plan.md`, `ui_release_0.md`, `code_standard.md` | To be added in Phase 1 | `README.md` | `README` review checklist |
 | R0-002 | `plan_release_0.md` | `docs/decisions/README.md` | `docs/decisions/README.md` | Traceability index review |
-| R0-010 | Pending | Pending | Pending | Pending |
-| R0-011 | Pending | Pending | Pending | Pending |
-| R0-012 | Pending | Pending | Pending | Pending |
-| R0-013 | Pending | Pending | Pending | Pending |
-| R0-014 | Pending | Pending | Pending | Pending |
-| R0-015 | Pending | Pending | Pending | Pending |
-| R0-016 | Pending | Pending | Pending | Pending |
+| R0-010 | `requirement_release_0.md` sections 1-9 | `requirement_release_0.md` sections 1-9 | Phase 1 documentation | Requirements review |
+| R0-011 | `master_plan.md`, `ui_release_0.md`, `vocab.md` | `requirement_release_0.md` section 10 | Pending Phase 4/7 implementation | Public API, UI, accessibility, and E2E tests |
+| R0-012 | `master_plan.md`, `ui_release_0.md`, `vocab.md` | `requirement_release_0.md` section 11 | Pending Phase 4/7 implementation | Submission, progress, feedback, and E2E tests |
+| R0-013 | `ui_release_0.md`, `code_standard.md` | `requirement_release_0.md` section 12 | Pending Phase 4/6 implementation | Author validation, autosave, and preview tests |
+| R0-014 | `master_plan.md`, `ui_release_0.md`, `AGENTS.md` | `requirement_release_0.md` section 13 | Pending Phase 4/6/7 implementation | Workflow, isolation, and publication E2E tests |
+| R0-015 | `AGENTS.md`, `code_standard.md`, `ui_release_0.md` | `requirement_release_0.md` section 14 | Pending Phase 3/4/7 implementation | Quality, security, accessibility, and operations checks |
+| R0-016 | All governing documents and `plan_release_0.md` | `requirement_release_0.md` section 15 | `docs/decisions/README.md` | Traceability and baseline review |
 | R0-020 | Pending | Pending | Pending | Pending |
 | R0-021 | Pending | Pending | Pending | Pending |
 | R0-022 | Pending | Pending | Pending | Pending |
@@ -65,4 +65,3 @@ Update this as artifacts land.
 | R0-060 | Pending | Pending | Pending | Pending |
 | R0-061 | Pending | Pending | Pending | Pending |
 | R0-062 | Pending | Pending | Pending | Pending |
-
