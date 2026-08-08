@@ -244,7 +244,7 @@ explicitly excluded from Release 0.
   checks, drift detection, error-code stability, and the contract test that
   prevents draft fields or ORM objects from entering public schemas. Suggested
   commit: `docs(design): govern api contract generation`.
-- [ ] **R0-03009 — Design the PostgreSQL conceptual model from R0-012 through
+- [x] **R0-03009 — Design the PostgreSQL conceptual model from R0-012 through
   R0-015 and analysis sections 4, 8, and 9.** Provide ER/table designs for
   problems, revisions, snapshots, vocabulary, topic relationships,
   prerequisites, response/scoring configuration, editorial history, attempts,

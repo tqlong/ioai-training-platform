@@ -705,3 +705,83 @@ shortcut for API evolution. Author-only additions must not widen public
 projections. Contract changes update the generated client, affected tests,
 documentation, and traceability entry in one reviewable change (`R0-011`,
 `R0-014`, `R0-016`).
+
+## 9. PostgreSQL conceptual model
+
+### 9.1 Entity relationship view
+
+```text
+vocabulary_record (vocabulary_type, code) 1---* topic_parent_edge
+                  ^                              |
+                  |                              v
+             problem_revision *---* vocabulary_record
+                  |
+                  +---* prerequisite_reference
+                  +---1 response_configuration 1---* scoring_component
+                  +---* editorial_transition
+                  |
+                  +---0..1 published_snapshot
+
+problem 1---* problem_revision
+problem 1---0..1 current_published_snapshot
+published_snapshot 1---* learner_attempt
+problem 1---* feedback_report
+```
+
+The diagram is conceptual. Physical table names and SQLAlchemy mappings must
+preserve the same ownership and visibility boundaries (`R0-014`, analysis
+sections 4, 8, and 9).
+
+### 9.2 Table responsibilities and keys
+
+| Table/concept | Identity and important columns | Constraints/indexes |
+| --- | --- | --- |
+| `vocabulary_record` | `(vocabulary_type, code)`, labels, aliases, status, explicit parent reference where applicable | Composite primary key; type-scoped code/label checks; parent foreign key; search indexes |
+| `topic_parent_edge` or explicit topic parent field | Child `(vocabulary_type, code)` and parent identity | Same-vocabulary topic constraint; no self-edge; graph validation in domain; index by parent |
+| `problem` | Stable problem ID, immutable public short identity, stable slug, current-public pointer | Unique slug/short ID; slug normalization; no draft-dependent slug lookup |
+| `problem_revision` | Revision ID, problem ID, version, content, canonical metadata, editorial status, timestamps | Unique `(problem_id, version)`; optimistic version; status/index by problem |
+| `revision_competency` | Revision ID, competency identity, primary/secondary role | One primary; max three secondary; composite uniqueness |
+| `revision_topic` | Revision ID, topic identity, selection role/order | Composite uniqueness; canonical topic foreign reference |
+| `prerequisite_reference` | Revision ID, relationship, target type/identity, minimum evidence | Typed target fields; no free-form target; duplicate prevention |
+| `response_configuration` | Revision ID, task type, type-specific JSON/structured fields, resource limits | One per revision; policy validation; exact numeric fields |
+| `scoring_component` | Response ID, method, decimal weight, order/configuration | At least one; decimal-safe total validated in domain and transaction boundary |
+| `editorial_transition` | Revision ID, source/target, note, timestamp, operation ID | Append-only; valid transition checked in domain; indexes for history |
+| `published_snapshot` | Snapshot ID, problem ID, revision ID, stable slug, published content, publication time | Immutable; one current eligible snapshot per problem; unique public slug |
+| `learner_attempt` | Attempt ID, snapshot/problem identity, bounded request/result, idempotency key | Unique idempotency scope; no draft revision reference; retention policy deferred |
+| `feedback_report` | Feedback ID, public problem identity, category/message, bounded abuse metadata | Size/category checks; rate/idempotency support; no account identity |
+| `proposal` | Proposal ID, vocabulary context, bounded note, review state | Cannot satisfy canonical metadata; author-safe only |
+
+PostgreSQL constraints protect composite identity, foreign-key existence,
+uniqueness, nullability/cardinality where practical, and publication uniqueness.
+Domain/application validation remains responsible for graph cycles, decimal
+sum, policy, status transitions, response variants, and actionable errors
+(`R0-013`, `R0-014`, `R0-015`, `AC-R0-015-07`).
+
+### 9.3 Projection and indexing design
+
+Public reads should use a dedicated published snapshot projection or repository
+query that begins from `published_snapshot` eligibility. Author reads begin from
+`problem_revision` and may join transition/validation context. No unconstrained
+problem query is shared between them (`R0-014`, analysis section 9).
+
+Expected indexes include:
+
+- unique normalized stable slug and public short identity;
+- published snapshot by stage, editorial order, publication time, and problem;
+- revision by problem/status/version for Studio lists and optimistic saves;
+- vocabulary by composite identity, type/parent, normalized labels, and aliases;
+- revision topic/competency and prerequisite target for filtering/recommendation;
+- bounded attempt/feedback lookup by public problem and idempotency scope.
+
+The exact PostgreSQL text-search implementation is a design choice, but it must
+search approved English/Vietnamese labels and aliases without exposing proposals
+or unpublished content (`R0-011`, `AC-R0-011-07`).
+
+### 9.4 Seed and migration ownership
+
+Migrations own schema evolution; deterministic seeds own canonical vocabulary
+and intentionally approved pilot fixtures. Seeds reference canonical codes and
+must not fabricate parallel vocabulary values. A migration cannot rewrite an
+already-shared revision; a new migration is required. Fixture snapshots must
+include both published and draft cases for isolation tests, while public seed
+queries return only published records (`R0-015`, `AC-R0-015-08`).
