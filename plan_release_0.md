@@ -166,7 +166,7 @@ implementation choices recorded in requirements section 15.3.
   security. Map each high-risk item to the smallest test boundary and record the
   required failing-first observation for behavior changes. Suggested commit:
   `docs(analysis): define release 0 risks and verification`.
-- [ ] **R0-029 — Baseline the analysis against requirement_release_0.md.** Review
+- [x] **R0-029 — Baseline the analysis against requirement_release_0.md.** Review
   `analysis_release_0.md` against every accepted story group (`R0-010` through
   `R0-016`) and every numbered acceptance-criteria range. Remove duplicate
   concepts, confirm exclusions and deferred decisions are not reintroduced,

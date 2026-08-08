@@ -650,3 +650,67 @@ The highest-priority initial tests are public/draft isolation, valid editorial
 transitions and atomic publication, vocabulary graph validation, scoring-total
 validation, and stable slug behavior. These tests protect the core trust loop
 before UI breadth or optional operational polish (`R0-014`, `R0-015`).
+
+## 11. Analysis baseline and open decisions
+
+### 11.1 Requirement-to-analysis matrix
+
+| Requirement group | Analysis evidence | Proof still deferred |
+| --- | --- | --- |
+| R0-010 goals, personas, assumptions, terminology, scope | Sections 1-3 define actors, boundaries, and excluded context | Phase 3 context/container design may refine deployment details |
+| R0-011 learner discovery | Sections 6 and 9 analyze discovery states, public projections, URLs, filters, responsive/accessibility risks, and isolation | Phase 3 API/UI design and Phase 4/7 implementation tests |
+| R0-012 learner solving loop | Sections 4, 6, and 9 analyze responses, scoring, attempts, progress, feedback, and recommendations | Phase 3 contracts and Phase 7 scoring/progress/feedback tests |
+| R0-013 authoring | Sections 4 and 7 analyze aggregate structure, metadata, prerequisites, response/scoring configuration, autosave, recovery, validation, and preview | Phase 3 use-case/API design and Phase 6 authoring tests |
+| R0-014 editorial publication | Sections 4, 8, and 9 analyze lifecycle, audit notes, atomic publication, revisions, slugs, and public isolation | Phase 3 persistence/API design and Phase 6/7 workflow tests |
+| R0-015 quality and operations | Sections 3, 9, and 10 analyze trust, integrity, privacy, test boundaries, and operational risks | Phase 3 operations design and Phase 4/7 quality gates |
+| R0-016 requirements governance | This matrix plus sections 11.2-11.4 preserve scope, decisions, and downstream traceability | Future design decisions must cite this analysis and requirements IDs |
+
+Acceptance-criteria coverage is intentionally grouped by behavior boundary. The
+analysis maps `AC-R0-011-01` through `AC-R0-011-16` to sections 6 and 9;
+`AC-R0-012-01` through `AC-R0-012-17` to sections 4, 6, and 9;
+`AC-R0-013-01` through `AC-R0-013-21` to sections 4, 7, and 9;
+`AC-R0-014-01` through `AC-R0-014-16` to sections 4, 8, and 9; and
+`AC-R0-015-01` through `AC-R0-015-19` to sections 3, 9, and 10. Criteria that
+require runtime proof remain explicitly deferred rather than implied to pass by
+this document (`R0-016`, `AC-R0-015-18`).
+
+### 11.2 Deferred implementation decisions
+
+The following choices remain open for Phase 3/4 design and must be resolved by
+an ADR or a design section before implementation depends on them:
+
+- PostgreSQL isolation level, locking/version strategy, and exact transaction
+  boundaries for publication, submissions, and autosave.
+- Exact browser-version support window and performance measurement environment.
+- Backup provider, retention period, restore target, and rehearsal schedule.
+- Structured-log sink, retention, redaction policy, and request-ID propagation
+  across services.
+- OpenAPI-to-TypeScript generation command, artifact ownership, and drift-check
+  execution point.
+- Local-progress schema versioning, corruption recovery, and recommendation
+  storage limits.
+- Anonymous submission/feedback idempotency-key lifetime and rate/size limits.
+- The concrete local operator model for author/reviewer actions while accounts
+  remain out of scope.
+
+These are not permission to add authentication, hosted execution, analytics,
+semantic retrieval, or other deferred features. They are implementation choices
+needed to satisfy the already accepted requirements (`R0-015`, section 15.3 of
+`requirement_release_0.md`).
+
+### 11.3 Analysis conclusions and non-conclusions
+
+The analysis establishes that public-only projections, stable problem identity,
+immutable published snapshots, explicit vocabulary identity, bounded anonymous
+state, and separate workflow dimensions are cross-layer invariants. It does not
+choose ORM mappings, endpoint names, UI component boundaries, database schema
+names, cloud services, or authentication mechanisms. Those choices belong to
+Phase 3 and must remain traceable to this analysis and the requirements baseline.
+
+### 11.4 Baseline decision
+
+No additional Release 0 capability is inferred. The narrower five-type response
+policy from the Release 0 UI remains authoritative over the later master-plan
+list; GPU/distributed work, accounts, cross-device progress, and other deferred
+features remain excluded. Future analysis changes must update this matrix and
+the decision index in the same commit as the changed conclusion (`R0-016`).
