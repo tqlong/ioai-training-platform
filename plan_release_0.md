@@ -112,7 +112,7 @@ implementation choices recorded in requirements section 15.3.
   Analyze anonymous operation, loopback Studio exposure, public versus author
   boundaries, and security risks created by having no authentication. Suggested
   commit: `docs(analysis): define context and trust boundaries`.
-- [ ] **R0-022 — Analyze the domain model from R0-012, R0-013, R0-014, and
+- [x] **R0-022 — Analyze the domain model from R0-012, R0-013, R0-014, and
   R0-015.** Define the problem aggregate, revision, published snapshot,
   vocabulary record, typed prerequisite, response configuration, decimal-safe
   scoring component, editorial transition, learner attempt, device-local

@@ -149,3 +149,82 @@ separations even before an identity system exists:
 These are analysis conclusions, not an authorization implementation. Their
 concrete ports, API contracts, and persistence mechanisms belong to Phase 3
 design (`R0-015`, `AC-R0-015-10` through `AC-R0-015-13`).
+
+## 4. Domain model
+
+### 4.1 Concept table
+
+| Concept | Meaning and ownership | Key relationships | Requirement evidence |
+| --- | --- | --- | --- |
+| Problem | Stable curriculum identity and permanent slug shared by revisions | Has one or more revisions; may have one current published snapshot | `R0-011`, `R0-013`, `R0-014`, `AC-R0-011-15`, `AC-R0-014-09` |
+| Problem revision | Editable version of problem content, metadata, response, resources, and scoring | Belongs to one problem; has editorial status and transition history; can produce one snapshot | `R0-013`, `R0-014`, `AC-R0-013-03`, `AC-R0-014-10` |
+| Published snapshot | Immutable public projection of an approved revision | Belongs to a problem and publication event; is the only public problem source | `R0-011`, `R0-014`, `AC-R0-014-05`, `AC-R0-014-12` |
+| Vocabulary record | Canonical typed value with `(vocabulary_type, code)`, bilingual labels, aliases, and policy status | Topic records may have an explicit parent; problem metadata references canonical records | `R0-010`, `R0-013`, `R0-015`, `AC-R0-013-07` through `AC-R0-013-10` |
+| Prerequisite | Typed relationship to competency, topic, task, or learning unit | May carry relationship and minimum evidence; is not a free-form tag | `R0-013`, `AC-R0-013-11` |
+| Response configuration | Type-specific contract for the learner answer | Belongs to one revision; selects one of the five Release 0 task types | `R0-012`, `R0-013`, `AC-R0-012-03`, `AC-R0-013-12` |
+| Scoring component | Weighted assessment rule, automated or human | Belongs to response configuration; decimal-safe weights total `1.0` | `R0-012`, `R0-013`, `AC-R0-012-07`, `AC-R0-013-13` |
+| Editorial transition | Immutable record of a status change, timestamp, and required note | Belongs to a revision; only valid source/target transitions are allowed | `R0-014`, `AC-R0-014-01` through `AC-R0-014-04`, `AC-R0-014-13` |
+| Learner attempt | Server-side bounded record of a submission and assessment outcome | References a published problem/snapshot and response result; does not identify an account | `R0-012`, `R0-015`, `AC-R0-012-06`, `AC-R0-015-12` |
+| Local progress | Device-local learner view of status, evidence display data, recent history, and timing/hint context | References stable public problem identity; never grants access or changes publication | `R0-012`, `AC-R0-012-09` through `AC-R0-012-11` |
+| Recommendation | One editorially eligible next problem and plain-language reason | Depends on selected stage, published availability, prerequisites, and local history | `R0-011`, `R0-012`, `AC-R0-012-15` through `AC-R0-012-17` |
+| Feedback | Bounded anonymous report attached to a published problem | Has category, message, safe problem reference, and abuse-control metadata | `R0-012`, `R0-015`, `AC-R0-012-12` through `AC-R0-012-14` |
+| Audit note | Required human-entered explanation on editorial action | Stored with transition or publication action; not exposed in public projections | `R0-014`, `AC-R0-014-05`, `AC-R0-014-13` |
+
+### 4.2 Problem and revision aggregate
+
+The problem identity is stable across revisions. Content, canonical metadata,
+prerequisites, response configuration, scoring, and resources belong to a
+revision because a change to any of them must be reviewable and must not alter
+the current public snapshot before publication. The stable slug belongs to the
+problem identity and is unique among public identities; a later revision cannot
+silently change the URL (`R0-011`, `R0-013`, `R0-014`).
+
+The aggregate must enforce these cardinalities and invariants before persistence:
+
+- exactly one stage, primary competency, difficulty, and task type;
+- zero through three secondary competencies;
+- valid canonical topic references and typed prerequisites;
+- positive `expected_minutes` and exact numeric resource limits;
+- `NONE` data modality alone, or one or more actual modalities;
+- one accepted Release 0 response configuration;
+- one or more scoring components whose decimal-safe weights total exactly `1.0`;
+- observable learning objective and required structured learner content;
+- task type and compute tier permitted by Release 0 availability policy.
+
+The aggregate does not decide whether a revision is public merely because its
+fields are valid. Editorial status and publication state remain separate so a
+valid draft can stay private, a reviewed revision can await publication, and a
+published snapshot can remain immutable while a new draft revision is edited
+(`R0-013`, `R0-014`, `AC-R0-013-19`, `AC-R0-014-06`).
+
+### 4.3 State dimensions
+
+| Dimension | Values | Meaning | Must not be conflated with |
+| --- | --- | --- | --- |
+| Learner task status | `NOT_STARTED`, `ATTEMPTED`, `COMPLETED` | Device-local interaction progress, optionally supported by a server attempt | Learning evidence or editorial status |
+| Learning evidence | `INTRODUCED`, `PRACTICED`, `APPLIED`, `PROFICIENT` | Accumulated evidence shown separately from completion | `MASTERED`, task status, or publication |
+| Editorial status | `DRAFT`, `IN_REVIEW`, `CHANGES_REQUESTED`, `APPROVED`, `PUBLISHED`, `ARCHIVED` | Revision workflow state | Learner status or validation result |
+| Publication state | No snapshot, current published snapshot, archived/no public snapshot | Whether a public projection is eligible | Draft validity or approval alone |
+
+The separate dimensions prevent a completed learner task from being interpreted
+as mastery, an approved revision from being interpreted as public, or an
+attempt from being interpreted as editorial evidence (`R0-010`, `R0-012`,
+`R0-014`, `AC-R0-012-09`, `AC-R0-014-05`).
+
+### 4.4 Lifecycle and ownership conclusions
+
+1. A draft revision is created under a stable problem identity and remains
+   private until the valid editorial workflow publishes it.
+2. Publishing creates an immutable snapshot in the same logical transaction as
+   the successful publication transition, or neither is visible.
+3. Editing a published problem creates a new revision. The old snapshot remains
+   the public source until the new revision is approved and published.
+4. Attempts and feedback reference public problem identity or snapshot context,
+   not draft revision IDs. This avoids exposing author internals through learner
+   records.
+5. Local progress may point to a stable problem identity but is never a source
+   of authorization, curriculum metadata, or publication state.
+
+These are domain ownership conclusions; database keys, ORM mappings, and
+transaction implementation are deferred to Phase 3 design (`R0-014`,
+`R0-015`, `AC-R0-014-09` through `AC-R0-014-12`).
