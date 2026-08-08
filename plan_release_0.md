@@ -257,7 +257,7 @@ explicitly excluded from Release 0.
   atomic publication, snapshot consistency, submission/autosave idempotency,
   rollback behavior, Alembic migration discipline, and migration/seed safety.
   Suggested commit: `docs(design): define persistence consistency strategy`.
-- [ ] **R0-03011 — Design public isolation, privacy, and error boundaries from
+- [x] **R0-03011 — Design public isolation, privacy, and error boundaries from
   R0-014, R0-015, analysis sections 3 and 9-10.** Make published-only
   projections unavoidable below HTTP routing; separate public/author query
   paths; define preview, build, and cache boundaries; specify no-auth exposure,

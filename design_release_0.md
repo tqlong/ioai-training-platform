@@ -853,3 +853,91 @@ Migration validation runs in CI and in the Compose startup procedure before the
 API is marked ready. A failed migration leaves the database unavailable rather
 than starting an API against a partially upgraded schema (`R0-015`,
 `AC-R0-015-08`, `AC-R0-015-16`).
+
+## 11. Public isolation, privacy, and error boundaries
+
+### 11.1 Projection architecture
+
+```text
+Public HTTP route
+      |
+      v
+Public application use case
+      |
+      v
+PublishedProblemReader / public repository projection
+      |
+      v
+published_snapshot eligibility predicate
+      |
+      v
+safe public DTO
+
+Author HTTP route
+      |
+      v
+Author application use case
+      |
+      v
+DraftRepository / EditorialRepository / PreviewProjector
+      |
+      v
+author DTO (never passed to public path)
+```
+
+The published-only rule is encoded in the public reader port and adapter
+implementation, not added as an optional caller filter. Public list, detail,
+recommendation, submission, feedback, search index, build, and cache paths all
+use that reader or a derived published-only projection. There is no generic
+problem reader shared across public and author use cases (`R0-014`,
+`AC-R0-014-12`, analysis section 9).
+
+### 11.2 Public/author schema boundary
+
+Public DTOs explicitly allow only learner fields: stable slug, published content,
+canonical presentation labels, response schema, safe resources, public feedback
+affordance, and recommendation data. Author DTOs may include revision IDs,
+versions, editorial status, transition notes, validation errors/warnings,
+translation-pending state, and preview context. Projection functions copy fields
+explicitly; they do not serialize an ORM object or subclass an author schema
+(`R0-013`, `R0-014`, `AC-R0-013-20`, `AC-R0-015-13`).
+
+The public contract must reject or ignore attempts to provide revision IDs,
+preview identifiers, author query flags, internal object keys, or unpublished
+locale fields. A public not-found response does not reveal whether a draft or
+archived record exists (`AC-R0-011-15`, `AC-R0-011-16`).
+
+### 11.3 No-auth privacy controls
+
+Release 0 has no identity or authentication layer. Design controls therefore
+focus on minimizing and bounding data:
+
+- Submission and feedback bodies have explicit size, category, and shape limits.
+- Idempotency keys are bounded and do not include secrets or answer content.
+- Logs contain request/operation IDs, safe event names, outcome, and duration,
+  but redact answer data, notes, tokens, object keys, and direct identity claims.
+- Public and author errors use stable categories and safe messages; stack traces,
+  SQL, provider errors, local paths, and unpublished data stay server-side.
+- Device-local progress is schema-validated and never trusted for authorization,
+  publication, or canonical metadata (`R0-012`, `R0-015`,
+  `AC-R0-012-11`, `AC-R0-015-12`, `AC-R0-015-13`).
+
+Loopback Studio binding reduces accidental network exposure but is documented as
+organizational only. A future access-control layer can attach to author routes
+and use cases without changing the public isolation rule (`AC-R0-015-10`,
+`AC-R0-015-11`).
+
+### 11.4 Leak-path controls
+
+| Leak path | Design control | Proof location |
+| --- | --- | --- |
+| Draft in public list/detail | Public reader starts from published snapshots; public DTO excludes revision fields | Repository and API contract tests |
+| Draft in recommendation/search/build | Candidate/index/build interfaces accept only published projection | Recommendation, build, and E2E isolation tests |
+| Preview reachable by public URL | Preview requires author command and explicit context; no public slug resolution | API and browser preview tests |
+| Hidden answers/test data in feedback | Assessment result mapper exposes safe result DTO only | Assessment unit and submission contract tests |
+| SQL/provider/object details in errors | Adapter exception mapper produces stable application error | FastAPI error contract tests |
+| Anonymous storage abuse | Bounded payloads, rate/idempotency policy, safe rejection | API integration tests |
+| Archived snapshot through stale cursor/cache | Public eligibility checked on each query/build and cache key includes public snapshot identity | PostgreSQL and E2E tests |
+
+This matrix makes isolation a cross-layer acceptance property rather than a
+single route implementation (`R0-014`, `R0-015`, analysis sections 9-10).
