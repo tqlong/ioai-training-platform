@@ -101,7 +101,7 @@ requirements section 15.3. Preserve the five approved Release 0 task types,
 the `NONE`/`BROWSER`/`CPU_LIGHT` compute policy, and the unresolved Phase 3/4
 implementation choices recorded in requirements section 15.3.
 
-- [ ] **R0-020 — Analyze actors and responsibilities from R0-010.** Define
+- [x] **R0-020 — Analyze actors and responsibilities from R0-010.** Define
   learner, author, reviewer, curriculum-owner, and local-operator goals,
   responsibilities, triggers, outputs, and failure expectations. Produce an
   actor/responsibility table linked to the applicable `R0-010` requirements.
