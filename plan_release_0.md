@@ -304,41 +304,110 @@ explicitly excluded from Release 0.
 ## Phase 4 — Executable project foundation
 
 All behavior-bearing implementation steps below use red–green–refactor before
-their commit.
+their commit. Every step must read and trace to `requirement_release_0.md`,
+`analysis_release_0.md`, and `design_release_0.md`; no step may introduce
+features excluded by requirements section 15.3 or design section 16. The
+foundation must remain runnable with the four base services only.
 
-- [ ] **R0-040 — Scaffold the Python backend.** Add Python 3.12 constraints,
-  `pyproject.toml`, `uv.lock`, the `backend/src/ioai` package boundaries, pytest,
-  Ruff, and the selected type checker. Add a smoke test that imports the package.
-  Suggested commit: `build(backend): scaffold uv python workspace`.
-- [ ] **R0-041 — Scaffold the frontend workspace.** Add `pnpm-workspace.yaml`,
-  root scripts, lockfile, strict shared TypeScript configuration, ESLint, Vitest,
-  and empty `learn`, `studio`, `api-client`, and `ui` packages with passing smoke
-  tests. Suggested commit: `build(frontend): scaffold pnpm workspace`.
-- [ ] **R0-042 — Add the learner application shell.** Create the Next.js App
-  Router application on port 3000 with IOAI Learn metadata, Tailwind, shadcn/ui
-  foundations, accessible navigation, and a tested `/problems` route shell.
-  Suggested commit: `feat(learn): add learner application shell`.
-- [ ] **R0-043 — Add the Studio application shell.** Create the loopback-bound
-  Next.js application on port 3001 with distinct IOAI Studio branding and a
-  tested `/author/problems` route shell. Suggested commit:
-  `feat(studio): add author application shell`.
-- [ ] **R0-044 — Add the FastAPI application shell.** Add typed settings,
-  application factory, safe error mapping, request IDs, `/health/live`, and
-  `/health/ready`, with pytest coverage and deterministic OpenAPI generation.
-  Suggested commit: `feat(api): add fastapi application shell`.
-- [ ] **R0-045 — Add PostgreSQL persistence infrastructure.** Configure
-  SQLAlchemy 2 sessions, transaction handling, Alembic, database settings, and a
-  first connectivity integration test against PostgreSQL. Suggested commit:
+- [ ] **R0-04001 — Establish the Python/uv workspace from R0-010, R0-015,
+  analysis sections 2 and 10, and design sections 1-2.** Add Python 3.12+
+  constraints, root `pyproject.toml`, `.python-version` if selected, uv groups,
+  reproducible scripts, and committed `uv.lock`. Keep secrets/local artifacts
+  ignored and document the supported quality commands. Suggested commit:
+  `build(backend): scaffold uv python workspace`.
+- [ ] **R0-04002 — Create backend package boundaries and quality smoke tests from
+  R0-015, analysis sections 4 and 10, and design section 2.** Add the
+  `backend/src/ioai` domain/application/adapters/entrypoints/workers package
+  boundaries, unit/integration test roots, import-safe module markers, Ruff,
+  Pyright or mypy configuration, and the smallest smoke test proving the package
+  imports without framework side effects. Suggested commit:
+  `build(backend): establish package boundaries and checks`.
+- [ ] **R0-04003 — Establish the pnpm frontend workspace from R0-010, R0-011,
+  R0-013, R0-015, analysis sections 2 and 10, and design sections 1-2.** Add
+  `pnpm-workspace.yaml`, root `package.json` scripts, committed `pnpm-lock.yaml`,
+  strict shared TypeScript configuration, ESLint, Vitest, and deterministic
+  workspace commands. Suggested commit: `build(frontend): scaffold pnpm workspace`.
+- [ ] **R0-04004 — Create shared frontend package boundaries and contract
+  placeholders from R0-011, R0-013, R0-015, analysis section 9, and design
+  sections 2 and 8.** Add empty-but-buildable `api-client`, `ui`, and
+  `vocabulary` packages with ownership rules, smoke tests, and generated-artifact
+  locations. Do not manually duplicate backend schemas or invent vocabulary
+  lists. Suggested commit: `build(frontend): establish shared packages`.
+- [ ] **R0-04005 — Add the learner application shell from R0-011, R0-012, R0-015,
+  `ui_release_0.md`, analysis section 6, and design section 12.** Create the
+  Next.js App Router app on port 3000 with IOAI Learn metadata, Tailwind and
+  shadcn/ui foundations, accessible header/navigation, safe loading/error
+  boundaries, and a tested `/problems` route shell. Keep public data mocked only
+  through typed fixtures; no drafts or author imports. Suggested commit:
+  `feat(learn): add learner application shell`.
+- [ ] **R0-04006 — Add the Studio application shell from R0-013, R0-014, R0-015,
+  `ui_release_0.md`, analysis section 7, and design section 13.** Create the
+  Next.js App Router app on loopback port 3001 with distinct IOAI Studio
+  metadata/branding, accessible navigation, safe error boundaries, and a tested
+  `/author/problems` route shell. Keep the port organizational, not an auth
+  mechanism. Suggested commit: `feat(studio): add author application shell`.
+- [ ] **R0-04007 — Add the FastAPI factory and settings shell from R0-015,
+  analysis sections 2-3 and 10, and design sections 1-2.** Add typed settings,
+  application factory, environment-safe configuration, dependency injection
+  hooks, stable error mapping, request IDs, and smoke coverage without putting
+  domain or publication rules in endpoints. Suggested commit:
+  `feat(api): add fastapi application shell`.
+- [ ] **R0-04008 — Add API health/readiness and deterministic OpenAPI foundation
+  from R0-015, analysis sections 9-10, and design sections 6-8 and 15.** Add
+  `/health/live`, `/health/ready`, machine-readable safe responses, migration/
+  dependency readiness semantics, deterministic OpenAPI generation, and the
+  initial contract-drift check. Prove public schemas cannot serialize ORM or
+  author-only fields even before feature resources exist. Suggested commit:
+  `feat(api): add health and contract foundation`.
+- [ ] **R0-04009 — Add SQLAlchemy 2 and Alembic infrastructure from R0-015,
+  analysis sections 4, 9, and 10, and design sections 9-10.** Configure typed
+  session/unit-of-work boundaries, PostgreSQL settings, explicit transaction
+  handling, migration environment, migration-head readiness check, and a
+  PostgreSQL connectivity/rollback integration test. Do not add domain tables
+  before their Phase 5/6 design steps. Suggested commit:
   `feat(db): add sqlalchemy and alembic foundation`.
-- [ ] **R0-046 — Add the base Docker Compose environment.** Add PostgreSQL,
-  FastAPI, learner, and Studio services with health checks, persistent database
-  volume, loopback Studio binding, environment examples, and documented start/
-  stop/reset commands. Prove the stack reaches healthy state. Suggested commit:
-  `build(dev): add release 0 docker compose stack`.
-- [ ] **R0-047 — Add CI quality gates.** Run backend formatting/lint/types/tests,
-  frontend lint/types/unit tests/builds, migration validation, generated-contract
-  drift checks, and focused integration tests with dependency caching. Suggested
-  commit: `ci: add release 0 quality pipeline`.
+- [ ] **R0-04010 — Add deterministic test fixtures and foundation quality
+  commands from R0-015, analysis section 10, and design section 15.** Establish
+  fixture ownership, PostgreSQL isolation strategy, deterministic clocks/IDs,
+  safe published/draft fixture shapes for later isolation tests, and scripts for
+  backend/frontend unit, type, lint, format, build, and migration checks. The
+  fixture layer must not silently create public content. Suggested commit:
+  `test(foundation): establish deterministic fixtures and commands`.
+- [ ] **R0-04011 — Add the base Docker Compose topology from R0-015, analysis
+  sections 2, 3, 9, and 10, and design section 14.** Add PostgreSQL, FastAPI,
+  learner, and Studio services, one network, persistent database volume,
+  readiness-based startup, health checks, environment examples, port bindings,
+  and loopback Studio binding. Exclude Redis/Celery/Docling/MinIO/GPU/vector
+  services. Suggested commit: `build(dev): add release 0 docker compose stack`.
+- [ ] **R0-04012 — Add local operations and migration/seed commands from R0-015,
+  analysis sections 3 and 10, and design sections 10 and 14.** Document and
+  script start/stop, migration, deterministic vocabulary/fixture seed, health,
+  logs, backup/restore rehearsal, and explicitly confirmed destructive reset.
+  Keep migration failures from making API readiness green and document that
+  browser-local progress is not in PostgreSQL backups. Suggested commit:
+  `build(dev): add local operations commands`.
+- [ ] **R0-04013 — Prove the foundation stack and critical boundary smoke flows
+  from R0-011, R0-013, R0-014, R0-015, analysis sections 3, 9, and 10, and
+  design sections 11-15.** Add focused tests that services start in dependency
+  order, health/readiness are distinct, Studio binds to loopback, Learn and
+  Studio routes are distinct, public/author schema boundaries hold, and a draft
+  fixture cannot appear through a public foundation path. Suggested commit:
+  `test(foundation): verify stack and boundary smoke flows`.
+- [ ] **R0-04014 — Add CI quality gates from R0-015, analysis section 10, and
+  design sections 8 and 15.** Run uv formatting/lint/types/tests, pnpm lint,
+  typecheck, unit tests, app builds, migration validation, generated OpenAPI/
+  client drift, PostgreSQL integration, Compose health, and focused browser
+  smoke checks with dependency caching. Fail closed on contract or public/draft
+  isolation drift. Suggested commit: `ci: add release 0 quality pipeline`.
+- [ ] **R0-04015 — Review and baseline the executable foundation against
+  `requirement_release_0.md`, `analysis_release_0.md`, and
+  `design_release_0.md`.** Verify repository shape, tool/lockfile discipline,
+  dependency direction, four-service topology, health/readiness, loopback
+  Studio, generated contract ownership, migration safety, deterministic fixtures,
+  public/draft boundaries, and quality commands. Update
+  `docs/decisions/README.md`, record any ADRs, and list implementation behavior
+  intentionally deferred to Phases 5+. Suggested commit:
+  `build(foundation): baseline release 0 project foundation`.
 
 ## Phase 5 — Canonical vocabulary vertical slice
 
