@@ -73,6 +73,9 @@ available.
   - `pnpm test`
   - `pnpm test:e2e`
   - `pnpm build`
+- Foundation scripts:
+  - `bash scripts/foundation_quality.sh`
+  - `bash scripts/foundation_migration_check.sh`
 
 ## Setup status
 

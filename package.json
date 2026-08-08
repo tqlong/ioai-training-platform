@@ -9,7 +9,9 @@
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
     "test:e2e": "pnpm -r run test:e2e",
-    "build": "pnpm -r run build"
+    "build": "pnpm -r run build",
+    "quality": "bash scripts/foundation_quality.sh",
+    "quality:migration": "bash scripts/foundation_migration_check.sh"
   },
   "engines": {
     "node": ">=18"

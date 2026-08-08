@@ -366,7 +366,7 @@ foundation must remain runnable with the four base services only.
   PostgreSQL connectivity/rollback integration test. Do not add domain tables
   before their Phase 5/6 design steps. Suggested commit:
   `feat(db): add sqlalchemy and alembic foundation`.
-- [ ] **R0-04010 — Add deterministic test fixtures and foundation quality
+- [x] **R0-04010 — Add deterministic test fixtures and foundation quality
   commands from R0-015, analysis section 10, and design section 15.** Establish
   fixture ownership, PostgreSQL isolation strategy, deterministic clocks/IDs,
   safe published/draft fixture shapes for later isolation tests, and scripts for
