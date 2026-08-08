@@ -77,7 +77,7 @@ Deliverable: `requirement_release_0.md`.
   published problem, archiving, audit notes, validation blockers, unique slugs,
   stable URLs, and strict draft/public isolation. Suggested commit:
   `docs(requirements): add editorial workflow stories`.
-- [ ] **R0-015 — Specify operational and quality requirements.** Add measurable
+- [x] **R0-015 — Specify operational and quality requirements.** Add measurable
   requirements for accessibility, responsive widths, performance budgets,
   browser support, data integrity, privacy, local-only Studio exposure, backup
   assumptions, observability, deterministic builds, migration safety, and test

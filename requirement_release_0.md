@@ -774,3 +774,155 @@ When the workflow validates the request
 Then it returns a stable error, changes no state, and records no incomplete
 transition.
 ```
+
+## 14. Operational and quality requirements
+
+The following cross-cutting requirements apply to every story and are tested
+at the narrowest boundary that can prove them.
+
+### R0-015-01 — Accessibility and responsive behavior
+
+```text
+AC-R0-015-01
+Given a supported learner or Studio route
+When it is operated with keyboard navigation and a screen reader
+Then all controls, status values, dialogs, disclosures, validation errors, and
+loading or error states have accessible names, logical focus order, visible
+focus, and deterministic focus return.
+
+AC-R0-015-02
+Given any status, warning, error, or evidence value is displayed
+When the UI is rendered in color or grayscale
+Then the meaning remains available through text, icon labels, or structure and
+does not depend on color alone, with WCAG 2.2 AA contrast for text and controls.
+
+AC-R0-015-03
+Given a viewport below 768 px, from 768 px through 1023 px, or at least 1024 px
+When an affected learner route is rendered
+Then it follows the responsive rules in `ui_release_0.md`, including cards below
+768 px, the intermediate sidebar behavior, and a dense table at desktop widths.
+```
+
+### R0-015-02 — Performance and browser support
+
+```text
+AC-R0-015-04
+Given a representative seeded public library and a production build
+When the learner problem list is loaded on a normal broadband connection
+Then first meaningful content is visible within 2 seconds and the initial page
+does not ship draft records or require an account handshake.
+
+AC-R0-015-05
+Given a representative published problem detail page
+When a learner navigates to its permanent URL on a supported browser
+Then the page is usable within 3 seconds on a normal broadband connection and
+submission feedback does not block unrelated page reading.
+
+AC-R0-015-06
+Given the supported browser matrix is documented
+When the critical learner and author workflows run
+Then they pass on the current stable Chrome, Firefox, and Safari desktop
+versions plus the current mobile Safari and Chrome equivalents, subject to the
+test environment's documented availability.
+```
+
+### R0-015-03 — Data integrity and migration safety
+
+```text
+AC-R0-015-07
+Given a problem, revision, vocabulary record, scoring configuration, or
+editorial transition is persisted
+When the domain and database constraints validate it
+Then composite vocabulary identity, parentage, cardinality, decimal scoring
+total, status transitions, stable slugs, and published-snapshot isolation are
+protected both at the domain boundary and wherever PostgreSQL can enforce them.
+
+AC-R0-015-08
+Given a schema change is needed
+When it is introduced
+Then it uses a descriptive Alembic migration with a deterministic upgrade and a
+safe downgrade where supported, and does not rewrite an already-shared
+migration.
+
+AC-R0-015-09
+Given a migration or publication transaction fails
+When the failure is returned
+Then the transaction rolls back atomically, no partial public snapshot or
+editorial transition is visible, and the response uses a stable safe error.
+```
+
+### R0-015-04 — Privacy, security, and local Studio exposure
+
+```text
+AC-R0-015-10
+Given the Release 0 system has no authentication
+When an unauthenticated client accesses a public route
+Then it can read and submit only the explicitly public contracts, cannot invoke
+author commands, and cannot infer draft fields through errors or alternate IDs.
+
+AC-R0-015-11
+Given Studio is started for local development
+When its server binds to a network interface
+Then the default binding is `127.0.0.1:3001`, and documentation states that a
+separate port is not an authorization or production security boundary.
+
+AC-R0-015-12
+Given anonymous progress or feedback is collected
+When it is stored or logged
+Then it contains only the minimum approved data, avoids secrets and direct
+identity claims, and uses bounded inputs and abuse controls appropriate to the
+no-auth pilot.
+
+AC-R0-015-13
+Given an API or UI error occurs
+When it is returned to a learner or author
+Then it does not expose stack traces, SQL, object keys, provider errors,
+unpublished content, credentials, or local filesystem paths.
+```
+
+### R0-015-05 — Backup, recovery, and observability
+
+```text
+AC-R0-015-14
+Given PostgreSQL is the Release 0 system of record
+When the local operations procedure is followed
+Then it documents a deterministic backup and restore rehearsal for vocabulary,
+problem revisions, snapshots, editorial history, attempts, and feedback, with
+an explicit limitation that device-local learner progress is not server-backed.
+
+AC-R0-015-15
+Given an HTTP request or background operation is processed
+When it emits structured logs
+Then the event includes a request or operation ID, safe event name, outcome,
+duration, and relevant canonical identifiers without secrets or answer data.
+
+AC-R0-015-16
+Given the backend and local services are running or unavailable
+When live and readiness checks are queried
+Then liveness reports process availability and readiness reports required
+dependencies separately, using safe machine-readable responses.
+```
+
+### R0-015-06 — Deterministic delivery and changed-behavior coverage
+
+```text
+AC-R0-015-17
+Given a clean checkout and the committed lockfiles
+When the documented `uv` and `pnpm` quality commands are run
+Then dependency resolution is reproducible and formatting, linting, typing,
+unit tests, integration tests, builds, and critical browser tests produce
+reviewable deterministic results.
+
+AC-R0-015-18
+Given a behavior change is proposed
+When its implementation is reviewed
+Then a behavior-focused test exists, its failure was observed before the
+implementation, and the relevant unit, integration, contract, accessibility,
+or E2E coverage is included according to the affected boundary.
+
+AC-R0-015-19
+Given generated OpenAPI or frontend client types change
+When the quality pipeline runs
+Then deterministic contract generation and drift checks fail if the committed
+client and server contract disagree.
+```
