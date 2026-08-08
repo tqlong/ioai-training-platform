@@ -95,3 +95,90 @@ Deferred to later design sections or ADRs:
   authentication, and cross-device identity are excluded unless an accepted
   requirement changes (`R0-010`, requirement section 15.3).
 
+## 2. Monorepo architecture and dependency direction
+
+### 2.1 Repository boundaries
+
+```text
+backend/
+  src/ioai/
+    domain/              framework-free entities, policies, value objects
+    application/         typed use cases and port protocols
+    adapters/            SQLAlchemy, settings, clocks, IDs, external adapters
+    entrypoints/api/     FastAPI factories, HTTP contracts, route translation
+    workers/             reserved boundary; no worker added without a use case
+  tests/
+    unit/                domain and application tests
+    integration/         PostgreSQL, Alembic, FastAPI, adapter tests
+  alembic/               migration environment and revisions
+
+frontend/
+  apps/
+    learn/               public learner application, port 3000
+    studio/              local editorial application, port 3001
+  packages/
+    api-client/          generated OpenAPI-derived TypeScript client
+    ui/                  stable shared primitives only
+    vocabulary/          generated/validated vocabulary data and types
+  tests/e2e/             focused cross-application workflows
+```
+
+Root `pyproject.toml`/`uv.lock` own Python tooling and root
+`package.json`/`pnpm-workspace.yaml`/`pnpm-lock.yaml` own frontend tooling.
+The learner and Studio apps may depend on shared `ui`, `api-client`, and
+`vocabulary` packages, but neither app imports from the other app's application
+folder (`R0-010`, `R0-015`, analysis sections 1-4).
+
+### 2.2 Dependency direction
+
+```text
+FastAPI / CLI / future worker entrypoints
+                  |
+                  v
+        application use cases
+                  |
+                  v
+        domain entities/policies
+                  ^
+                  |
+       typed ports and protocols
+                  ^
+                  |
+ SQLAlchemy/PostgreSQL, clocks, IDs, storage/provider adapters
+```
+
+The dependency rule is one-way:
+
+- Domain imports only standard-library and domain-owned types. It does not
+  import FastAPI, SQLAlchemy, Pydantic, Celery, Redis, or provider SDKs.
+- Application code coordinates domain behavior through narrow typed ports. It
+  does not know HTTP status codes, ORM sessions, or frontend state.
+- API entrypoints translate validated HTTP contracts into one use-case call and
+  map typed errors to safe response contracts. They do not implement publication,
+  vocabulary, scoring, or isolation policy.
+- Adapters implement ports and map persistence/external formats to domain data.
+  SQLAlchemy models are persistence mappings, not domain entities.
+- Frontend apps consume generated contracts and stable shared primitives. They
+  do not duplicate backend schemas or import backend implementation modules.
+
+This keeps the high-risk invariants identified in analysis sections 4, 8, and 9
+testable without frameworks and prevents public routing choices from becoming
+the only draft-isolation control (`R0-015`, `AC-R0-015-07`, `AC-R0-014-12`).
+
+### 2.3 Cross-cutting dependency injection
+
+Use-case constructors receive clocks, ID generators, repositories, policy
+providers, and assessment ports where behavior depends on them. FastAPI binds
+request-scoped dependencies; tests provide deterministic fakes. No import-time
+database connection, mutable singleton, random seed, or wall-clock decision is
+allowed. This supports deterministic tests, migration safety, idempotency, and
+reproducible recommendations (`R0-015`, `AC-R0-015-18`).
+
+### 2.4 Architecture decisions and exclusions
+
+The architecture intentionally does not create generic repositories, service
+locators, deep inheritance trees, or a worker system without an accepted
+asynchronous use case. A `workers/` boundary may exist as a documented future
+location, but Release 0 authoring, lightweight scoring, and vocabulary import
+remain synchronous unless requirements and analysis change (`R0-010`, analysis
+sections 3 and 11.4).

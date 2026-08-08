@@ -200,7 +200,7 @@ explicitly excluded from Release 0.
   learner/Studio/API/PostgreSQL/browser-local boundaries, no-auth assumptions,
   loopback exposure, and the context/container diagrams. Exclude deferred
   services and features. Suggested commit: `docs(design): define system context`.
-- [ ] **R0-03002 — Design monorepo architecture and dependency direction from
+- [x] **R0-03002 — Design monorepo architecture and dependency direction from
   R0-010, R0-015, analysis sections 3-4, and 11.** Define backend/frontend
   boundaries, learner and Studio applications, FastAPI entrypoint, domain,
   application, adapter, persistence, worker, and generated-client boundaries.
