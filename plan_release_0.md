@@ -315,7 +315,7 @@ foundation must remain runnable with the four base services only.
   reproducible scripts, and committed `uv.lock`. Keep secrets/local artifacts
   ignored and document the supported quality commands. Suggested commit:
   `build(backend): scaffold uv python workspace`.
-- [ ] **R0-04002 — Create backend package boundaries and quality smoke tests from
+- [x] **R0-04002 — Create backend package boundaries and quality smoke tests from
   R0-015, analysis sections 4 and 10, and design section 2.** Add the
   `backend/src/ioai` domain/application/adapters/entrypoints/workers package
   boundaries, unit/integration test roots, import-safe module markers, Ruff,
