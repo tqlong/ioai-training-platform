@@ -333,14 +333,14 @@ foundation must remain runnable with the four base services only.
   `vocabulary` packages with ownership rules, smoke tests, and generated-artifact
   locations. Do not manually duplicate backend schemas or invent vocabulary
   lists. Suggested commit: `build(frontend): establish shared packages`.
-- [ ] **R0-04005 — Add the learner application shell from R0-011, R0-012, R0-015,
+- [x] **R0-04005 — Add the learner application shell from R0-011, R0-012, R0-015,
   `ui_release_0.md`, analysis section 6, and design section 12.** Create the
   Next.js App Router app on port 3000 with IOAI Learn metadata, Tailwind and
   shadcn/ui foundations, accessible header/navigation, safe loading/error
   boundaries, and a tested `/problems` route shell. Keep public data mocked only
   through typed fixtures; no drafts or author imports. Suggested commit:
   `feat(learn): add learner application shell`.
-- [ ] **R0-04006 — Add the Studio application shell from R0-013, R0-014, R0-015,
+- [x] **R0-04006 — Add the Studio application shell from R0-013, R0-014, R0-015,
   `ui_release_0.md`, analysis section 7, and design section 13.** Create the
   Next.js App Router app on loopback port 3001 with distinct IOAI Studio
   metadata/branding, accessible navigation, safe error boundaries, and a tested
