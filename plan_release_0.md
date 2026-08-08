@@ -93,41 +93,80 @@ Deliverable: `requirement_release_0.md`.
 
 Deliverable: `analysis_release_0.md`.
 
-- [ ] **R0-020 — Analyze actors, context, and system boundary.** Describe learner,
-  author, reviewer, and curriculum-owner responsibilities; external systems;
-  trust boundaries; anonymous use; local Studio access; and what remains outside
-  Release 0. Link every conclusion to requirement IDs. Suggested commit:
+Analysis input and traceability rule: every conclusion, model, workflow, risk,
+and recommendation in `analysis_release_0.md` must cite one or more IDs from
+`requirement_release_0.md`, including `AC-R0-*` where it makes a behavioral
+claim. Do not add capabilities that are listed as exclusions or deferred in
+requirements section 15.3. Preserve the five approved Release 0 task types,
+the `NONE`/`BROWSER`/`CPU_LIGHT` compute policy, and the unresolved Phase 3/4
+implementation choices recorded in requirements section 15.3.
+
+- [ ] **R0-020 — Analyze actors, context, and system boundary from R0-010 and
+  R0-015.** Define learner, author, reviewer, curriculum-owner, and local
+  operator responsibilities; public learner and local Studio boundaries;
+  PostgreSQL and browser-local state ownership; external systems; trust
+  boundaries created by having no authentication; and excluded capabilities.
+  Produce a context diagram and an actor/responsibility table. Link every
+  conclusion to `R0-010`, `R0-011`, `R0-012`, `R0-013`, `R0-014`, or `R0-015` and
+  identify where a later design decision is still required. Suggested commit:
   `docs(analysis): define actors and system boundary`.
-- [ ] **R0-021 — Analyze the domain model.** Define problem, problem revision,
-  published snapshot, vocabulary record, prerequisite, scoring component,
-  editorial transition, learner attempt, local progress, recommendation, and
-  feedback. Distinguish learner status, learning evidence, editorial status,
-  and publication state. Suggested commit:
+- [ ] **R0-021 — Analyze the domain model from R0-012, R0-013, R0-014, and
+  R0-015.** Define the problem aggregate, problem revision, published snapshot,
+  vocabulary record, typed prerequisite, response configuration, decimal-safe
+  scoring component, editorial transition, learner attempt, device-local
+  progress, recommendation, feedback, and audit note. Explicitly distinguish
+  task status, learning evidence, editorial status, revision state, and public
+  publication state. Document cardinalities, invariants, ownership, lifecycle,
+  and identity rules, citing the relevant acceptance criteria. Suggested commit:
   `docs(analysis): model release 0 domain concepts`.
-- [ ] **R0-022 — Analyze vocabulary ingestion and governance.** Explain how
-  `vocab.md` becomes deterministic structured data, how composite identity and
-  topic hierarchy are validated, how bilingual aliases resolve, how Release 0
-  availability differs from canonical completeness, and how drift is detected.
-  Suggested commit: `docs(analysis): define vocabulary data flow`.
-- [ ] **R0-023 — Analyze learner and editorial workflows.** Add state diagrams or
-  tables for learner browse/solve/continue and author draft/review/publish/revise
-  flows, including failures, retries, concurrency, autosave recovery, and
-  idempotency expectations. Suggested commit:
+- [ ] **R0-022 — Analyze vocabulary ingestion and governance from R0-010,
+  R0-011, R0-012, R0-013, R0-015, and R0-016.** Explain the deterministic path
+  from `vocab.md` to validated structured data; composite identity; bilingual
+  labels and aliases; explicit topic parentage; missing-parent, self-parent,
+  cycle, and branch-uniqueness checks; Release 0 availability versus canonical
+  completeness; proposal handling; and drift detection. Include the exact
+  approved task types, compute tiers, scoring methods, and `NONE` modality rule.
+  Do not infer relationships from Markdown heading position. Suggested commit:
+  `docs(analysis): define vocabulary data flow`.
+- [ ] **R0-023 — Analyze learner and editorial workflows from R0-011 through
+  R0-015.** Provide state tables or diagrams for browse/filter/open/submit/
+  feedback/continue and draft/autosave/validate/preview/review/publish/revise/
+  archive. For each flow, document normal outcomes, validation failures,
+  unavailable policy values, retries, idempotency, optimistic-concurrency
+  conflicts, delayed/manual scoring, local-storage failure, and required audit
+  notes. Tie each transition and failure to acceptance criteria rather than
+  inventing additional states. Suggested commit:
   `docs(analysis): map learner and editorial workflows`.
-- [ ] **R0-024 — Analyze data access and public isolation.** Identify public and
-  author query paths, revision consistency rules, transaction boundaries,
-  permanent-slug behavior, local-progress ownership, feedback data, and ways a
-  draft could accidentally leak. Suggested commit:
+- [ ] **R0-024 — Analyze data access and public isolation from R0-011, R0-012,
+  R0-013, R0-014, and R0-015.** Map public reads, public submissions,
+  recommendations, feedback, author commands, preview reads, and internal
+  persistence paths. Analyze snapshot/revision consistency, stable slugs,
+  transaction boundaries, idempotency keys, device-local progress ownership,
+  bounded anonymous feedback, and every route or query shape through which a
+  draft, unapproved revision, answer, stack trace, provider error, or object key
+  could leak. State the repository/API boundary that must enforce published-only
+  projections. Suggested commit:
   `docs(analysis): assess data access and draft isolation`.
-- [ ] **R0-025 — Analyze quality risks and test strategy.** Build a risk-based
-  test matrix covering domain rules, migrations, PostgreSQL repositories, API
-  contracts, generated clients, component behavior, critical browser flows,
-  accessibility, and Docker Compose startup. Include security risks created by
-  operating without authentication. Suggested commit:
+- [ ] **R0-025 — Analyze quality risks and test strategy from R0-015 and all
+  affected story groups.** Build a risk-ranked matrix covering domain invariants,
+  vocabulary drift, migrations and PostgreSQL constraints, transaction safety,
+  public/draft isolation, API error contracts and generated clients, scoring and
+  response validation, autosave recovery, local progress, feedback abuse,
+  responsive/accessibility behavior, performance budgets, browser support,
+  Docker Compose health, backup/restore, observability, and deterministic builds.
+  Include security risks caused by no authentication and map every high-risk
+  item to a behavior-focused test, required failing-first observation, and the
+  smallest relevant test boundary. Suggested commit:
   `docs(analysis): define risk based test strategy`.
-- [ ] **R0-026 — Baseline the analysis.** Review analysis against every accepted
-  user story, record assumptions and open decisions, and update traceability.
-  Suggested commit: `docs(analysis): baseline release 0 analysis`.
+- [ ] **R0-026 — Baseline the analysis against requirement_release_0.md.** Review
+  `analysis_release_0.md` against every accepted story group (`R0-010` through
+  `R0-016`) and every numbered acceptance-criteria range. Resolve duplicate
+  concepts, confirm that exclusions and deferred decisions are not reintroduced,
+  record assumptions and open Phase 3/4 decisions without guessing, and update
+  `docs/decisions/README.md` with analysis traceability. The baseline must
+  include a requirement-to-analysis matrix and a list of criteria whose proof is
+  deferred to design or implementation. Suggested commit:
+  `docs(analysis): baseline release 0 analysis`.
 
 ## Phase 3 — Design
 
