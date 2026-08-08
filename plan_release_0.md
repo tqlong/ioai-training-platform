@@ -4,12 +4,12 @@
 
 - One checklist item is one meaningful Git commit unless the item explicitly
   says it is a release checkpoint.
-- Checklist item IDs use the legacy `R0-<three digits>` form for the existing
-  phase anchors. A phase may contain more than ten steps: add dotted substep
-  IDs under the nearest anchor, such as `R0-039.01`, `R0-039.02`, and
-  `R0-039.03`. Substeps are ordered numerically and each remains one meaningful
-  commit. These plan-step IDs are distinct from the requirement/story IDs in
-  `requirement_release_0.md`.
+- Checklist item IDs use the legacy `R0-<three digits>` form for existing
+  Phase 0–2 requirement/story traceability. Phase 3 uses the expandable
+  `R0-03xxx` plan-step form: `R0-03001` through `R0-03999`, ordered numerically.
+  Each step remains one meaningful commit. Future phases may use the same
+  pattern with their phase prefix, such as `R0-04xx`. Plan-step IDs are
+  distinct from the requirement/story IDs in `requirement_release_0.md`.
 - Check an item only after its acceptance conditions are met and relevant
   quality gates pass. Include the checkbox update in that step's commit.
 - Keep every commit reviewable and green. For behavior changes, observe a
@@ -195,7 +195,7 @@ behavior without duplicating its detailed visual specification. Every design
 step must identify which choices are resolved, which are open, and which are
 explicitly excluded from Release 0.
 
-- [ ] **R0-030 — Design system architecture and dependency direction from
+- [ ] **R0-03001 — Design system architecture and dependency direction from
   R0-010, R0-015, analysis sections 1-3, and 11.** Define monorepo boundaries,
   learner and Studio applications, FastAPI entrypoint, application/domain/
   adapter layers, PostgreSQL boundary, generated API-client boundary, local
@@ -203,7 +203,7 @@ explicitly excluded from Release 0.
   diagrams, actor-to-component responsibilities, public/author boundaries, and
   the no-auth trust assumptions. Do not introduce external systems excluded by
   requirements. Suggested commit: `docs(design): define release 0 architecture`.
-- [ ] **R0-031 — Design domain modules and application use cases from R0-012,
+- [ ] **R0-03002 — Design domain modules and application use cases from R0-012,
   R0-013, R0-014, R0-015, analysis sections 4, 6-9, and 11.** Specify domain
   module ownership and typed application use cases for vocabulary sync, draft
   creation/editing, validation, preview, editorial transitions, publication,
@@ -212,7 +212,7 @@ explicitly excluded from Release 0.
   output, port dependencies, transaction intent, idempotency, version/conflict
   behavior, safe domain errors, and public versus author projection. Suggested
   commit: `docs(design): specify release 0 application use cases`.
-- [ ] **R0-032 — Design vocabulary and Release 0 policy integration from
+- [ ] **R0-03003 — Design vocabulary and Release 0 policy integration from
   R0-010, R0-011, R0-012, R0-013, R0-016, analysis section 5, and section 11.**
   Define the structured artifact generated from `vocab.md`, parser/import
   boundary, composite identity, explicit topic graph validation, bilingual
@@ -221,7 +221,7 @@ explicitly excluded from Release 0.
   `NONE`/`BROWSER`/`CPU_LIGHT`, scoring methods, and modality rules without
   deleting future canonical values. Suggested commit:
   `docs(design): define vocabulary and release policy integration`.
-- [ ] **R0-033 — Design the API contract from R0-011 through R0-015 and
+- [ ] **R0-03004 — Design the API contract from R0-011 through R0-015 and
   analysis sections 6-9.** Define versioned `/api/v1` public reads/submissions
   and `/api/v1/author` commands, request/response schemas, public-safe
   projections, pagination/filter/sort/query semantics, URL state, permanent
@@ -230,7 +230,7 @@ explicitly excluded from Release 0.
   and idempotency keys. Specify deterministic OpenAPI generation and the
   TypeScript client/drift-check ownership. Suggested commit:
   `docs(design): specify release 0 api contract`.
-- [ ] **R0-034 — Design the PostgreSQL model and transaction strategy from
+- [ ] **R0-03005 — Design the PostgreSQL model and transaction strategy from
   R0-012 through R0-015, analysis sections 4, 8-10, and open decisions in
   section 11.** Provide an ER diagram and table design for problems, revisions,
   snapshots, vocabulary records, topic relationships, prerequisites, response
@@ -239,7 +239,7 @@ explicitly excluded from Release 0.
   slugs, optimistic versioning, publication atomicity, snapshot consistency,
   migration strategy, deterministic seeds, and the chosen isolation/locking
   policy. Suggested commit: `docs(design): define release 0 database model`.
-- [ ] **R0-035 — Design public isolation, privacy, and error boundaries from
+- [ ] **R0-03006 — Design public isolation, privacy, and error boundaries from
   R0-014, R0-015, analysis sections 3 and 9-10.** Specify repository/application
   projection rules that make published-only eligibility unavoidable, separate
   public and author query/use-case paths, preview/cache/build boundaries,
@@ -247,7 +247,7 @@ explicitly excluded from Release 0.
   redaction, safe error mapping, and leak-path tests. Record what a future
   access-control layer would replace without adding authentication now. Suggested
   commit: `docs(design): enforce public isolation and safe boundaries`.
-- [ ] **R0-036 — Consolidate learner and Studio UI architecture from R0-011,
+- [ ] **R0-03007 — Consolidate learner and Studio UI architecture from R0-011,
   R0-012, R0-013, R0-015, `ui_release_0.md`, and analysis sections 6-7.** Map
   learner and author routes, page hierarchy, server/client boundaries, generated
   API types, URL-filter state, local-progress ownership, recommendation state,
@@ -256,7 +256,7 @@ explicitly excluded from Release 0.
   states, and the distinct Learn/Studio visual language. Reference the UI spec
   instead of restating its visual tokens. Suggested commit:
   `docs(design): map release 0 frontend architecture`.
-- [ ] **R0-037 — Design Docker Compose and local operations from R0-015,
+- [ ] **R0-03008 — Design Docker Compose and local operations from R0-015,
   analysis sections 2, 3, 9-10, and section 11 open decisions.** Specify base
   services for PostgreSQL, FastAPI, learner Next.js, and Studio Next.js;
   health/readiness checks, networks, named volumes, environment variables,
@@ -265,7 +265,7 @@ explicitly excluded from Release 0.
   Redis/Celery or MinIO only if an accepted requirement creates a concrete need;
   otherwise document their exclusion. Suggested commit:
   `docs(design): define docker compose topology`.
-- [ ] **R0-038 — Design testing, observability, and failure handling from
+- [ ] **R0-03009 — Design testing, observability, and failure handling from
   R0-015, analysis sections 9-10, and all affected acceptance criteria.** Define
   unit/application/domain, vocabulary, PostgreSQL/Alembic, FastAPI contract,
   frontend component, Playwright, and operations test ownership; PostgreSQL
@@ -276,7 +276,7 @@ explicitly excluded from Release 0.
   gates. Resolve observability and backup choices from analysis section 11 or
   record an ADR. Suggested commit:
   `docs(design): define verification and operations`.
-- [ ] **R0-039 — Review and baseline the design against
+- [ ] **R0-03010 — Review and baseline the design against
   requirement_release_0.md and analysis_release_0.md.** Verify every design
   element maps to R0-010 through R0-016 and the corresponding analysis section
   and acceptance-criteria range. Remove speculative features and contradictions;
