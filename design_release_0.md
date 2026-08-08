@@ -182,3 +182,88 @@ asynchronous use case. A `workers/` boundary may exist as a documented future
 location, but Release 0 authoring, lightweight scoring, and vocabulary import
 remain synchronous unless requirements and analysis change (`R0-010`, analysis
 sections 3 and 11.4).
+
+## 3. Domain modules and aggregate boundaries
+
+### 3.1 Domain module map
+
+| Domain module | Owns | Does not own |
+| --- | --- | --- |
+| `vocabulary` | Typed vocabulary identity, bilingual labels/aliases, topic parent references, graph invariants, canonical status | Markdown parsing, SQL sessions, UI labels, or HTTP responses |
+| `policy` | Release 0 availability for stages, task types, compute, modalities, and scoring | Canonical vocabulary completeness or deployment authorization |
+| `problems` | Stable problem identity, slug rules, revision content, metadata, response configuration, resources, and scoring components | Editorial transition orchestration or persistence mapping |
+| `prerequisites` | Typed target references, relationship, and minimum evidence | Free-form tags or recommendation ranking |
+| `assessment` | Response contracts, validation outcomes, decimal-safe weighted scoring, pending/manual results, safe feedback data | Hidden provider details or editorial approval |
+| `editorial` | Status transition policy, required notes, approval/publication/archive rules, audit transition values | Learner task status or account identity |
+| `learning` | Task status/evidence interpretation, attempt result vocabulary, recommendation eligibility inputs | Permanent publication state or claims of mastery |
+| `feedback` | Bounded categories/messages and abuse-validation policy | Unbounded moderation platform or user identity |
+
+Application use cases may coordinate multiple modules, but one module remains
+the owner of each invariant. A publication use case can ask `problems` to
+validate a revision, `policy` to check availability, and `editorial` to validate
+a transition; it must not duplicate those rules (`R0-012`, `R0-013`, `R0-014`,
+analysis sections 4 and 8).
+
+### 3.2 Aggregate and value-object boundaries
+
+The `Problem` aggregate owns stable identity and revision references. A
+`ProblemRevision` value graph owns bilingual structured content, canonical
+metadata references, typed prerequisites, response configuration, resources, and
+scoring components. A `PublishedSnapshot` is immutable output of a successful
+publication and is not a mutable child of the draft aggregate. This prevents an
+edit from mutating public content before review and publication (`R0-014`,
+`AC-R0-014-09`, `AC-R0-014-10`).
+
+The following value objects should be explicit rather than bare strings:
+
+- `VocabularyIdentity(vocabulary_type, code)`;
+- bilingual `LocalizedText` and approved alias collection;
+- `StableSlug` with normalization and uniqueness checked at the persistence
+  boundary;
+- `EditorialStatus`, `TaskStatus`, and `LearningEvidence` values;
+- `PrerequisiteReference(relationship, target_type, target_id, minimum_evidence)`;
+- exact positive resource limits and `ExpectedMinutes`;
+- `ResponseConfiguration` variants for the five approved task types;
+- decimal-safe `ScoringWeight` and weighted scoring component collection;
+- bounded `FeedbackMessage` and submission idempotency identity.
+
+These values make invalid states difficult to construct and keep error messages
+actionable before a database write (`R0-010`, `R0-012`, `R0-013`, `R0-015`,
+`AC-R0-013-07` through `AC-R0-013-14`).
+
+### 3.3 Core invariants
+
+The aggregate boundary must enforce:
+
+1. Exactly one stage, primary competency, difficulty, and task type; zero through
+   three secondary competencies.
+2. Canonical composite vocabulary references and valid explicit topic parents.
+3. Typed prerequisites only, with no free-form prerequisite tags.
+4. Positive expected time, exact numeric resources, and `NONE` modality
+   exclusivity.
+5. One of the five Release 0 response variants and an allowed compute tier.
+6. Decimal-safe scoring components totaling exactly `1.0`.
+7. Observable learning objective and required bilingual structured blocks,
+   allowing author-visible pending translation warnings.
+8. Editorial validity independent from learner status/evidence and publication
+   state.
+
+Database constraints duplicate critical identity, uniqueness, and transaction
+invariants, but domain validation runs first to provide actionable errors
+(`R0-013`, `R0-014`, `R0-015`, analysis sections 4 and 9).
+
+### 3.4 State ownership
+
+| State | Owner | Persistence/projection rule |
+| --- | --- | --- |
+| Draft content and revision version | Application/revision store | Author projection only; versioned saves |
+| Editorial status and transition history | Editorial domain/use case | Required note and timestamp for every accepted transition |
+| Published snapshot | Publication transaction/repository | Immutable public projection; no draft fields |
+| Learner task status/evidence | Browser-local learning adapter, optionally informed by attempt result | Best-effort, schema-versioned, never authorization |
+| Attempt/scoring result | Assessment application/persistence | Bounded server record tied to public snapshot context |
+| Recommendation candidate | Learning/recommendation use case | Select from published eligible set only |
+| Feedback report | Feedback application/persistence | Bounded anonymous record tied to public problem identity |
+
+This ownership prevents completion from becoming mastery, approval from becoming
+publication, or local progress from becoming identity (`R0-010`, `R0-012`,
+`R0-014`, `AC-R0-012-09`, `AC-R0-014-05`).

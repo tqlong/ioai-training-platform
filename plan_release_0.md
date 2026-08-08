@@ -206,7 +206,7 @@ explicitly excluded from Release 0.
   application, adapter, persistence, worker, and generated-client boundaries.
   Show allowed dependency direction and actor-to-component ownership. Suggested
   commit: `docs(design): define release 0 architecture`.
-- [ ] **R0-03003 — Design domain modules and aggregate boundaries from R0-012,
+- [x] **R0-03003 — Design domain modules and aggregate boundaries from R0-012,
   R0-013, R0-014, R0-015, analysis section 4, and 11.** Map problem/revision/
   snapshot, vocabulary, prerequisite, response, scoring, editorial history,
   attempt, progress, recommendation, feedback, and audit concepts to domain
