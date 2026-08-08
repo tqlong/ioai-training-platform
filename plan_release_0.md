@@ -67,7 +67,7 @@ Deliverable: `requirement_release_0.md`.
   recommended problem. Decide the exact Release 0 task-type and compute-tier
   availability here. Suggested commit:
   `docs(requirements): add learner solving stories`.
-- [ ] **R0-013 — Specify authoring stories.** Add stories for the author problem
+- [x] **R0-013 — Specify authoring stories.** Add stories for the author problem
   list, creating and editing a structured draft, bilingual content, canonical
   metadata selection, prerequisites, response/scoring configuration, autosave,
   recovery, validation, and learner-format preview. Suggested commit:

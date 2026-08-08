@@ -468,3 +468,180 @@ When the next recommendation is opened
 Then it uses a permanent URL, preserves the selected stage context, and never
 redirects to a draft, archived-only revision, or unavailable task.
 ```
+
+## 12. Authoring stories
+
+### R0-013-01 — Find and start a structured draft
+
+As an author, I want to see my problem drafts and create a structured problem
+so that content is managed consistently before review.
+
+```text
+AC-R0-013-01
+Given I open the local Studio at `/author/problems`
+When the author problem list loads
+Then it shows drafts and their editorial status, last-saved time, revision
+identity, and available actions without presenting the list as public learner
+content.
+
+AC-R0-013-02
+Given I choose to create a problem
+When the draft is initialized
+Then it receives an internal problem identity and revision identity, starts in
+`DRAFT`, and exposes the required structured sections without creating a public
+snapshot or permanent public URL yet.
+
+AC-R0-013-03
+Given an existing published problem is selected for editing
+When I begin an edit
+Then a new draft revision is created and the currently published snapshot stays
+unchanged until the new revision is approved and published.
+```
+
+### R0-013-02 — Draft bilingual learner content
+
+As an author, I want to draft bilingual content in learner reading order so
+that the published problem is understandable and maintainable.
+
+```text
+AC-R0-013-04
+Given a draft is open
+When I edit its content
+Then the editor supports bilingual title, objective, statement, provided
+information, examples, constraints, hints, explanation, and feedback content
+as structured blocks in learner reading order.
+
+AC-R0-013-05
+Given an English or Vietnamese translation is missing
+When I save or preview the draft
+Then the missing translation is visible as an author warning, can be marked
+pending, and is never exposed as an internal warning on the public page.
+
+AC-R0-013-06
+Given a learning objective is entered
+When validation runs
+Then it checks that the objective describes observable assessable behavior and
+reports the relevant field when it does not.
+```
+
+### R0-013-03 — Select canonical curriculum metadata
+
+As an author, I want to select validated curriculum metadata so that problems
+fit the approved learning pathway.
+
+```text
+AC-R0-013-07
+Given a draft requires curriculum metadata
+When I edit the metadata section
+Then exactly one canonical stage, difficulty, primary competency, and task type
+can be selected; secondary competencies are limited to zero through three; and
+topic selections use the searchable hierarchy.
+
+AC-R0-013-08
+Given competency and topic records share a code or label
+When the picker displays them
+Then it identifies the vocabulary type and persists the composite identity
+`(vocabulary_type, code)`, never a display label alone.
+
+AC-R0-013-09
+Given a topic selection has a parent and descendants
+When I save it
+Then the selected relationship is explicit, breadcrumbs remain available, and
+the editor warns when an intermediate category is used where a more specific
+leaf is expected.
+
+AC-R0-013-10
+Given an author cannot find a required vocabulary value
+When they record a proposal note
+Then the proposal is separately reviewable and cannot become publishable task
+metadata until the curriculum owner approves a canonical value.
+```
+
+### R0-013-04 — Configure prerequisites, response, and scoring
+
+As an author, I want to define prerequisites and a bounded response contract so
+that learner submissions can be assessed safely.
+
+```text
+AC-R0-013-11
+Given I add a prerequisite
+When I save the metadata
+Then it stores a canonical relationship, target type, target identity, and
+optional minimum learning evidence; free-form prerequisite tags are rejected.
+
+AC-R0-013-12
+Given I select a Release 0 task type
+When I configure its response
+Then the editor shows only the fields required for that type and validates
+choices, tolerances, signatures, starter code, tests, or rubric guidance as
+applicable.
+
+AC-R0-013-13
+Given I configure scoring components
+When I edit their decimal weights
+Then the editor displays the exact sum and blocks validation unless the total
+is exactly `1.0`.
+
+AC-R0-013-14
+Given I configure resource limits
+When the draft uses a disallowed compute tier, network policy, or runtime
+constraint
+Then the editor reports a Release 0 availability error that blocks publication.
+```
+
+### R0-013-05 — Autosave and recover draft work
+
+As an author, I want recoverable saving so that a transient failure does not
+lose content or create conflicting revisions.
+
+```text
+AC-R0-013-15
+Given I change a draft and stop editing for the configured idle interval
+When autosave runs
+Then the Studio shows a clear `Saving...` and `Saved` state tied to the draft
+revision and does not silently create duplicate revisions.
+
+AC-R0-013-16
+Given a server save fails
+When the failure is reported
+Then the Studio shows `Save failed`, keeps a recoverable local copy, and offers
+retry or recovery without discarding unsaved fields.
+
+AC-R0-013-17
+Given a recoverable local copy exists when the author reopens the draft
+When the revision and local copy are compared
+Then the author can explicitly restore the local changes or discard them, with
+the conflict and save target clearly identified.
+
+AC-R0-013-18
+Given two saves target the same revision version
+When the server detects an optimistic-concurrency conflict
+Then it rejects the stale write safely and asks the author to resolve it rather
+than overwriting newer content.
+```
+
+### R0-013-06 — Validate and preview as a learner
+
+As an author, I want actionable validation and a learner-format preview so that
+I can correct issues before editorial review.
+
+```text
+AC-R0-013-19
+Given a draft contains missing fields, invalid vocabulary relationships,
+unsupported Release 0 values, invalid resources, or invalid scoring weights
+When I run validation
+Then each blocking error identifies its section and field, explains the
+correction, and prevents submission for review.
+
+AC-R0-013-20
+Given a draft is valid enough to preview but is not published
+When I open learner preview
+Then it uses the learner problem-page structure and displays a persistent
+`Draft preview - not public` banner on every preview view.
+
+AC-R0-013-21
+Given preview content contains pending translations or non-blocking warnings
+When I inspect the preview
+Then warnings remain visible to the author while no preview URL or API response
+is reachable through public learner routes.
+```
