@@ -393,7 +393,7 @@ foundation must remain runnable with the four base services only.
   Studio routes are distinct, public/author schema boundaries hold, and a draft
   fixture cannot appear through a public foundation path. Suggested commit:
   `test(foundation): verify stack and boundary smoke flows`.
-- [ ] **R0-04014 — Add CI quality gates from R0-015, analysis section 10, and
+- [x] **R0-04014 — Add CI quality gates from R0-015, analysis section 10, and
   design sections 8 and 15.** Run uv formatting/lint/types/tests, pnpm lint,
   typecheck, unit tests, app builds, migration validation, generated OpenAPI/
   client drift, PostgreSQL integration, Compose health, and focused browser

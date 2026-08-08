@@ -1,0 +1,29 @@
+name: release-0-ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v3
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install backend dependencies
+        run: uv sync --all-groups
+      - name: Foundation quality checks
+        run: bash scripts/foundation_quality.sh
+      - name: OpenAPI drift check
+        run: bash scripts/openapi_drift_check.sh
+      - name: PostgreSQL migration head check
+        run: bash scripts/foundation_migration_check.sh
