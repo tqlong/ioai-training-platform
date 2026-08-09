@@ -764,7 +764,7 @@ same transaction as its state change.
   injected clock and keep editorial status separate from validation,
   publication state, learner task status, and learning evidence. Suggested
   commit: `feat(editorial): define review transition policy`.
-- [ ] **R0-07002 — Add editorial, snapshot, and idempotency persistence from
+- [x] **R0-07002 — Add editorial, snapshot, and idempotency persistence from
   `AC-R0-014-05`, `AC-R0-014-08`, and `AC-R0-014-13`, analysis sections
   8.2-8.3, and design sections 9-10.** Add an Alembic migration and explicit
   SQLAlchemy mappings for append-only editorial transitions, immutable

@@ -28,6 +28,10 @@ class ProblemModel(Base):
     __tablename__ = "problem"
     __table_args__ = (
         UniqueConstraint("slug", name="uq_problem_slug"),
+        UniqueConstraint(
+            "current_published_snapshot_id",
+            name="uq_problem_current_published_snapshot_id",
+        ),
         CheckConstraint(
             "slug IS NULL OR slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'",
             name="slug_format",
@@ -36,6 +40,14 @@ class ProblemModel(Base):
 
     problem_id: Mapped[str] = mapped_column(String(128), primary_key=True)
     slug: Mapped[str | None] = mapped_column(String(120))
+    current_published_snapshot_id: Mapped[str | None] = mapped_column(
+        ForeignKey(
+            "published_snapshot.snapshot_id",
+            name="fk_problem_current_snapshot",
+            use_alter=True,
+            ondelete="SET NULL",
+        )
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
@@ -203,3 +215,90 @@ class ScoringComponentModel(Base):
     weight: Mapped[Decimal] = mapped_column(Numeric(8, 7), nullable=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     configuration: Mapped[str | None] = mapped_column(Text)
+
+
+class EditorialTransitionModel(Base):
+    """Append-only audit history for an accepted editorial decision."""
+
+    __tablename__ = "editorial_transition"
+    __table_args__ = (
+        CheckConstraint(
+            "source_status IN ('DRAFT', 'IN_REVIEW', 'CHANGES_REQUESTED', "
+            "'APPROVED', 'PUBLISHED', 'ARCHIVED')",
+            name="source_status",
+        ),
+        CheckConstraint(
+            "target_status IN ('DRAFT', 'IN_REVIEW', 'CHANGES_REQUESTED', "
+            "'APPROVED', 'PUBLISHED', 'ARCHIVED')",
+            name="target_status",
+        ),
+        CheckConstraint("source_status <> target_status", name="status_changes"),
+        CheckConstraint("length(btrim(note)) BETWEEN 1 AND 2000", name="bounded_note"),
+        UniqueConstraint("operation_id", name="uq_editorial_transition_operation_id"),
+        Index(
+            "ix_editorial_transition_revision_occurred",
+            "revision_id",
+            "occurred_at",
+        ),
+    )
+
+    transition_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    revision_id: Mapped[str] = mapped_column(
+        ForeignKey("problem_revision.revision_id", ondelete="RESTRICT"), nullable=False
+    )
+    source_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    target_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    note: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_context: Mapped[str] = mapped_column(String(200), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    operation_id: Mapped[str] = mapped_column(String(200), nullable=False)
+
+
+class PublishedSnapshotModel(Base):
+    """Immutable learner-safe projection of one approved revision."""
+
+    __tablename__ = "published_snapshot"
+    __table_args__ = (
+        UniqueConstraint("revision_id", name="uq_published_snapshot_revision_id"),
+        Index("ix_published_snapshot_problem_published", "problem_id", "published_at"),
+    )
+
+    snapshot_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    problem_id: Mapped[str] = mapped_column(
+        ForeignKey("problem.problem_id", ondelete="RESTRICT"), nullable=False
+    )
+    revision_id: Mapped[str] = mapped_column(
+        ForeignKey("problem_revision.revision_id", ondelete="RESTRICT"), nullable=False
+    )
+    slug: Mapped[str] = mapped_column(String(120), nullable=False)
+    public_payload: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    published_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
+class IdempotencyRecordModel(Base):
+    """Safe result reference for a retriable externally visible command."""
+
+    __tablename__ = "idempotency_record"
+    __table_args__ = (
+        UniqueConstraint(
+            "operation_type",
+            "target_id",
+            "idempotency_key",
+            name="uq_idempotency_operation_target_key",
+        ),
+        Index("ix_idempotency_created_at", "created_at"),
+    )
+
+    idempotency_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    operation_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    target_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(200), nullable=False)
+    request_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    result_reference: Mapped[str] = mapped_column(String(128), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
