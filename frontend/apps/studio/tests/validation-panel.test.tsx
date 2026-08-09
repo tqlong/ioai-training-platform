@@ -11,7 +11,10 @@ const report: ValidationReport = {
 
 describe('draft validation panel', () => {
   it('groups all five layers, distinguishes warnings, and focuses the first blocker', () => {
-    render(<ValidationPanel report={report} />);
+    const title = document.createElement('input');
+    title.id = 'field-content-title-en';
+    document.body.append(title);
+    const { unmount } = render(<ValidationPanel report={report} />);
     for (const section of ['Content', 'Curriculum', 'Assessment', 'Resources', 'Publication']) expect(screen.getByRole('heading', { name: section })).toBeTruthy();
     const blocker = screen.getByRole('link', { name: /Complete the English title/ });
     expect(document.activeElement).toBe(blocker);
@@ -22,5 +25,10 @@ describe('draft validation panel', () => {
     expect(screen.getByText('Error:', { exact: true })).toBeTruthy();
     expect(screen.getByText('Warning:', { exact: true })).toBeTruthy();
     expect(screen.getByText('Not eligible for publication')).toBeTruthy();
+    expect(title.getAttribute('aria-invalid')).toBe('true');
+    expect(title.classList.contains('field-has-error')).toBe(true);
+    unmount();
+    expect(title.hasAttribute('aria-invalid')).toBe(false);
+    title.remove();
   });
 });

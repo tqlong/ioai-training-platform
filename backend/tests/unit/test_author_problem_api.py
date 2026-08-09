@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
 from ioai.application.problems.errors import RevisionConflictError
 from ioai.application.problems.publication import ArchivedProblem, PublishedSnapshot
+from ioai.domain.problems.errors import InvalidProblemContentError
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import (
@@ -217,6 +218,31 @@ def test_versioned_save_returns_increment_and_stable_conflict() -> None:
         "code": "REVISION_CONFLICT",
         "message": "A newer draft version exists.",
         "current_version": 2,
+    }
+
+
+def test_invalid_save_payload_returns_safe_actionable_error() -> None:
+    class InvalidSaveService(FakeAuthorProblemService):
+        def save(self, revision_id, request):
+            raise InvalidProblemContentError("completed en content cannot be pending")
+
+    response = TestClient(create_app(author_problem_service=InvalidSaveService())).put(
+        "/api/v1/author/revisions/revision-1",
+        json={
+            "problem_id": "problem-1",
+            "expected_version": 1,
+            "slug": None,
+            "content": None,
+            "metadata": None,
+            "response": None,
+            "scoring": None,
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == {
+        "code": "DRAFT_PAYLOAD_INVALID",
+        "message": "The draft contains inconsistent field values.",
     }
 
 

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { AssessmentEditor, emptyAssessmentDraft } from '../src/components/assessment-editor';
+import { AssessmentEditor, emptyAssessmentDraft, type AssessmentDraft } from '../src/components/assessment-editor';
 
 describe('response and scoring editor', () => {
   it('renders only the selected response fields and clears stale configuration', () => {
@@ -27,6 +27,32 @@ describe('response and scoring editor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove choice 3' }));
     expect(value.response).toMatchObject({ type: 'QUIZ_SINGLE' });
     expect(value.response.choices).toHaveLength(2);
+  });
+
+  it('completes populated translations and highlights inconsistent recovered fields', () => {
+    let value = emptyAssessmentDraft('QUIZ_SINGLE');
+    const { rerender } = render(<AssessmentEditor onChange={(next) => { value = next; }} value={value} />);
+    const english = screen.getAllByRole('textbox', { name: 'English' })[0]!;
+    fireEvent.change(english, { target: { value: 'Choice A' } });
+    expect((value.response.choices as Array<{ content: { en_state: string } }>)[0]?.content.en_state)
+      .toBe('COMPLETE');
+
+    const inconsistent = {
+      ...value,
+      response: {
+        ...value.response,
+        choices: [{
+          id: 'A',
+          content: { en: 'Recovered answer', vi: '', en_state: 'PENDING', vi_state: 'PENDING' },
+        }, (value.response.choices as unknown[])[1]],
+      },
+    } as AssessmentDraft;
+    rerender(<AssessmentEditor onChange={() => undefined} value={inconsistent} />);
+
+    expect(screen.getAllByRole('textbox', { name: 'English' })[0]?.getAttribute('aria-invalid'))
+      .toBe('true');
+    expect(screen.getByRole('alert').textContent)
+      .toContain('Choice 1 English has text but is marked pending');
   });
 
   it('displays the exact decimal total and blocks validation until 1.0', () => {

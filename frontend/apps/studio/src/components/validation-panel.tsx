@@ -10,7 +10,7 @@ const anchors: Record<string, string> = {
   RESOURCES: 'resources', PUBLICATION: 'basics',
 };
 
-const issueTarget = (section: string, path: string): string => {
+export const issueTarget = (section: string, path: string): string => {
   const exact: Record<string, string> = {
     slug: 'field-slug',
     'content.title.en': 'field-content-title-en',
@@ -32,7 +32,20 @@ const issueTarget = (section: string, path: string): string => {
 
 export function ValidationPanel({ report }: { report: ValidationReport }) {
   const firstBlocker = useRef<HTMLAnchorElement>(null);
-  useEffect(() => { firstBlocker.current?.focus(); }, [report]);
+  useEffect(() => {
+    const marked = report.errors.flatMap((issue) => {
+      const element = document.getElementById(issueTarget(issue.section, issue.field_path));
+      if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)) return [];
+      element.setAttribute('aria-invalid', 'true');
+      element.classList.add('field-has-error');
+      return [element];
+    });
+    firstBlocker.current?.focus();
+    return () => marked.forEach((element) => {
+      element.removeAttribute('aria-invalid');
+      element.classList.remove('field-has-error');
+    });
+  }, [report]);
   return <aside aria-labelledby="validation-heading" className="validation-panel">
     <h2 id="validation-heading">Draft validation</h2>
     <p className="validation-eligibility">{report.publication_eligible ? 'Eligible for publication' : 'Not eligible for publication'}</p>

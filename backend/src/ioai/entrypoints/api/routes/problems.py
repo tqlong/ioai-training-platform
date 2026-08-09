@@ -19,6 +19,7 @@ from ioai.application.problems.publication import ArchivedProblem, PublishedSnap
 from ioai.domain.problems.errors import (
     InvalidEditorialTransitionError,
     InvalidTransitionNoteError,
+    ProblemDomainError,
 )
 from ioai.domain.problems.identity import ProblemId, RevisionId
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
@@ -207,7 +208,11 @@ def author_revision_router(service: AuthorProblemService) -> APIRouter:
     @router.put(
         "/{revision_id}",
         response_model=AuthorDraftResponse,
-        responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
+        responses={
+            404: {"model": ErrorResponse},
+            409: {"model": ErrorResponse},
+            422: {"model": ErrorResponse},
+        },
     )
     def save_draft(revision_id: str, request: SaveDraftRequest) -> AuthorDraftResponse:
         try:
@@ -225,6 +230,14 @@ def author_revision_router(service: AuthorProblemService) -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
+            ) from error
+        except ProblemDomainError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={
+                    "code": "DRAFT_PAYLOAD_INVALID",
+                    "message": "The draft contains inconsistent field values.",
+                },
             ) from error
 
     @router.post(
