@@ -866,7 +866,7 @@ same transaction as its state change.
   the normal review and publish flow can become current without mutating or
   silently reactivating archived history. Suggested commit:
   `feat(publication): archive and republish problems`.
-- [ ] **R0-07011 — Establish published-only repository projections from
+- [x] **R0-07011 — Establish published-only repository projections from
   `AC-R0-014-09` through `AC-R0-014-12`, analysis section 9, and design
   sections 9.3 and 11.1-11.3.** Add narrowly named current-snapshot list and
   stable-slug detail ports whose queries begin from current published

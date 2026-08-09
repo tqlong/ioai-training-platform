@@ -25,6 +25,7 @@ from ioai.application.problems.ports import (
     EditorialRepository,
     PublicationRepository,
 )
+from ioai.application.problems.public_queries import PublishedProblemReader
 from ioai.application.problems.publication import ArchivedProblem, PublishedSnapshot
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
@@ -48,6 +49,42 @@ from .problem_model import (
 )
 
 StoredDraftSummary = DraftSummary
+
+
+class SqlAlchemyPublishedProblemReader(PublishedProblemReader):
+    """Read only current public pointers; never query revisions as candidates."""
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def list_current(self, *, offset: int, limit: int) -> tuple[PublishedSnapshot, ...]:
+        statement = (
+            select(PublishedSnapshotModel)
+            .join(
+                ProblemModel,
+                ProblemModel.current_published_snapshot_id
+                == PublishedSnapshotModel.snapshot_id,
+            )
+            .order_by(
+                PublishedSnapshotModel.published_at.desc(),
+                PublishedSnapshotModel.slug,
+            )
+            .offset(offset)
+            .limit(limit)
+        )
+        return tuple(_snapshot_domain(row) for row in self._session.scalars(statement))
+
+    def get_current_by_slug(self, slug: str) -> PublishedSnapshot | None:
+        row = self._session.scalar(
+            select(PublishedSnapshotModel)
+            .join(
+                ProblemModel,
+                ProblemModel.current_published_snapshot_id
+                == PublishedSnapshotModel.snapshot_id,
+            )
+            .where(PublishedSnapshotModel.slug == slug)
+        )
+        return _snapshot_domain(row) if row is not None else None
 
 
 class SqlAlchemyDraftRepository:

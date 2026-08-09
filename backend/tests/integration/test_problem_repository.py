@@ -20,6 +20,7 @@ from ioai.adapters.database.problem_model import (
 )
 from ioai.adapters.database.problem_repository import (
     SqlAlchemyDraftUnitOfWork,
+    SqlAlchemyPublishedProblemReader,
 )
 from ioai.application.problems.editorial import StartSuccessorDraft
 from ioai.application.problems.errors import RevisionConflictError
@@ -340,6 +341,11 @@ def test_publication_switches_snapshot_status_history_and_idempotency_atomically
         problem = session.get(ProblemModel, "problem-01")
         assert problem is not None
         assert problem.current_published_snapshot_id == "snapshot-01"
+        reader = SqlAlchemyPublishedProblemReader(session)
+        assert [
+            item.slug.value for item in reader.list_current(offset=0, limit=10)
+        ] == ["stable-public-url"]
+        assert reader.get_current_by_slug("stable-public-url") == snapshot
 
     archive = ArchiveProblem(
         unit_of_work_factory=lambda: SqlAlchemyDraftUnitOfWork(session_factory),
@@ -374,6 +380,9 @@ def test_publication_switches_snapshot_status_history_and_idempotency_atomically
             session.scalar(select(func.count()).select_from(IdempotencyRecordModel))
             == 2
         )
+        reader = SqlAlchemyPublishedProblemReader(session)
+        assert reader.list_current(offset=0, limit=10) == ()
+        assert reader.get_current_by_slug("stable-public-url") is None
 
     with SqlAlchemyDraftUnitOfWork(session_factory) as work:
         replay = work.publication.replay(
