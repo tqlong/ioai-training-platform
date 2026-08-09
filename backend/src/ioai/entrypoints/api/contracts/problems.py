@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class CreateDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class AuthorDraftResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    problem_id: str = Field(min_length=1, max_length=128)
+    revision_id: str = Field(min_length=1, max_length=128)
+    version: int = Field(ge=1)
+    editorial_status: str
+    slug: str | None
+    content: dict[str, Any] | None
+    metadata: dict[str, Any] | None
+    response: dict[str, Any] | None
+    scoring: dict[str, Any] | None
+
+
+class AuthorDraftListItemResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    problem_id: str
+    revision_id: str
+    version: int = Field(ge=1)
+    editorial_status: str
+    last_saved_at: datetime
+
+
+class AuthorDraftListResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[AuthorDraftListItemResponse]
+    count: int = Field(ge=0)

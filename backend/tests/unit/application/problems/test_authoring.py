@@ -32,6 +32,12 @@ class FakeDraftRepository:
         except KeyError:
             raise DraftNotFoundError(revision_id) from None
 
+    def get_current(self, problem_id: ProblemId) -> ProblemRevision:
+        for item in self.items.values():
+            if item.problem_id == problem_id:
+                return item
+        raise DraftNotFoundError(RevisionId(problem_id.value))
+
     def list(self) -> tuple[StoredDraftSummary, ...]:
         return self.summaries
 
@@ -122,6 +128,6 @@ def test_get_draft_returns_author_aggregate_and_preserves_not_found() -> None:
     )
     repository.items[draft.revision_id] = draft
 
-    assert GetDraft(lambda: work)(draft.revision_id) == draft
+    assert GetDraft(lambda: work)(draft.problem_id) == draft
     with pytest.raises(DraftNotFoundError):
-        GetDraft(lambda: work)(RevisionId("missing"))
+        GetDraft(lambda: work)(ProblemId("missing"))

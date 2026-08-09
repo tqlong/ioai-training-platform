@@ -1,6 +1,163 @@
 {
   "components": {
     "schemas": {
+      "AuthorDraftListItemResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "editorial_status": {
+            "title": "Editorial Status",
+            "type": "string"
+          },
+          "last_saved_at": {
+            "format": "date-time",
+            "title": "Last Saved At",
+            "type": "string"
+          },
+          "problem_id": {
+            "title": "Problem Id",
+            "type": "string"
+          },
+          "revision_id": {
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "problem_id",
+          "revision_id",
+          "version",
+          "editorial_status",
+          "last_saved_at"
+        ],
+        "title": "AuthorDraftListItemResponse",
+        "type": "object"
+      },
+      "AuthorDraftListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuthorDraftListItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "title": "AuthorDraftListResponse",
+        "type": "object"
+      },
+      "AuthorDraftResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "editorial_status": {
+            "title": "Editorial Status",
+            "type": "string"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "problem_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Problem Id",
+            "type": "string"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response"
+          },
+          "revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "scoring": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoring"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "problem_id",
+          "revision_id",
+          "version",
+          "editorial_status",
+          "slug",
+          "content",
+          "metadata",
+          "response",
+          "scoring"
+        ],
+        "title": "AuthorDraftResponse",
+        "type": "object"
+      },
       "AuthorVocabularyRecord": {
         "additionalProperties": false,
         "properties": {
@@ -100,6 +257,12 @@
         "title": "AvailabilityResponse",
         "type": "object"
       },
+      "CreateDraftRequest": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "CreateDraftRequest",
+        "type": "object"
+      },
       "ErrorDetailResponse": {
         "additionalProperties": false,
         "properties": {
@@ -141,6 +304,19 @@
           "error"
         ],
         "title": "ErrorResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
         "type": "object"
       },
       "LocalizedLabelsResponse": {
@@ -250,6 +426,46 @@
         "title": "RecordVocabularyProposalRequest",
         "type": "object"
       },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
       "VocabularyIdentityResponse": {
         "additionalProperties": false,
         "properties": {
@@ -334,6 +550,118 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/author/problems": {
+      "get": {
+        "operationId": "list_drafts_api_v1_author_problems_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDraftListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Drafts",
+        "tags": [
+          "author-problems"
+        ]
+      },
+      "post": {
+        "operationId": "create_draft_api_v1_author_problems_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Create Draft",
+        "tags": [
+          "author-problems"
+        ]
+      }
+    },
+    "/api/v1/author/problems/{problem_id}": {
+      "get": {
+        "operationId": "read_draft_api_v1_author_problems__problem_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Draft",
+        "tags": [
+          "author-problems"
+        ]
+      }
+    },
     "/api/v1/author/vocabulary": {
       "get": {
         "operationId": "list_author_vocabulary_api_v1_author_vocabulary_get",

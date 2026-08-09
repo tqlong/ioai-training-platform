@@ -612,7 +612,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   needed for Phase 7 to start a revision of a published problem, but defer that
   snapshot-preserving use case until publication storage exists. Suggested
   commit: `feat(authoring): create and query drafts`.
-- [ ] **R0-06009 — Expose safe author draft read/create contracts from R0-013,
+- [x] **R0-06009 — Expose safe author draft read/create contracts from R0-013,
   R0-015, analysis sections 3 and 9, and design sections 7.1-7.2 and 8.** Add
   `GET` and `POST /api/v1/author/problems` and
   `GET /api/v1/author/problems/{problem_id}` with bounded Pydantic contracts,

@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from ...adapters.database.problem_repository import SqlAlchemyDraftUnitOfWork
 from ...adapters.database.proposal_repository import SqlAlchemyProposalUnitOfWork
 from ...adapters.database.session import (
     build_engine,
@@ -17,9 +18,11 @@ from ...adapters.database.session import (
 )
 from ...adapters.database.settings import DatabaseSettings
 from ...adapters.database.vocabulary_repository import SqlAlchemyVocabularyRepository
+from ...application.problems.authoring import CreateDraft, GetDraft, ListDrafts
 from ...application.vocabulary.proposals import RecordVocabularyProposal
 from .errors import install_error_handlers
 from .routes.health import health_router
+from .routes.problems import AuthorProblemService, author_problem_router
 from .routes.proposals import ProposalService, proposal_router
 from .routes.vocabulary import VocabularyReaderFactory, vocabulary_router
 from .settings import ApiSettings
@@ -33,11 +36,13 @@ def create_app(
     readiness_probe: ReadinessProbe | None = None,
     vocabulary_reader_factory: VocabularyReaderFactory | None = None,
     proposal_service: ProposalService | None = None,
+    author_problem_service: AuthorProblemService | None = None,
 ) -> FastAPI:
     resolved_settings = settings or ApiSettings.from_env()
     resolved_probe = readiness_probe
     resolved_reader_factory = vocabulary_reader_factory
     resolved_proposal_service = proposal_service
+    resolved_author_problem_service = author_problem_service
     db_settings = DatabaseSettings.from_env()
     engine = build_engine(db_settings)
     session_factory = build_session_factory(engine)
@@ -67,6 +72,21 @@ def create_app(
             clock=lambda: datetime.now(UTC),
         )
 
+    if resolved_author_problem_service is None:
+
+        def draft_uow() -> SqlAlchemyDraftUnitOfWork:
+            return SqlAlchemyDraftUnitOfWork(session_factory)
+
+        resolved_author_problem_service = _DefaultAuthorProblemService(
+            create=CreateDraft(
+                unit_of_work_factory=draft_uow,
+                id_generator=lambda: str(uuid4()),
+                clock=lambda: datetime.now(UTC),
+            ),
+            list_drafts=ListDrafts(draft_uow),
+            get=GetDraft(draft_uow),
+        )
+
     app = FastAPI(
         title=resolved_settings.project_name,
         debug=resolved_settings.debug,
@@ -90,6 +110,10 @@ def create_app(
     app.include_router(
         proposal_router(resolved_proposal_service), prefix=resolved_settings.api_prefix
     )
+    app.include_router(
+        author_problem_router(resolved_author_problem_service),
+        prefix=resolved_settings.api_prefix,
+    )
     install_error_handlers(app, request_id_header=resolved_settings.request_id_header)
     app.add_middleware(
         _RequestIdMiddleware,
@@ -101,6 +125,22 @@ def create_app(
         return {"status": "ok"}
 
     return app
+
+
+class _DefaultAuthorProblemService:
+    def __init__(self, *, create: CreateDraft, list_drafts: ListDrafts, get: GetDraft):
+        self._create = create
+        self._list = list_drafts
+        self._get = get
+
+    def create(self):
+        return self._create()
+
+    def list(self):
+        return self._list()
+
+    def get(self, problem_id):
+        return self._get(problem_id)
 
 
 class _RequestIdMiddleware:

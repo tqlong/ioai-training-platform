@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
 from types import TracebackType
 from typing import Protocol, Self
@@ -9,7 +10,8 @@ from ioai.domain.problems.revision import ProblemRevision
 from ioai.domain.problems.workflow import EditorialStatus
 
 
-class DraftSummary(Protocol):
+@dataclass(frozen=True, slots=True)
+class DraftSummary:
     problem_id: ProblemId
     revision_id: RevisionId
     version: int
@@ -22,6 +24,8 @@ class DraftRepository(Protocol):
 
     def get(self, revision_id: RevisionId) -> ProblemRevision: ...
 
+    def get_current(self, problem_id: ProblemId) -> ProblemRevision: ...
+
     def list(self) -> tuple[DraftSummary, ...]: ...
 
     def save(
@@ -33,7 +37,8 @@ class DraftRepository(Protocol):
 
 
 class DraftUnitOfWork(Protocol):
-    drafts: DraftRepository
+    @property
+    def drafts(self) -> DraftRepository: ...
 
     def __enter__(self) -> Self: ...
 

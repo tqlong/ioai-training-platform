@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from datetime import datetime
 from types import TracebackType
 from typing import Self
@@ -12,6 +12,7 @@ from ioai.application.problems.errors import (
     DraftNotFoundError,
     RevisionConflictError,
 )
+from ioai.application.problems.ports import DraftRepository, DraftSummary
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision
 from ioai.domain.problems.workflow import EditorialStatus
@@ -19,14 +20,7 @@ from ioai.domain.problems.workflow import EditorialStatus
 from .problem_codec import decode_revision_payload, encode_revision_payload
 from .problem_model import ProblemModel, ProblemRevisionModel
 
-
-@dataclass(frozen=True, slots=True)
-class StoredDraftSummary:
-    problem_id: ProblemId
-    revision_id: RevisionId
-    version: int
-    status: EditorialStatus
-    last_saved_at: datetime
+StoredDraftSummary = DraftSummary
 
 
 class SqlAlchemyDraftRepository:
@@ -52,13 +46,28 @@ class SqlAlchemyDraftRepository:
             raise DraftNotFoundError(revision_id)
         return _revision_domain(problem, row)
 
-    def list(self) -> tuple[StoredDraftSummary, ...]:
+    def get_current(self, problem_id: ProblemId) -> ProblemRevision:
+        statement = (
+            select(ProblemRevisionModel)
+            .where(ProblemRevisionModel.problem_id == problem_id.value)
+            .order_by(ProblemRevisionModel.revision_number.desc())
+            .limit(1)
+        )
+        row = self._session.scalar(statement)
+        if row is None:
+            raise DraftNotFoundError(RevisionId(problem_id.value))
+        problem = self._session.get(ProblemModel, problem_id.value)
+        if problem is None:
+            raise DraftNotFoundError(RevisionId(problem_id.value))
+        return _revision_domain(problem, row)
+
+    def list(self) -> tuple[DraftSummary, ...]:
         statement = select(ProblemRevisionModel).order_by(
             ProblemRevisionModel.updated_at.desc(),
             ProblemRevisionModel.revision_id,
         )
         return tuple(
-            StoredDraftSummary(
+            DraftSummary(
                 problem_id=ProblemId(row.problem_id),
                 revision_id=RevisionId(row.revision_id),
                 version=row.lock_version,
@@ -117,7 +126,7 @@ class SqlAlchemyDraftUnitOfWork:
         self._drafts: SqlAlchemyDraftRepository | None = None
 
     @property
-    def drafts(self) -> SqlAlchemyDraftRepository:
+    def drafts(self) -> DraftRepository:
         if self._drafts is None:
             raise RuntimeError("unit of work must be entered before repository access")
         return self._drafts
