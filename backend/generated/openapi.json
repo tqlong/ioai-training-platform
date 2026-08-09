@@ -646,6 +646,170 @@
         "title": "PreviewUnsavedState",
         "type": "object"
       },
+      "PublicLocalizedTextResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "en": {
+            "minLength": 1,
+            "title": "En",
+            "type": "string"
+          },
+          "vi": {
+            "minLength": 1,
+            "title": "Vi",
+            "type": "string"
+          }
+        },
+        "required": [
+          "en",
+          "vi"
+        ],
+        "title": "PublicLocalizedTextResponse",
+        "type": "object"
+      },
+      "PublicProblemListItemResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "compute_tier_code": {
+            "title": "Compute Tier Code",
+            "type": "string"
+          },
+          "difficulty_code": {
+            "title": "Difficulty Code",
+            "type": "string"
+          },
+          "expected_minutes": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Minutes",
+            "type": "integer"
+          },
+          "objective": {
+            "$ref": "#/components/schemas/PublicLocalizedTextResponse"
+          },
+          "primary_competency_code": {
+            "title": "Primary Competency Code",
+            "type": "string"
+          },
+          "public_short_id": {
+            "title": "Public Short Id",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "remaining_topic_count": {
+            "minimum": 0.0,
+            "title": "Remaining Topic Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "stage_code": {
+            "title": "Stage Code",
+            "type": "string"
+          },
+          "task_type_code": {
+            "title": "Task Type Code",
+            "type": "string"
+          },
+          "title": {
+            "$ref": "#/components/schemas/PublicLocalizedTextResponse"
+          },
+          "topic_codes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Topic Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "slug",
+          "public_short_id",
+          "title",
+          "objective",
+          "stage_code",
+          "difficulty_code",
+          "primary_competency_code",
+          "topic_codes",
+          "remaining_topic_count",
+          "task_type_code",
+          "expected_minutes",
+          "compute_tier_code",
+          "published_at"
+        ],
+        "title": "PublicProblemListItemResponse",
+        "type": "object"
+      },
+      "PublicProblemListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "active_filters": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Active Filters",
+            "type": "object"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PublicProblemListItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "minimum": 1.0,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "active_filters"
+        ],
+        "title": "PublicProblemListResponse",
+        "type": "object"
+      },
+      "PublicProblemSort": {
+        "enum": [
+          "EDITORIAL",
+          "NEWEST",
+          "EXPECTED_TIME",
+          "TITLE"
+        ],
+        "title": "PublicProblemSort",
+        "type": "string"
+      },
       "PublicVocabularyRecord": {
         "additionalProperties": false,
         "properties": {
@@ -2112,6 +2276,229 @@
         "summary": "Record Proposal",
         "tags": [
           "vocabulary"
+        ]
+      }
+    },
+    "/api/v1/problems": {
+      "get": {
+        "operationId": "list_problems_api_v1_problems_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "stage",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stage"
+            }
+          },
+          {
+            "in": "query",
+            "name": "competency",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Competency"
+            }
+          },
+          {
+            "in": "query",
+            "name": "topic",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Topic"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_subtopics",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Subtopics",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "difficulty",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Difficulty"
+            }
+          },
+          {
+            "in": "query",
+            "name": "task_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Task Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expected_minutes_min",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Minutes Min"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expected_minutes_max",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected Minutes Max"
+            }
+          },
+          {
+            "in": "query",
+            "name": "compute_tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Compute Tier"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PublicProblemSort",
+              "default": "EDITORIAL"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProblemListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "List Problems",
+        "tags": [
+          "public-problems"
         ]
       }
     },

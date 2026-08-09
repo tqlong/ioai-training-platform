@@ -188,7 +188,10 @@ def test_author_draft_schemas_are_not_public_problem_contracts() -> None:
 
     assert "/api/v1/author/problems" in schema["paths"]
     assert "/api/v1/author/problems/{problem_id}" in schema["paths"]
-    assert "/api/v1/problems" not in schema["paths"]
+    public_list = schema["paths"]["/api/v1/problems"]
+    assert "AuthorDraftResponse" not in str(public_list)
+    assert "revision_id" not in str(public_list)
+    assert "editorial_status" not in str(public_list)
     author_schema = str(schema["components"]["schemas"]["AuthorDraftResponse"])
     assert "revision_id" in author_schema
     assert "editorial_status" in author_schema
@@ -291,7 +294,7 @@ def test_preview_is_author_only_and_marks_learner_projection() -> None:
     assert preview.json()["marker"] == "Draft preview - not public"
     assert "revision_id" not in preview.json()["learner_problem"]
     assert client.get("/api/v1/problems/revision-1").status_code == 404
-    assert client.get("/api/v1/problems?preview=revision-1").status_code == 404
+    assert client.get("/api/v1/problems?preview=revision-1").status_code == 422
 
 
 def test_preview_accepts_explicit_unsaved_editor_state_without_persisting() -> None:

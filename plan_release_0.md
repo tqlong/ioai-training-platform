@@ -950,7 +950,7 @@ observe the required red step before implementation.
   identity. Prove mixed-revision isolation and page-boundary behavior in unit
   and PostgreSQL integration tests. Suggested commit:
   `feat(learn): query the published problem library`.
-- [ ] **R0-08004 — Expose the typed public list contract from `R0-011` and
+- [x] **R0-08004 — Expose the typed public list contract from `R0-011` and
   design sections 6 and 8.** Add `GET /api/v1/problems` with bounded query
   parameters, stable pagination metadata, active canonical filters, public-safe
   list DTOs, no more than two serialized topics plus a remainder count, safe

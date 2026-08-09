@@ -244,6 +244,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/problems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Problems */
+        get: operations["list_problems_api_v1_problems_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/vocabulary": {
         parameters: {
             query?: never;
@@ -513,6 +530,63 @@ export interface components {
             /** Slug */
             slug?: string | null;
         };
+        /** PublicLocalizedTextResponse */
+        PublicLocalizedTextResponse: {
+            /** En */
+            en: string;
+            /** Vi */
+            vi: string;
+        };
+        /** PublicProblemListItemResponse */
+        PublicProblemListItemResponse: {
+            /** Compute Tier Code */
+            compute_tier_code: string;
+            /** Difficulty Code */
+            difficulty_code: string;
+            /** Expected Minutes */
+            expected_minutes: number;
+            objective: components["schemas"]["PublicLocalizedTextResponse"];
+            /** Primary Competency Code */
+            primary_competency_code: string;
+            /** Public Short Id */
+            public_short_id: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /** Remaining Topic Count */
+            remaining_topic_count: number;
+            /** Slug */
+            slug: string;
+            /** Stage Code */
+            stage_code: string;
+            /** Task Type Code */
+            task_type_code: string;
+            title: components["schemas"]["PublicLocalizedTextResponse"];
+            /** Topic Codes */
+            topic_codes: string[];
+        };
+        /** PublicProblemListResponse */
+        PublicProblemListResponse: {
+            /** Active Filters */
+            active_filters: {
+                [key: string]: string | boolean | number;
+            };
+            /** Items */
+            items: components["schemas"]["PublicProblemListItemResponse"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * PublicProblemSort
+         * @enum {string}
+         */
+        PublicProblemSort: "EDITORIAL" | "NEWEST" | "EXPECTED_TIME" | "TITLE";
         /** PublicVocabularyRecord */
         PublicVocabularyRecord: {
             /** Aliases */
@@ -1342,6 +1416,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VocabularyProposalResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_problems_api_v1_problems_get: {
+        parameters: {
+            query?: {
+                stage?: string | null;
+                competency?: string | null;
+                topic?: string | null;
+                include_subtopics?: boolean;
+                difficulty?: string | null;
+                task_type?: string | null;
+                expected_minutes_min?: number | null;
+                expected_minutes_max?: number | null;
+                compute_tier?: string | null;
+                q?: string | null;
+                sort?: components["schemas"]["PublicProblemSort"];
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProblemListResponse"];
                 };
             };
             /** @description Unprocessable Entity */

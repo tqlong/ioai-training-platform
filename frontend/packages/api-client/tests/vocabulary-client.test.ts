@@ -3,6 +3,30 @@ import { describe, expect, it, vi } from 'vitest';
 import { createApiClient } from '../src';
 
 describe('generated vocabulary client', () => {
+  it('lists published problems with canonical discovery parameters', async () => {
+    const fetchFn = vi.fn(async () => Response.json({
+      items: [], total: 0, page: 2, page_size: 10,
+      active_filters: { stage: 'AI_1_FOUNDATIONS', sort: 'TITLE' },
+    }));
+    const client = createApiClient({
+      baseUrl: 'http://localhost:8000/api/v1',
+      fetchFn,
+    });
+
+    await client.listPublicProblems({
+      stage: 'AI_1_FOUNDATIONS',
+      includeSubtopics: false,
+      sort: 'TITLE',
+      page: 2,
+      pageSize: 10,
+    });
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/problems?stage=AI_1_FOUNDATIONS&include_subtopics=false&sort=TITLE&page=2&page_size=10',
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
+
   it('returns the OpenAPI-derived public vocabulary response', async () => {
     const fetchFn = vi.fn(async () =>
       Response.json({

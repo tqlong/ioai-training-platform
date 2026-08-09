@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 
+from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -11,6 +12,7 @@ from ioai.application.problems.public_queries import (
     PublicProblemQuery,
     PublicProblemSort,
 )
+from ioai.entrypoints.api.factory import create_app
 
 from .test_vocabulary_migration import migrated_database
 
@@ -223,3 +225,22 @@ def test_sorts_counts_and_paginates_after_published_filtering(
         "regression-metrics",
         "confusion-basics",
     ]
+
+
+def test_public_list_api_serializes_only_current_snapshot_fields(
+    migrated_database,
+) -> None:
+    _seed_library(migrated_database)
+
+    response = TestClient(create_app()).get(
+        "/api/v1/problems?compute_tier=BROWSER&page_size=10"
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 1
+    assert payload["items"][0]["slug"] == "regression-metrics"
+    serialized = response.text
+    assert "private-draft" not in serialized
+    assert "revision-" not in serialized
+    assert "editorial_status" not in serialized

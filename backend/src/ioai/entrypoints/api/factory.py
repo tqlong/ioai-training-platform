@@ -9,7 +9,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from ...adapters.database.problem_repository import SqlAlchemyDraftUnitOfWork
+from ...adapters.database.problem_repository import (
+    SqlAlchemyDraftUnitOfWork,
+    SqlAlchemyPublishedProblemReader,
+)
 from ...adapters.database.proposal_repository import SqlAlchemyProposalUnitOfWork
 from ...adapters.database.session import (
     build_engine,
@@ -18,6 +21,7 @@ from ...adapters.database.session import (
 )
 from ...adapters.database.settings import DatabaseSettings
 from ...adapters.database.vocabulary_repository import SqlAlchemyVocabularyRepository
+from ...adapters.vocabulary.runtime import load_generated_vocabulary
 from ...application.problems.authoring import (
     CreateDraft,
     GetDraft,
@@ -35,6 +39,10 @@ from ...application.problems.editorial import (
     SubmitForReview,
 )
 from ...application.problems.payload import decode_revision_payload
+from ...application.problems.public_queries import (
+    ListPublishedProblems,
+    PublicProblemQuery,
+)
 from ...application.problems.publication import ArchiveProblem, PublishRevision
 from ...application.vocabulary.proposals import RecordVocabularyProposal
 from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
@@ -57,6 +65,7 @@ from .routes.problems import (
     author_revision_router,
 )
 from .routes.proposals import ProposalService, proposal_router
+from .routes.public_problems import PublicProblemService, public_problem_router
 from .routes.vocabulary import VocabularyReaderFactory, vocabulary_router
 from .settings import ApiSettings
 
@@ -70,12 +79,14 @@ def create_app(
     vocabulary_reader_factory: VocabularyReaderFactory | None = None,
     proposal_service: ProposalService | None = None,
     author_problem_service: AuthorProblemService | None = None,
+    public_problem_service: PublicProblemService | None = None,
 ) -> FastAPI:
     resolved_settings = settings or ApiSettings.from_env()
     resolved_probe = readiness_probe
     resolved_reader_factory = vocabulary_reader_factory
     resolved_proposal_service = proposal_service
     resolved_author_problem_service = author_problem_service
+    resolved_public_problem_service = public_problem_service
     db_settings = DatabaseSettings.from_env()
     engine = build_engine(db_settings)
     session_factory = build_session_factory(engine)
@@ -159,6 +170,9 @@ def create_app(
             ),
         )
 
+    if resolved_public_problem_service is None:
+        resolved_public_problem_service = _DefaultPublicProblemService(session_factory)
+
     app = FastAPI(
         title=resolved_settings.project_name,
         debug=resolved_settings.debug,
@@ -190,6 +204,12 @@ def create_app(
         author_revision_router(resolved_author_problem_service),
         prefix=resolved_settings.api_prefix,
     )
+    app.include_router(
+        public_problem_router(
+            resolved_public_problem_service, load_generated_vocabulary()
+        ),
+        prefix=resolved_settings.api_prefix,
+    )
     install_error_handlers(app, request_id_header=resolved_settings.request_id_header)
     app.add_middleware(
         _RequestIdMiddleware,
@@ -201,6 +221,16 @@ def create_app(
         return {"status": "ok"}
 
     return app
+
+
+class _DefaultPublicProblemService:
+    def __init__(self, session_factory) -> None:
+        self._session_factory = session_factory
+
+    def list(self, query: PublicProblemQuery):
+        with self._session_factory() as session:
+            use_case = ListPublishedProblems(SqlAlchemyPublishedProblemReader(session))
+            return use_case(query)
 
 
 class _DefaultAuthorProblemService:
@@ -362,11 +392,14 @@ class _RequestIdMiddleware:
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
+        header_name = self.header_name.lower().encode()
+        request_headers = dict(scope.get("headers", []))
+        request_id = request_headers.get(header_name, str(uuid4()).encode())
 
         async def send_with_request_id(message: Message) -> None:
             if message.get("type") == "http.response.start":
                 headers = list(message.get("headers", []))
-                headers.append((self.header_name.encode(), b"generated"))
+                headers.append((header_name, request_id))
                 message["headers"] = headers
             await send(message)
 

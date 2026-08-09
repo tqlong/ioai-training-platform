@@ -33,15 +33,15 @@ def test_non_author_openapi_operations_cannot_reference_author_schemas() -> None
 def test_guessed_public_revision_preview_and_search_paths_reveal_nothing() -> None:
     client = TestClient(create_app())
     candidates = (
-        "/api/v1/problems/revision-secret",
-        "/api/v1/problems?preview=revision-secret",
-        "/api/v1/problems?editorial_status=APPROVED",
-        "/api/v1/recommendations?revision_id=revision-secret",
+        ("/api/v1/problems/revision-secret", 404),
+        ("/api/v1/problems?preview=revision-secret", 422),
+        ("/api/v1/problems?editorial_status=APPROVED", 422),
+        ("/api/v1/recommendations?revision_id=revision-secret", 404),
     )
 
-    for path in candidates:
+    for path, expected_status in candidates:
         response = client.get(path)
-        assert response.status_code == 404
+        assert response.status_code == expected_status
         serialized = response.text
         assert "hidden_tests" not in serialized
         assert "correct_choice_id" not in serialized

@@ -19,6 +19,7 @@ export type PublicationResult = components['schemas']['PublicationResponse'];
 export type StartRevisionRequest = components['schemas']['StartRevisionRequest'];
 export type ArchiveProblemRequest = components['schemas']['ArchiveProblemRequest'];
 export type ArchiveProblemResult = components['schemas']['ArchiveProblemResponse'];
+export type PublicProblemList = components['schemas']['PublicProblemListResponse'];
 export type EditorialAction = 'submit-review' | 'request-changes' | 'approve';
 
 export type PublicVocabularyQuery = {
@@ -30,6 +31,21 @@ export type PublicVocabularyQuery = {
 };
 export type AuthorVocabularyQuery = PublicVocabularyQuery;
 export type AuthorDraftQuery = { search?: string; editorialStatus?: string };
+export type PublicProblemQuery = {
+  stage?: string;
+  competency?: string;
+  topic?: string;
+  includeSubtopics?: boolean;
+  difficulty?: string;
+  taskType?: string;
+  expectedMinutesMin?: number;
+  expectedMinutesMax?: number;
+  computeTier?: string;
+  search?: string;
+  sort?: 'EDITORIAL' | 'NEWEST' | 'EXPECTED_TIME' | 'TITLE';
+  page?: number;
+  pageSize?: number;
+};
 
 export type FetchFunction = (
   input: string,
@@ -58,6 +74,7 @@ export type ApiClient = {
   listPublicVocabulary: (
     query: PublicVocabularyQuery,
   ) => Promise<PublicVocabularyResponse>;
+  listPublicProblems: (query?: PublicProblemQuery) => Promise<PublicProblemList>;
   listAuthorDrafts: (query?: AuthorDraftQuery) => Promise<AuthorDraftList>;
   listAuthorVocabulary: (
     query: AuthorVocabularyQuery,
@@ -118,6 +135,33 @@ export const createApiClient = ({
       const payload: unknown = await response.json();
       if (!response.ok) throw toApiError(payload, response.status);
       return payload as PublicVocabularyResponse;
+    },
+    async listPublicProblems(query = {}) {
+      const parameters = new URLSearchParams();
+      const values: Array<[string, string | number | boolean | undefined]> = [
+        ['stage', query.stage],
+        ['competency', query.competency],
+        ['topic', query.topic],
+        ['include_subtopics', query.includeSubtopics],
+        ['difficulty', query.difficulty],
+        ['task_type', query.taskType],
+        ['expected_minutes_min', query.expectedMinutesMin],
+        ['expected_minutes_max', query.expectedMinutesMax],
+        ['compute_tier', query.computeTier],
+        ['q', query.search],
+        ['sort', query.sort],
+        ['page', query.page],
+        ['page_size', query.pageSize],
+      ];
+      for (const [key, value] of values) {
+        if (value !== undefined) parameters.set(key, String(value));
+      }
+      const suffix = parameters.size ? `?${parameters.toString()}` : '';
+      return requestJson<PublicProblemList>(
+        fetchFn,
+        `${normalizedBaseUrl}/problems${suffix}`,
+        { cache: 'no-store' },
+      );
     },
     async listAuthorDrafts(query = {}) {
       const parameters = new URLSearchParams();
