@@ -7,7 +7,12 @@ import pytest
 from tests.unit.domain.problems.test_revision import revision
 
 from ioai.application.problems.errors import DraftValidationError
-from ioai.application.problems.publication import PublishedSnapshot, PublishRevision
+from ioai.application.problems.publication import (
+    ArchivedProblem,
+    ArchiveProblem,
+    PublishedSnapshot,
+    PublishRevision,
+)
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.workflow import ActorContext, EditorialStatus
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
@@ -24,9 +29,27 @@ class FakePublicationRepository:
         del revision_id, idempotency_key, request_digest
         return self.replay_result
 
+    def current_snapshot(self, problem_id):
+        return PublishedSnapshot(
+            "snapshot-current",
+            problem_id,
+            RevisionId("revision-01"),
+            StableSlug("metrics-basics"),
+            {},
+            NOW,
+        )
+
     def publish(self, **kwargs):
         self.calls.append(kwargs)
         return kwargs["snapshot"]
+
+    def archive(self, **kwargs):
+        self.calls.append(kwargs)
+        return ArchivedProblem(
+            problem_id=kwargs["problem_id"],
+            slug=StableSlug("metrics-basics"),
+            archived_at=kwargs["transition"].occurred_at,
+        )
 
 
 class FakeWork:
@@ -146,3 +169,24 @@ def test_identical_publication_retry_returns_original_snapshot() -> None:
 
     assert result is original
     assert work.publication.calls == []
+
+
+def test_archive_is_a_distinct_versioned_transition() -> None:
+    published = revision(status=EditorialStatus.PUBLISHED, version=5)
+    work = FakeWork(published)
+    archive = ArchiveProblem(
+        unit_of_work_factory=lambda: work,
+        id_generator=lambda: "transition-archive",
+        clock=lambda: NOW,
+    )
+
+    result = archive(
+        published.problem_id,
+        expected_version=5,
+        note="Retire outdated learner content.",
+        actor=ActorContext("local-reviewer"),
+        operation_id="archive-01",
+    )
+
+    assert result.slug == StableSlug("metrics-basics")
+    assert work.publication.calls[0]["transition"].target is EditorialStatus.ARCHIVED

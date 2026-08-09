@@ -35,13 +35,14 @@ from ...application.problems.editorial import (
     SubmitForReview,
 )
 from ...application.problems.payload import decode_revision_payload
-from ...application.problems.publication import PublishRevision
+from ...application.problems.publication import ArchiveProblem, PublishRevision
 from ...application.vocabulary.proposals import RecordVocabularyProposal
 from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ...domain.problems.revision import ProblemRevision
 from ...domain.problems.workflow import ActorContext, EditorialStatus
 from ...domain.vocabulary.availability import Release0AvailabilityPolicy
 from .contracts.problems import (
+    ArchiveProblemRequest,
     EditorialCommandRequest,
     PreviewDraftRequest,
     PublishRevisionRequest,
@@ -151,6 +152,11 @@ def create_app(
                 id_generator=lambda: str(uuid4()),
                 clock=lambda: datetime.now(UTC),
             ),
+            archive=ArchiveProblem(
+                unit_of_work_factory=draft_uow,
+                id_generator=lambda: str(uuid4()),
+                clock=lambda: datetime.now(UTC),
+            ),
         )
 
     app = FastAPI(
@@ -214,6 +220,7 @@ class _DefaultAuthorProblemService:
         history: ListEditorialHistory,
         publish: PublishRevision,
         start_revision: StartSuccessorDraft,
+        archive: ArchiveProblem,
     ):
         self._create = create
         self._list = list_drafts
@@ -230,6 +237,7 @@ class _DefaultAuthorProblemService:
         self._history = history
         self._publish = publish
         self._start_revision = start_revision
+        self._archive = archive
 
     def create(self):
         return self._create()
@@ -332,6 +340,15 @@ class _DefaultAuthorProblemService:
         return self._start_revision(
             source.revision_id,
             expected_version=request.expected_version,
+            operation_id=request.operation_id,
+        )
+
+    def archive(self, problem_id: ProblemId, request: ArchiveProblemRequest):
+        return self._archive(
+            problem_id,
+            expected_version=request.expected_version,
+            note=request.note,
+            actor=ActorContext(request.actor_context),
             operation_id=request.operation_id,
         )
 

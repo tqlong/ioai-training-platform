@@ -173,4 +173,20 @@ describe('generated vocabulary client', () => {
       expect.objectContaining({ method: 'POST', body: JSON.stringify(request) }),
     );
   });
+
+  it('archives through an explicit versioned author command', async () => {
+    const fetchFn = vi.fn(async () => Response.json({}));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    const request = {
+      expected_version: 4, note: 'Outdated.', actor_context: 'local-reviewer',
+      operation_id: 'archive-1',
+    };
+
+    await client.archiveAuthorProblem('problem-1', request);
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/author/problems/problem-1/archive',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify(request) }),
+    );
+  });
 });

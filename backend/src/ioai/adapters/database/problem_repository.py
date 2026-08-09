@@ -25,7 +25,7 @@ from ioai.application.problems.ports import (
     EditorialRepository,
     PublicationRepository,
 )
-from ioai.application.problems.publication import PublishedSnapshot
+from ioai.application.problems.publication import ArchivedProblem, PublishedSnapshot
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import (
@@ -290,6 +290,7 @@ class SqlAlchemyEditorialRepository:
             not in {
                 EditorialStatus.CHANGES_REQUESTED.value,
                 EditorialStatus.PUBLISHED.value,
+                EditorialStatus.ARCHIVED.value,
             }
             or persisted_source.lock_version != source.version
         ):
@@ -333,6 +334,15 @@ class SqlAlchemyEditorialRepository:
 class SqlAlchemyPublicationRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
+
+    def current_snapshot(self, problem_id: ProblemId) -> PublishedSnapshot | None:
+        problem = self._session.get(ProblemModel, problem_id.value)
+        if problem is None or problem.current_published_snapshot_id is None:
+            return None
+        row = self._session.get(
+            PublishedSnapshotModel, problem.current_published_snapshot_id
+        )
+        return _snapshot_domain(row) if row is not None else None
 
     def replay(
         self,
@@ -440,6 +450,57 @@ class SqlAlchemyPublicationRepository:
             )
         )
         return snapshot
+
+    def archive(
+        self,
+        *,
+        problem_id: ProblemId,
+        expected_version: int,
+        transition: EditorialTransition,
+        transition_id: str,
+    ) -> ArchivedProblem:
+        problem = self._session.scalar(
+            select(ProblemModel)
+            .where(ProblemModel.problem_id == problem_id.value)
+            .with_for_update()
+        )
+        if problem is None or problem.current_published_snapshot_id is None:
+            raise DraftNotFoundError(transition.revision_id)
+        snapshot = self._session.get(
+            PublishedSnapshotModel, problem.current_published_snapshot_id
+        )
+        revision = self._session.scalar(
+            select(ProblemRevisionModel)
+            .where(ProblemRevisionModel.revision_id == transition.revision_id.value)
+            .with_for_update()
+        )
+        if snapshot is None or revision is None:
+            raise DraftNotFoundError(transition.revision_id)
+        if (
+            snapshot.revision_id != revision.revision_id
+            or revision.lock_version != expected_version
+            or revision.editorial_status != EditorialStatus.PUBLISHED.value
+        ):
+            raise RevisionConflictError(transition.revision_id, revision.lock_version)
+        self._session.add(
+            EditorialTransitionModel(
+                transition_id=transition_id,
+                revision_id=transition.revision_id.value,
+                source_status=transition.source.value,
+                target_status=transition.target.value,
+                note=transition.note,
+                actor_context=transition.actor.label,
+                occurred_at=transition.occurred_at,
+                operation_id=transition.operation_id,
+            )
+        )
+        revision.editorial_status = EditorialStatus.ARCHIVED.value
+        revision.lock_version = expected_version + 1
+        revision.updated_at = transition.occurred_at
+        problem.current_published_snapshot_id = None
+        return ArchivedProblem(
+            problem_id, StableSlug(snapshot.slug), transition.occurred_at
+        )
 
 
 class SqlAlchemyDraftUnitOfWork:

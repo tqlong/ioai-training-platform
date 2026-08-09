@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import Link from 'next/link';
 
-import type { AuthorDraft, AuthorDraftList, StartRevisionRequest } from '@ioai/api-client';
+import type { ArchiveProblemRequest, ArchiveProblemResult, AuthorDraft, AuthorDraftList, StartRevisionRequest } from '@ioai/api-client';
 
 import { studioApi } from '../api';
 
@@ -11,20 +12,29 @@ export function AuthorProblemsView({
   result,
   startRevision = studioApi.startAuthorRevision,
   onOpen = (problemId: string) => { window.location.assign(`/author/problems/${problemId}`); },
+  archiveProblem = studioApi.archiveAuthorProblem,
 }: {
   result: AuthorDraftList;
   startRevision?: (problemId: string, request: StartRevisionRequest) => Promise<AuthorDraft>;
   onOpen?: (problemId: string) => void;
+  archiveProblem?: (problemId: string, request: ArchiveProblemRequest) => Promise<ArchiveProblemResult>;
 }) {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
   const [starting, setStarting] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
-  const filtered = useMemo(() => result.items.filter((draft) => {
+  const [archived, setArchived] = useState<Set<string>>(new Set());
+  const [archiveTarget, setArchiveTarget] = useState<AuthorDraftList['items'][number] | null>(null);
+  const [archiveNote, setArchiveNote] = useState('');
+  const [archiving, setArchiving] = useState(false);
+  const archiveTrigger = useRef<HTMLButtonElement | null>(null);
+  const archiveNoteInput = useRef<HTMLTextAreaElement>(null);
+  const items = useMemo(() => result.items.map((item) => archived.has(item.problem_id) ? { ...item, editorial_status: 'ARCHIVED' } : item), [archived, result.items]);
+  const filtered = useMemo(() => items.filter((draft) => {
     const needle = search.trim().toLocaleLowerCase();
     const matchesSearch = !needle || draft.problem_id.toLocaleLowerCase().includes(needle) || draft.revision_id.toLocaleLowerCase().includes(needle);
     return matchesSearch && (status === 'ALL' || draft.editorial_status === status);
-  }), [result.items, search, status]);
+  }), [items, search, status]);
   const setStatusFilter = (next: string) => setStatus(next);
   const beginRevision = async (item: AuthorDraftList['items'][number]) => {
     setStarting(item.revision_id);
@@ -41,6 +51,36 @@ export function AuthorProblemsView({
     } finally {
       setStarting(null);
     }
+  };
+  const closeArchive = () => {
+    if (archiving) return;
+    setArchiveTarget(null); setArchiveNote('');
+    window.setTimeout(() => archiveTrigger.current?.focus(), 0);
+  };
+  const confirmArchive = async () => {
+    if (!archiveTarget) return;
+    setArchiving(true); setActionError('');
+    try {
+      await archiveProblem(archiveTarget.problem_id, {
+        expected_version: archiveTarget.version,
+        note: archiveNote,
+        actor_context: 'local-reviewer',
+        operation_id: globalThis.crypto?.randomUUID?.() ?? `archive-${archiveTarget.version}`,
+      });
+      setArchived((current) => new Set(current).add(archiveTarget.problem_id));
+      setArchiveTarget(null); setArchiveNote('');
+    } catch {
+      setActionError('The published problem could not be archived. Reload and try again.');
+      window.setTimeout(() => archiveNoteInput.current?.focus(), 0);
+    } finally { setArchiving(false); }
+  };
+  const archiveKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') { event.preventDefault(); closeArchive(); }
+    if (event.key !== 'Tab') return;
+    const focusable = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('textarea, button:not([disabled])'));
+    const first = focusable[0]; const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   };
   return (
     <section aria-labelledby="author-problems-title" className="studio-page">
@@ -108,15 +148,23 @@ export function AuthorProblemsView({
                   <td><code>{draft.revision_id}</code> · v{draft.version}</td>
                   <td><time dateTime={draft.last_saved_at}>{formatDate(draft.last_saved_at)}</time></td>
                   <td>{formatValidation(draft.validation_summary)}</td>
-                  <td>{['PUBLISHED', 'CHANGES_REQUESTED'].includes(draft.editorial_status)
-                    ? <button disabled={starting !== null} onClick={() => { void beginRevision(draft); }} type="button">{starting === draft.revision_id ? 'Starting draft…' : draft.editorial_status === 'PUBLISHED' ? 'Edit as new draft' : 'Address changes'}</button>
-                    : <Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link>}</td>
+                  <td><div className="row-actions">{['PUBLISHED', 'ARCHIVED', 'CHANGES_REQUESTED'].includes(draft.editorial_status)
+                    ? <button disabled={starting !== null} onClick={() => { void beginRevision(draft); }} type="button">{starting === draft.revision_id ? 'Starting draft…' : draft.editorial_status === 'PUBLISHED' ? 'Edit as new draft' : draft.editorial_status === 'ARCHIVED' ? 'Create new draft' : 'Address changes'}</button>
+                    : <Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link>}
+                    {draft.editorial_status === 'PUBLISHED' && <button onClick={(event) => { archiveTrigger.current = event.currentTarget; setArchiveTarget(draft); window.setTimeout(() => archiveNoteInput.current?.focus(), 0); }} type="button">Archive</button>}</div></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+      {archiveTarget && <div aria-labelledby="archive-dialog-title" aria-modal="true" className="modal-dialog" onKeyDown={archiveKeys} role="dialog">
+        <h2 id="archive-dialog-title">Archive published problem</h2>
+        <p>This removes <code>/problems/{archiveTarget.problem_id}</code> from public eligibility. Historical snapshots remain auditable.</p>
+        <label htmlFor="archive-note">Archive note</label>
+        <textarea id="archive-note" maxLength={2000} onChange={(event) => setArchiveNote(event.target.value)} ref={archiveNoteInput} value={archiveNote} />
+        <div className="editorial-actions"><button disabled={!archiveNote.trim() || archiving} onClick={() => { void confirmArchive(); }} type="button">{archiving ? 'Archiving…' : 'Confirm archive'}</button><button disabled={archiving} onClick={closeArchive} type="button">Cancel</button></div>
+      </div>}
     </section>
   );
 }

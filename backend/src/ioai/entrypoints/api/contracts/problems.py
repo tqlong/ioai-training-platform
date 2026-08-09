@@ -145,3 +145,18 @@ class StartRevisionRequest(BaseModel):
     source_revision_id: str = Field(min_length=1, max_length=128)
     expected_version: int = Field(ge=1)
     operation_id: str = Field(min_length=1, max_length=200)
+
+
+class ArchiveProblemRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_version: int = Field(ge=1)
+    note: str = Field(min_length=1, max_length=2000)
+    actor_context: str = Field(min_length=1, max_length=200)
+    operation_id: str = Field(min_length=1, max_length=200)
+
+
+class ArchiveProblemResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    problem_id: str
+    slug: str
+    archived_at: datetime

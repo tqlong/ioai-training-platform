@@ -39,3 +39,7 @@ class IdempotencyConflictError(ProblemApplicationError):
 
 class SlugConflictError(ProblemApplicationError):
     """A stable public slug belongs to a different problem."""
+
+
+class PublishedProblemNotFoundError(ProblemApplicationError):
+    """A problem has no current published snapshot for a lifecycle command."""

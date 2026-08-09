@@ -17,6 +17,8 @@ export type EditorialHistory = components['schemas']['EditorialHistoryResponse']
 export type PublishRevisionRequest = components['schemas']['PublishRevisionRequest'];
 export type PublicationResult = components['schemas']['PublicationResponse'];
 export type StartRevisionRequest = components['schemas']['StartRevisionRequest'];
+export type ArchiveProblemRequest = components['schemas']['ArchiveProblemRequest'];
+export type ArchiveProblemResult = components['schemas']['ArchiveProblemResponse'];
 export type EditorialAction = 'submit-review' | 'request-changes' | 'approve';
 
 export type PublicVocabularyQuery = {
@@ -85,6 +87,10 @@ export type ApiClient = {
     problemId: string,
     request: StartRevisionRequest,
   ) => Promise<AuthorDraft>;
+  archiveAuthorProblem: (
+    problemId: string,
+    request: ArchiveProblemRequest,
+  ) => Promise<ArchiveProblemResult>;
 };
 
 export const createApiClient = ({
@@ -183,6 +189,11 @@ export const createApiClient = ({
     },
     async startAuthorRevision(problemId, request) {
       return requestJson<AuthorDraft>(fetchFn, `${normalizedBaseUrl}/author/problems/${encodeURIComponent(problemId)}/revisions`, {
+        method: 'POST', body: JSON.stringify(request),
+      });
+    },
+    async archiveAuthorProblem(problemId, request) {
+      return requestJson<ArchiveProblemResult>(fetchFn, `${normalizedBaseUrl}/author/problems/${encodeURIComponent(problemId)}/archive`, {
         method: 'POST', body: JSON.stringify(request),
       });
     },

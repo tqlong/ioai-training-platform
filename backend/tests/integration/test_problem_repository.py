@@ -23,7 +23,7 @@ from ioai.adapters.database.problem_repository import (
 )
 from ioai.application.problems.editorial import StartSuccessorDraft
 from ioai.application.problems.errors import RevisionConflictError
-from ioai.application.problems.publication import PublishedSnapshot
+from ioai.application.problems.publication import ArchiveProblem, PublishedSnapshot
 from ioai.domain.problems.assessment import (
     Choice,
     QuizSingleResponse,
@@ -324,22 +324,6 @@ def test_publication_switches_snapshot_status_history_and_idempotency_atomically
             session.scalar(select(func.count()).select_from(PublishedSnapshotModel))
             == 1
         )
-        assert (
-            session.scalar(select(func.count()).select_from(EditorialTransitionModel))
-            == 1
-        )
-        assert (
-            session.scalar(select(func.count()).select_from(IdempotencyRecordModel))
-            == 1
-        )
-
-    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
-        replay = work.publication.replay(
-            approved.revision_id,
-            idempotency_key="publish-01",
-            request_digest="digest-01",
-        )
-    assert replay == snapshot
 
     start = StartSuccessorDraft(
         unit_of_work_factory=lambda: SqlAlchemyDraftUnitOfWork(session_factory),
@@ -356,10 +340,48 @@ def test_publication_switches_snapshot_status_history_and_idempotency_atomically
         problem = session.get(ProblemModel, "problem-01")
         assert problem is not None
         assert problem.current_published_snapshot_id == "snapshot-01"
+
+    archive = ArchiveProblem(
+        unit_of_work_factory=lambda: SqlAlchemyDraftUnitOfWork(session_factory),
+        id_generator=lambda: "transition-archive-01",
+        clock=lambda: NOW,
+    )
+    archived = archive(
+        approved.problem_id,
+        expected_version=2,
+        note="Archive obsolete public content.",
+        actor=ActorContext("local-reviewer"),
+        operation_id="archive-01",
+    )
+    assert archived.slug == StableSlug("stable-public-url")
+    with session_factory() as session:
+        problem = session.get(ProblemModel, "problem-01")
+        published_revision = session.get(ProblemRevisionModel, "revision-01")
+        draft_revision = session.get(ProblemRevisionModel, "revision-02")
+        assert problem is not None and problem.current_published_snapshot_id is None
+        assert published_revision is not None
+        assert published_revision.editorial_status == "ARCHIVED"
+        assert draft_revision is not None and draft_revision.editorial_status == "DRAFT"
         assert (
             session.scalar(select(func.count()).select_from(PublishedSnapshotModel))
             == 1
         )
+        assert (
+            session.scalar(select(func.count()).select_from(EditorialTransitionModel))
+            == 2
+        )
+        assert (
+            session.scalar(select(func.count()).select_from(IdempotencyRecordModel))
+            == 2
+        )
+
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        replay = work.publication.replay(
+            approved.revision_id,
+            idempotency_key="publish-01",
+            request_digest="digest-01",
+        )
+    assert replay == snapshot
 
 
 def test_publication_rolls_back_every_visible_effect_on_failure(

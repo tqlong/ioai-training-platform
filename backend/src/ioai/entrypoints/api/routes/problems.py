@@ -9,12 +9,13 @@ from ioai.application.problems.errors import (
     DraftNotFoundError,
     DraftValidationError,
     IdempotencyConflictError,
+    PublishedProblemNotFoundError,
     RevisionConflictError,
     SlugConflictError,
     SuccessorRevisionError,
 )
 from ioai.application.problems.payload import encode_revision_payload
-from ioai.application.problems.publication import PublishedSnapshot
+from ioai.application.problems.publication import ArchivedProblem, PublishedSnapshot
 from ioai.domain.problems.errors import (
     InvalidEditorialTransitionError,
     InvalidTransitionNoteError,
@@ -25,6 +26,8 @@ from ioai.domain.problems.workflow import EditorialStatus, EditorialTransition
 
 from ..contracts.errors import ErrorResponse
 from ..contracts.problems import (
+    ArchiveProblemRequest,
+    ArchiveProblemResponse,
     AuthorDraftListItemResponse,
     AuthorDraftListResponse,
     AuthorDraftResponse,
@@ -83,6 +86,10 @@ class AuthorProblemService(Protocol):
     def start_revision(
         self, problem_id: ProblemId, request: StartRevisionRequest
     ) -> ProblemRevision: ...
+
+    def archive(
+        self, problem_id: ProblemId, request: ArchiveProblemRequest
+    ) -> ArchivedProblem: ...
 
 
 def author_problem_router(service: AuthorProblemService) -> APIRouter:
@@ -155,6 +162,41 @@ def author_problem_router(service: AuthorProblemService) -> APIRouter:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"code": "DRAFT_NOT_FOUND", "message": "Revision not found."},
             ) from error
+
+    @router.post(
+        "/{problem_id}/archive",
+        response_model=ArchiveProblemResponse,
+        responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
+    )
+    def archive_problem(
+        problem_id: str, request: ArchiveProblemRequest
+    ) -> ArchiveProblemResponse:
+        try:
+            result = service.archive(ProblemId(problem_id), request)
+        except RevisionConflictError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "REVISION_CONFLICT",
+                    "message": "A newer public revision version exists.",
+                    "current_version": error.current_version,
+                },
+            ) from error
+        except PublishedProblemNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "PUBLIC_NOT_FOUND", "message": str(error)},
+            ) from error
+        except (InvalidEditorialTransitionError, InvalidTransitionNoteError) as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "WORKFLOW_INVALID", "message": str(error)},
+            ) from error
+        return ArchiveProblemResponse(
+            problem_id=result.problem_id.value,
+            slug=result.slug.value,
+            archived_at=result.archived_at,
+        )
 
     return router
 

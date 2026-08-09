@@ -69,4 +69,23 @@ describe('IOAI Studio author problem list', () => {
     ));
     expect(onOpen).toHaveBeenCalledWith('problem-1');
   });
+
+  it('requires confirmation and a note before archiving', async () => {
+    const published = { ...result.items[0]!, editorial_status: 'PUBLISHED', version: 4 };
+    const archiveProblem = vi.fn(async () => ({
+      problem_id: 'problem-1', slug: 'metrics', archived_at: '2026-08-09T00:00:00Z',
+    }));
+    render(<AuthorProblemsView archiveProblem={archiveProblem} result={{ count: 1, items: [published] }} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
+    const confirm = screen.getByRole('button', { name: 'Confirm archive' }) as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Archive note' }), { target: { value: 'Outdated.' } });
+    fireEvent.click(confirm);
+
+    await waitFor(() => expect(archiveProblem).toHaveBeenCalledWith(
+      'problem-1', expect.objectContaining({ expected_version: 4, note: 'Outdated.' }),
+    ));
+    expect(await screen.findByText('archived')).toBeTruthy();
+  });
 });

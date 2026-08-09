@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
 from ioai.application.problems.errors import RevisionConflictError
-from ioai.application.problems.publication import PublishedSnapshot
+from ioai.application.problems.publication import ArchivedProblem, PublishedSnapshot
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import (
@@ -136,6 +136,14 @@ class FakeAuthorProblemService:
             status=EditorialStatus.DRAFT,
         )
         return self.draft
+
+    def archive(self, problem_id, request):
+        assert problem_id == self.draft.problem_id
+        return ArchivedProblem(
+            problem_id,
+            StableSlug("metrics-basics"),
+            self.now,
+        )
 
 
 def test_author_can_create_list_and_read_private_draft_contracts() -> None:
@@ -404,3 +412,25 @@ def test_author_starts_a_private_revision_from_published_problem() -> None:
     assert response.status_code == 201
     assert response.json()["revision_id"] == "revision-2"
     assert response.json()["editorial_status"] == "DRAFT"
+
+
+def test_author_archive_is_explicit_and_auditable() -> None:
+    service = FakeAuthorProblemService()
+    client = TestClient(create_app(author_problem_service=service))
+
+    response = client.post(
+        "/api/v1/author/problems/problem-1/archive",
+        json={
+            "expected_version": 4,
+            "note": "Retire outdated content.",
+            "actor_context": "local-reviewer",
+            "operation_id": "archive-1",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "problem_id": "problem-1",
+        "slug": "metrics-basics",
+        "archived_at": "2026-08-09T00:00:00Z",
+    }

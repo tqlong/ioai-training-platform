@@ -855,7 +855,7 @@ same transaction as its state change.
   Edit on published or changes-requested Studio rows to enter the new draft.
   Suggested commit:
   `feat(authoring): revise published problems safely`.
-- [ ] **R0-07010 — Implement explicit archive and republication behavior from
+- [x] **R0-07010 — Implement explicit archive and republication behavior from
   `AC-R0-014-14` through `AC-R0-014-16`, analysis sections 8.1 and 8.4, and
   design sections 7.4 and 10.1.** Add a versioned archive command that requires
   a note, atomically appends immutable `PUBLISHED -> ARCHIVED` history and

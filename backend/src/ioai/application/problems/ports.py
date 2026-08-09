@@ -10,7 +10,7 @@ from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import EditorialStatus, EditorialTransition
 
 if TYPE_CHECKING:
-    from .publication import PublishedSnapshot
+    from .publication import ArchivedProblem, PublishedSnapshot
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,6 +69,8 @@ class EditorialRepository(Protocol):
 
 
 class PublicationRepository(Protocol):
+    def current_snapshot(self, problem_id: ProblemId) -> PublishedSnapshot | None: ...
+
     def replay(
         self,
         revision_id: RevisionId,
@@ -87,6 +89,15 @@ class PublicationRepository(Protocol):
         idempotency_key: str,
         request_digest: str,
     ) -> PublishedSnapshot: ...
+
+    def archive(
+        self,
+        *,
+        problem_id: ProblemId,
+        expected_version: int,
+        transition: EditorialTransition,
+        transition_id: str,
+    ) -> ArchivedProblem: ...
 
 
 class DraftUnitOfWork(Protocol):

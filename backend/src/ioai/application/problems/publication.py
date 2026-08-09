@@ -9,11 +9,16 @@ from hashlib import sha256
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.workflow import (
     ActorContext,
+    transition_for_archive,
     transition_for_publication,
 )
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 
-from .errors import DraftValidationError, RevisionConflictError
+from .errors import (
+    DraftValidationError,
+    PublishedProblemNotFoundError,
+    RevisionConflictError,
+)
 from .payload import encode_revision_payload
 from .ports import DraftUnitOfWork
 
@@ -26,6 +31,13 @@ class PublishedSnapshot:
     slug: StableSlug
     public_payload: dict[str, object]
     published_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class ArchivedProblem:
+    problem_id: ProblemId
+    slug: StableSlug
+    archived_at: datetime
 
 
 class PublishRevision:
@@ -100,6 +112,53 @@ class PublishRevision:
                 transition_id=self._id_generator(),
                 idempotency_key=idempotency_key,
                 request_digest=digest,
+            )
+
+
+class ArchiveProblem:
+    def __init__(
+        self,
+        *,
+        unit_of_work_factory: Callable[[], DraftUnitOfWork],
+        id_generator: Callable[[], str],
+        clock: Callable[[], datetime],
+    ) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
+        self._id_generator = id_generator
+        self._clock = clock
+
+    def __call__(
+        self,
+        problem_id: ProblemId,
+        *,
+        expected_version: int,
+        note: str,
+        actor: ActorContext,
+        operation_id: str,
+    ) -> ArchivedProblem:
+        occurred_at = self._clock()
+        with self._unit_of_work_factory() as unit_of_work:
+            snapshot = unit_of_work.publication.current_snapshot(problem_id)
+            if snapshot is None:
+                raise PublishedProblemNotFoundError(
+                    "problem has no current published snapshot"
+                )
+            current = unit_of_work.drafts.get(snapshot.revision_id)
+            if current.version != expected_version:
+                raise RevisionConflictError(current.revision_id, current.version)
+            transition = transition_for_archive(
+                revision_id=current.revision_id,
+                source=current.status,
+                note=note,
+                actor=actor,
+                occurred_at=occurred_at,
+                operation_id=operation_id,
+            )
+            return unit_of_work.publication.archive(
+                problem_id=problem_id,
+                expected_version=expected_version,
+                transition=transition,
+                transition_id=self._id_generator(),
             )
 
 

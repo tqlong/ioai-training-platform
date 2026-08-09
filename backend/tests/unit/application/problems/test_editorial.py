@@ -187,3 +187,22 @@ def test_published_revision_creates_private_successor_with_stable_slug() -> None
     assert successor.status is EditorialStatus.DRAFT
     assert successor.slug == published.slug
     assert published.status is EditorialStatus.PUBLISHED
+
+
+def test_archived_revision_can_reenter_only_through_a_new_draft() -> None:
+    archived = revision(status=EditorialStatus.ARCHIVED, version=6)
+    work = FakeEditorialWork(archived)
+    start = StartSuccessorDraft(
+        unit_of_work_factory=lambda: work,
+        id_generator=lambda: "revision-after-archive",
+        clock=lambda: NOW,
+    )
+
+    successor = start(
+        archived.revision_id,
+        expected_version=6,
+        operation_id="revise-archived",
+    )
+
+    assert successor.status is EditorialStatus.DRAFT
+    assert archived.status is EditorialStatus.ARCHIVED

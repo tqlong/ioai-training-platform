@@ -115,9 +115,11 @@ class StartSuccessorDraft:
             if source.status not in {
                 EditorialStatus.CHANGES_REQUESTED,
                 EditorialStatus.PUBLISHED,
+                EditorialStatus.ARCHIVED,
             }:
                 raise SuccessorRevisionError(
-                    "only published or changes-requested work can start a successor"
+                    "only published, archived, or changes-requested work can "
+                    "start a successor"
                 )
             successor = replace(
                 source,

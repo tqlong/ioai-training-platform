@@ -1,6 +1,67 @@
 {
   "components": {
     "schemas": {
+      "ArchiveProblemRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_context": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Context",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "note": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          },
+          "operation_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operation Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "note",
+          "actor_context",
+          "operation_id"
+        ],
+        "title": "ArchiveProblemRequest",
+        "type": "object"
+      },
+      "ArchiveProblemResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "archived_at": {
+            "format": "date-time",
+            "title": "Archived At",
+            "type": "string"
+          },
+          "problem_id": {
+            "title": "Problem Id",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "problem_id",
+          "slug",
+          "archived_at"
+        ],
+        "title": "ArchiveProblemResponse",
+        "type": "object"
+      },
       "AuthorDraftListItemResponse": {
         "additionalProperties": false,
         "properties": {
@@ -1230,6 +1291,78 @@
           }
         },
         "summary": "Read Draft",
+        "tags": [
+          "author-problems"
+        ]
+      }
+    },
+    "/api/v1/author/problems/{problem_id}/archive": {
+      "post": {
+        "operationId": "archive_problem_api_v1_author_problems__problem_id__archive_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveProblemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveProblemResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive Problem",
         "tags": [
           "author-problems"
         ]

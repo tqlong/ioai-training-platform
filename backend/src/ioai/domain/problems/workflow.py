@@ -106,6 +106,30 @@ def transition_for_publication(
     )
 
 
+def transition_for_archive(
+    *,
+    revision_id: RevisionId,
+    source: EditorialStatus,
+    note: str,
+    actor: ActorContext,
+    occurred_at: datetime,
+    operation_id: str,
+) -> EditorialTransition:
+    if source is not EditorialStatus.PUBLISHED:
+        raise InvalidEditorialTransitionError(
+            f"editorial transition {source.value} -> ARCHIVED is not allowed"
+        )
+    return _transition(
+        revision_id=revision_id,
+        source=source,
+        target=EditorialStatus.ARCHIVED,
+        note=note,
+        actor=actor,
+        occurred_at=occurred_at,
+        operation_id=operation_id,
+    )
+
+
 def _transition(
     *,
     revision_id: RevisionId,
