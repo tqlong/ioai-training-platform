@@ -877,7 +877,7 @@ same transaction as its state change.
   behavior out of this step; provide the safe persistence/application boundary
   it must consume. Suggested commit:
   `feat(publication): enforce published snapshot projections`.
-- [ ] **R0-07012 — Prove cross-layer public/draft isolation from
+- [x] **R0-07012 — Prove cross-layer public/draft isolation from
   `AC-R0-014-10` through `AC-R0-014-12`, `AC-R0-015-13`, analysis sections
   9.2-9.4, and design sections 8.3 and 11.** Add adversarial repository, API,
   OpenAPI, generated-client, and Next.js build tests covering mixed published,

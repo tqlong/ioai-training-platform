@@ -3,9 +3,6 @@ export type LearnProblemCard = {
   title: string;
 };
 
-export const problems: LearnProblemCard[] = [
-  {
-    id: 'welcome-intro',
-    title: 'Welcome to IOAI Learn',
-  },
-];
+// Phase 7 deliberately ships no fabricated public content. Phase 8 replaces
+// this typed empty boundary with the generated published-problem API client.
+export const problems: LearnProblemCard[] = [];
