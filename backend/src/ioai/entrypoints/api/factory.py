@@ -23,6 +23,7 @@ from ...application.problems.authoring import (
     GetDraft,
     GetRevisionDraft,
     ListDrafts,
+    PreviewDraft,
     SaveDraft,
     ValidateDraft,
 )
@@ -31,7 +32,7 @@ from ...application.vocabulary.proposals import RecordVocabularyProposal
 from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ...domain.problems.revision import ProblemRevision
 from ...domain.vocabulary.availability import Release0AvailabilityPolicy
-from .contracts.problems import SaveDraftRequest
+from .contracts.problems import PreviewDraftRequest, SaveDraftRequest
 from .errors import install_error_handlers
 from .routes.health import health_router
 from .routes.problems import (
@@ -104,6 +105,7 @@ def create_app(
             get_revision=GetRevisionDraft(draft_uow),
             save=SaveDraft(draft_uow, lambda: datetime.now(UTC)),
             validate=ValidateDraft(draft_uow, Release0AvailabilityPolicy()),
+            preview=PreviewDraft(draft_uow, Release0AvailabilityPolicy()),
         )
 
     app = FastAPI(
@@ -160,6 +162,7 @@ class _DefaultAuthorProblemService:
         get_revision: GetRevisionDraft,
         save: SaveDraft,
         validate: ValidateDraft,
+        preview: PreviewDraft,
     ):
         self._create = create
         self._list = list_drafts
@@ -167,6 +170,7 @@ class _DefaultAuthorProblemService:
         self._get_revision = get_revision
         self._save = save
         self._validate = validate
+        self._preview = preview
 
     def create(self):
         return self._create()
@@ -202,6 +206,36 @@ class _DefaultAuthorProblemService:
 
     def validate(self, revision_id: RevisionId, expected_version: int):
         return self._validate(revision_id, expected_version=expected_version)
+
+    def preview(self, revision_id: RevisionId, request: PreviewDraftRequest):
+        current = self._get_revision(revision_id)
+        unsaved = None
+        if request.unsaved_state is not None:
+            state = request.unsaved_state
+            content, metadata, response, scoring = decode_revision_payload(
+                {
+                    "content": state.content,
+                    "metadata": state.metadata,
+                    "response": state.response,
+                    "scoring": state.scoring,
+                }
+            )
+            unsaved = ProblemRevision(
+                problem_id=ProblemId(state.problem_id),
+                revision_id=revision_id,
+                version=request.expected_version,
+                slug=StableSlug(state.slug) if state.slug else None,
+                status=current.status,
+                content=content,
+                metadata=metadata,
+                response=response,
+                scoring=scoring,
+            )
+        return self._preview(
+            revision_id,
+            expected_version=request.expected_version,
+            unsaved=unsaved,
+        )
 
 
 class _RequestIdMiddleware:

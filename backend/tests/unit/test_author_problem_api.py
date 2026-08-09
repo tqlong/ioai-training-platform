@@ -5,14 +5,18 @@ from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
 
-from ioai.application.problems.authoring import AuthorDraftListItem
+from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
 from ioai.application.problems.errors import RevisionConflictError
-from ioai.domain.problems.identity import ProblemId, RevisionId
+from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import EditorialStatus
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
-from ioai.entrypoints.api.contracts.problems import SaveDraftRequest
+from ioai.entrypoints.api.contracts.problems import (
+    PreviewDraftRequest,
+    SaveDraftRequest,
+)
 from ioai.entrypoints.api.factory import create_app
+from ioai.entrypoints.api.routes.problems import _safe_response_schema
 
 
 class FakeAuthorProblemService:
@@ -68,6 +72,16 @@ class FakeAuthorProblemService:
         ):
             raise RevisionConflictError(revision_id, self.draft.version)
         return self.draft.validate(Release0AvailabilityPolicy())
+
+    def preview(
+        self, revision_id: RevisionId, request: PreviewDraftRequest
+    ) -> PreviewResult:
+        if request.expected_version != self.draft.version:
+            raise RevisionConflictError(revision_id, self.draft.version)
+        revision = self.draft
+        if request.unsaved_state and request.unsaved_state.slug:
+            revision = replace(revision, slug=StableSlug(request.unsaved_state.slug))
+        return PreviewResult(revision, revision.validate(Release0AvailabilityPolicy()))
 
 
 def test_author_can_create_list_and_read_private_draft_contracts() -> None:
@@ -167,3 +181,65 @@ def test_author_validation_rejects_stale_revision_version() -> None:
     )
     assert response.status_code == 409
     assert response.json()["detail"]["code"] == "REVISION_CONFLICT"
+
+
+def test_preview_is_author_only_and_marks_learner_projection() -> None:
+    client = TestClient(create_app(author_problem_service=FakeAuthorProblemService()))
+    preview = client.post(
+        "/api/v1/author/revisions/revision-1/preview",
+        json={"expected_version": 1},
+    )
+    assert preview.status_code == 200
+    assert preview.json()["marker"] == "Draft preview - not public"
+    assert "revision_id" not in preview.json()["learner_problem"]
+    assert client.get("/api/v1/problems/revision-1").status_code == 404
+    assert client.get("/api/v1/problems?preview=revision-1").status_code == 404
+
+
+def test_preview_accepts_explicit_unsaved_editor_state_without_persisting() -> None:
+    service = FakeAuthorProblemService()
+    client = TestClient(create_app(author_problem_service=service))
+    preview = client.post(
+        "/api/v1/author/revisions/revision-1/preview",
+        json={
+            "expected_version": 1,
+            "unsaved_state": {
+                "problem_id": "problem-1",
+                "slug": "unsaved-title",
+                "content": None,
+                "metadata": None,
+                "response": None,
+                "scoring": None,
+            },
+        },
+    )
+    assert preview.status_code == 200
+    assert preview.json()["learner_problem"]["slug"] == "unsaved-title"
+    assert service.draft.slug is None
+
+
+def test_preview_response_schema_omits_answer_keys_hidden_tests_and_author_states() -> (
+    None
+):
+    safe = _safe_response_schema(
+        {
+            "type": "QUIZ_SINGLE",
+            "choices": [
+                {
+                    "id": "a",
+                    "content": {
+                        "en": "A",
+                        "vi": "Á",
+                        "en_state": "COMPLETE",
+                        "vi_state": "PENDING",
+                    },
+                }
+            ],
+            "correct_choice_id": "a",
+            "hidden_tests": [{"id": "secret"}],
+        }
+    )
+    assert safe == {
+        "type": "QUIZ_SINGLE",
+        "choices": [{"id": "a", "content": {"en": "A", "vi": "Á"}}],
+    }

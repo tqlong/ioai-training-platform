@@ -81,4 +81,12 @@ describe('generated vocabulary client', () => {
     await client.validateAuthorDraft('revision-1', 2);
     expect(fetchFn).toHaveBeenCalledWith('http://localhost:8000/api/v1/author/revisions/revision-1/validate', expect.objectContaining({ method: 'POST', body: '{"expected_version":2}' }));
   });
+
+  it('requests an isolated author preview with explicit unsaved state', async () => {
+    const fetchFn = vi.fn(async () => Response.json({ marker: 'Draft preview - not public', learner_problem: {}, author_issues: [] }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    const request = { expected_version: 2, unsaved_state: { problem_id: 'problem-1', slug: 'preview-only', content: null, metadata: null, response: null, scoring: null } };
+    await client.previewAuthorDraft('revision-1', request);
+    expect(fetchFn).toHaveBeenCalledWith('http://localhost:8000/api/v1/author/revisions/revision-1/preview', expect.objectContaining({ method: 'POST', body: JSON.stringify(request) }));
+  });
 });

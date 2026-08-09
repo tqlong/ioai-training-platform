@@ -126,3 +126,40 @@ class ValidateDraft:
 
             raise RevisionConflictError(revision_id, revision.version)
         return revision.validate(self._policy)
+
+
+@dataclass(frozen=True, slots=True)
+class PreviewResult:
+    revision: ProblemRevision
+    report: ValidationReport
+
+
+class PreviewDraft:
+    def __init__(
+        self,
+        unit_of_work_factory: Callable[[], DraftUnitOfWork],
+        policy: Release0AvailabilityPolicy,
+    ) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
+        self._policy = policy
+
+    def __call__(
+        self,
+        revision_id: RevisionId,
+        *,
+        expected_version: int,
+        unsaved: ProblemRevision | None = None,
+    ) -> PreviewResult:
+        with self._unit_of_work_factory() as unit_of_work:
+            current = unit_of_work.drafts.get(revision_id)
+        if current.version != expected_version:
+            from .errors import RevisionConflictError
+
+            raise RevisionConflictError(revision_id, current.version)
+        revision = unsaved or current
+        if (
+            revision.problem_id != current.problem_id
+            or revision.revision_id != current.revision_id
+        ):
+            raise ValueError("preview state must target the requested revision")
+        return PreviewResult(revision=revision, report=revision.validate(self._policy))

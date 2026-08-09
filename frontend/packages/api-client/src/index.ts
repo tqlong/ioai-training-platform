@@ -10,6 +10,8 @@ export type AuthorDraftList = components['schemas']['AuthorDraftListResponse'];
 export type SaveDraftRequest = components['schemas']['SaveDraftRequest'];
 export type RecordVocabularyProposalRequest = components['schemas']['RecordVocabularyProposalRequest'];
 export type ValidationReport = components['schemas']['ValidationReportResponse'];
+export type PreviewDraftRequest = components['schemas']['PreviewDraftRequest'];
+export type PreviewResponse = components['schemas']['PreviewResponse'];
 
 export type PublicVocabularyQuery = {
   vocabularyType: string;
@@ -61,6 +63,7 @@ export type ApiClient = {
     request: RecordVocabularyProposalRequest,
   ) => Promise<VocabularyProposal>;
   validateAuthorDraft: (revisionId: string, expectedVersion: number) => Promise<ValidationReport>;
+  previewAuthorDraft: (revisionId: string, request: PreviewDraftRequest) => Promise<PreviewResponse>;
 };
 
 export const createApiClient = ({
@@ -128,6 +131,11 @@ export const createApiClient = ({
     async validateAuthorDraft(revisionId, expectedVersion) {
       return requestJson<ValidationReport>(fetchFn, `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}/validate`, {
         method: 'POST', body: JSON.stringify({ expected_version: expectedVersion }),
+      });
+    },
+    async previewAuthorDraft(revisionId, request) {
+      return requestJson<PreviewResponse>(fetchFn, `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}/preview`, {
+        method: 'POST', body: JSON.stringify(request),
       });
     },
   };

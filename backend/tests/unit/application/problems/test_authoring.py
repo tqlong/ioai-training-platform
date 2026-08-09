@@ -9,11 +9,13 @@ from ioai.application.problems.authoring import (
     CreateDraft,
     GetDraft,
     ListDrafts,
+    PreviewDraft,
 )
-from ioai.application.problems.errors import DraftNotFoundError
-from ioai.domain.problems.identity import ProblemId, RevisionId
+from ioai.application.problems.errors import DraftNotFoundError, RevisionConflictError
+from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision
 from ioai.domain.problems.workflow import EditorialStatus
+from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 
 
 class FakeDraftRepository:
@@ -131,3 +133,62 @@ def test_get_draft_returns_author_aggregate_and_preserves_not_found() -> None:
     assert GetDraft(lambda: work)(draft.problem_id) == draft
     with pytest.raises(DraftNotFoundError):
         GetDraft(lambda: work)(ProblemId("missing"))
+
+
+def test_preview_projects_explicit_unsaved_state_without_persisting_it() -> None:
+    repository = FakeDraftRepository()
+    work = FakeUnitOfWork(repository)
+    saved = ProblemRevision(
+        ProblemId("problem-1"),
+        RevisionId("revision-1"),
+        3,
+        None,
+        EditorialStatus.DRAFT,
+        None,
+        None,
+        None,
+        None,
+    )
+    unsaved = ProblemRevision(
+        saved.problem_id,
+        saved.revision_id,
+        3,
+        StableSlug("preview-only"),
+        saved.status,
+        None,
+        None,
+        None,
+        None,
+    )
+    repository.items[saved.revision_id] = saved
+
+    result = PreviewDraft(lambda: work, Release0AvailabilityPolicy())(
+        saved.revision_id,
+        expected_version=3,
+        unsaved=unsaved,
+    )
+
+    assert result.revision.slug == StableSlug("preview-only")
+    assert repository.items[saved.revision_id].slug is None
+
+
+def test_preview_rejects_a_stale_saved_version() -> None:
+    repository = FakeDraftRepository()
+    work = FakeUnitOfWork(repository)
+    saved = ProblemRevision(
+        ProblemId("problem-1"),
+        RevisionId("revision-1"),
+        3,
+        None,
+        EditorialStatus.DRAFT,
+        None,
+        None,
+        None,
+        None,
+    )
+    repository.items[saved.revision_id] = saved
+    with pytest.raises(RevisionConflictError):
+        PreviewDraft(lambda: work, Release0AvailabilityPolicy())(
+            saved.revision_id,
+            expected_version=2,
+        )

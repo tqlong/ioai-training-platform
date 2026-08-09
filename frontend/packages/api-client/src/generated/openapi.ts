@@ -56,6 +56,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/author/revisions/{revision_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview Draft */
+        post: operations["preview_draft_api_v1_author_revisions__revision_id__preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/author/revisions/{revision_id}/validate": {
         parameters: {
             query?: never;
@@ -270,6 +287,46 @@ export interface components {
             en: string;
             /** Vi */
             vi: string;
+        };
+        /** PreviewDraftRequest */
+        PreviewDraftRequest: {
+            /** Expected Version */
+            expected_version: number;
+            unsaved_state?: components["schemas"]["PreviewUnsavedState"] | null;
+        };
+        /** PreviewResponse */
+        PreviewResponse: {
+            /** Author Issues */
+            author_issues: components["schemas"]["ValidationIssueResponse"][];
+            /** Learner Problem */
+            learner_problem: {
+                [key: string]: unknown;
+            };
+            /** Marker */
+            marker: string;
+        };
+        /** PreviewUnsavedState */
+        PreviewUnsavedState: {
+            /** Content */
+            content?: {
+                [key: string]: unknown;
+            } | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /** Problem Id */
+            problem_id: string;
+            /** Response */
+            response?: {
+                [key: string]: unknown;
+            } | null;
+            /** Scoring */
+            scoring?: {
+                [key: string]: unknown;
+            } | null;
+            /** Slug */
+            slug?: string | null;
         };
         /** PublicVocabularyRecord */
         PublicVocabularyRecord: {
@@ -533,6 +590,59 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_draft_api_v1_author_revisions__revision_id__preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

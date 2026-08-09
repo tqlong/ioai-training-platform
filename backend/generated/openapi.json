@@ -338,6 +338,135 @@
         "title": "LocalizedLabelsResponse",
         "type": "object"
       },
+      "PreviewDraftRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "unsaved_state": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreviewUnsavedState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "title": "PreviewDraftRequest",
+        "type": "object"
+      },
+      "PreviewResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "author_issues": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssueResponse"
+            },
+            "title": "Author Issues",
+            "type": "array"
+          },
+          "learner_problem": {
+            "additionalProperties": true,
+            "title": "Learner Problem",
+            "type": "object"
+          },
+          "marker": {
+            "title": "Marker",
+            "type": "string"
+          }
+        },
+        "required": [
+          "marker",
+          "learner_problem",
+          "author_issues"
+        ],
+        "title": "PreviewResponse",
+        "type": "object"
+      },
+      "PreviewUnsavedState": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "problem_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Problem Id",
+            "type": "string"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response"
+          },
+          "scoring": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoring"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          }
+        },
+        "required": [
+          "problem_id"
+        ],
+        "title": "PreviewUnsavedState",
+        "type": "object"
+      },
       "PublicVocabularyRecord": {
         "additionalProperties": false,
         "properties": {
@@ -916,6 +1045,78 @@
         "summary": "Read Draft",
         "tags": [
           "author-problems"
+        ]
+      }
+    },
+    "/api/v1/author/revisions/{revision_id}/preview": {
+      "post": {
+        "operationId": "preview_draft_api_v1_author_revisions__revision_id__preview_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview Draft",
+        "tags": [
+          "author-revisions"
         ]
       }
     },

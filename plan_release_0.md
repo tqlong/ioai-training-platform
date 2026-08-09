@@ -718,7 +718,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   Publication; link every issue to its field, move focus to the first blocker,
   keep warnings distinct, and expose `publication_eligible` without adding a
   Phase 7 transition. Suggested commit: `feat(authoring): validate complete drafts`.
-- [ ] **R0-06019 — Prepare the isolated learner-preview projection from
+- [x] **R0-06019 — Prepare the isolated learner-preview projection from
   `AC-R0-013-20` through `AC-R0-013-21`, analysis sections 7.1 and 9, and
   design sections 7.3, 11.2, and 13.4.** Define and test an author-only preview
   use case and `POST /api/v1/author/revisions/{revision_id}/preview` contract

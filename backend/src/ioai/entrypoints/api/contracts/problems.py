@@ -75,3 +75,26 @@ class ValidationReportResponse(BaseModel):
     errors: list[ValidationIssueResponse]
     warnings: list[ValidationIssueResponse]
     publication_eligible: bool
+
+
+class PreviewUnsavedState(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    problem_id: str = Field(min_length=1, max_length=128)
+    slug: str | None = Field(default=None, max_length=120)
+    content: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
+    response: dict[str, Any] | None = None
+    scoring: dict[str, Any] | None = None
+
+
+class PreviewDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_version: int = Field(ge=1)
+    unsaved_state: PreviewUnsavedState | None = None
+
+
+class PreviewResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    marker: str
+    learner_problem: dict[str, Any]
+    author_issues: list[ValidationIssueResponse]
