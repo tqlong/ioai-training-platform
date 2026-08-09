@@ -428,7 +428,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   ordering, normalization rules, diagnostics, and generated-file ownership.
   Headings are presentation only and cannot establish parentage. Suggested
   commit: `test(vocabulary): define canonical source contract`.
-- [ ] **R0-05002 — Define framework-free vocabulary domain values from R0-010,
+- [x] **R0-05002 — Define framework-free vocabulary domain values from R0-010,
   R0-013, R0-015, analysis sections 4 and 5.2, and design sections 3 and 5.2.**
   Test first, then implement immutable typed composite identity, vocabulary type,
   bilingual labels, approved aliases, canonical status, and explicit topic
