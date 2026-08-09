@@ -809,7 +809,7 @@ same transaction as its state change.
   color. Add accessible component tests for keyboard use, focus placement,
   loading, validation, conflict, and safe error states. Suggested commit:
   `feat(studio): build editorial review workspace`.
-- [ ] **R0-07006 — Complete responsive learner-format draft preview from
+- [x] **R0-07006 — Complete responsive learner-format draft preview from
   `AC-R0-013-20` through `AC-R0-013-21`, `ui_release_0.md` section 6.9,
   and design sections 7.3, 11.2, and 13.4.** Consume the Phase 6 author-only
   preview contract from the saved revision or explicit unsaved editor state and

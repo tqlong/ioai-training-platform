@@ -243,7 +243,24 @@ export function DraftEditor({
         <div className="editor-actions">
           <button disabled={!isDirty || saveState === 'saving'} type="submit">Save draft</button>
           <button disabled={isDirty} onClick={async () => { try { setValidationFailed(false); setValidationReport(await studioApi.validateAuthorDraft(draft.revision_id, draft.version)); } catch { setValidationFailed(true); } }} title={isDirty ? 'Save the current changes before validation.' : undefined} type="button">Validate draft</button>
-          <Link href={`/author/problems/${draft.problem_id}/preview`}>Preview as learner</Link>
+          <Link
+            href={`/author/problems/${draft.problem_id}/preview`}
+            onClick={() => {
+              try {
+                sessionStorage.setItem(`ioai:studio:preview:${draft.revision_id}`, JSON.stringify({
+                  expected_version: draft.version,
+                  unsaved_state: {
+                    problem_id: draft.problem_id,
+                    slug: request.slug,
+                    content: request.content,
+                    metadata: request.metadata,
+                    response: request.response,
+                    scoring: request.scoring,
+                  },
+                }));
+              } catch { /* Saved preview remains available without session storage. */ }
+            }}
+          >Preview as learner</Link>
         </div>
       </form>
       {validationFailed && <p role="alert">Validation could not be completed for the current saved version.</p>}
