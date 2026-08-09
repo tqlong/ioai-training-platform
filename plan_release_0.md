@@ -411,31 +411,131 @@ foundation must remain runnable with the four base services only.
 
 ## Phase 5 — Canonical vocabulary vertical slice
 
-- [ ] **R0-050 — Define vocabulary domain values and invariants.** Test first,
-  then implement typed vocabulary identity, bilingual labels, aliases, status,
-  and topic parent references without framework imports. Suggested commit:
-  `feat(vocabulary): define canonical domain model`.
-- [ ] **R0-051 — Build deterministic vocabulary extraction.** Test first, then
-  implement the generator/importer from `vocab.md` to structured data. Reject
-  missing explicit relationships instead of inferring them from headings.
-  Suggested commit: `feat(vocabulary): generate structured vocabulary data`.
-- [ ] **R0-052 — Validate vocabulary graphs and uniqueness.** Add failing cases,
-  then implement checks for composite identity, missing parents, self-parenting,
-  cycles, ambiguous aliases, and duplicate labels within a branch. Suggested
-  commit: `feat(vocabulary): validate taxonomy invariants`.
-- [ ] **R0-053 — Persist and migrate vocabulary records.** Add Alembic tables,
-  PostgreSQL constraints/indexes, an idempotent synchronization use case, and
-  integration tests proving updates do not repurpose canonical identities.
-  Suggested commit: `feat(vocabulary): persist canonical records`.
-- [ ] **R0-054 — Expose vocabulary read APIs.** Add public and author-safe
-  hierarchical vocabulary queries with bilingual search, alias matching, and an
-  explicit include-descendants option. Generate and consume updated client
-  types. Suggested commit: `feat(vocabulary): expose taxonomy api`.
-- [ ] **R0-055 — Implement Release 0 availability policy.** Test and implement a
-  central policy for enabled stages, task types, compute tiers, and scoring
-  methods based on approved requirements; canonical future values remain stored
-  but cannot be published. Suggested commit:
+Deliverable: a tested path from the sole canonical source, `vocab.md`, through a
+deterministic validated artifact and idempotent PostgreSQL synchronization to
+typed public and author vocabulary reads. Runtime code, fixtures, APIs, and
+frontend packages must consume that path rather than define parallel enums or
+label lists. All behavior-bearing steps use red-green-refactor and trace to
+requirements `R0-010` through `R0-016`, analysis section 5, and design section
+5 unless a narrower reference is stated.
+
+- [x] **R0-05001 — Characterize the canonical source and artifact contract from
+  R0-010, R0-013, R0-015, analysis sections 5.1-5.2, and design section 5.1.**
+  Add failing parser/contract tests using minimal representative source fixtures
+  for every vocabulary record shape present in `vocab.md`: vocabulary type,
+  code, nested English/Vietnamese labels, approved aliases, canonical status,
+  and explicit topic `parent_code`. Define the stable structured-artifact schema,
+  ordering, normalization rules, diagnostics, and generated-file ownership.
+  Headings are presentation only and cannot establish parentage. Suggested
+  commit: `test(vocabulary): define canonical source contract`.
+- [ ] **R0-05002 — Define framework-free vocabulary domain values from R0-010,
+  R0-013, R0-015, analysis sections 4 and 5.2, and design sections 3 and 5.2.**
+  Test first, then implement immutable typed composite identity, vocabulary type,
+  bilingual labels, approved aliases, canonical status, and explicit topic
+  parent references. Return specific actionable domain errors and keep FastAPI,
+  Pydantic, SQLAlchemy, Markdown parsing, and UI concerns outside the domain.
+  Suggested commit: `feat(vocabulary): define canonical domain values`.
+- [ ] **R0-05003 — Implement deterministic `vocab.md` extraction from R0-010,
+  R0-013, R0-015, analysis section 5.1, and design section 5.1.** Test first,
+  then add the adapter and project command that parse every approved source
+  shape into normalized domain input. Reject malformed rows, missing bilingual
+  labels, invalid statuses, and missing explicit topic relationships with
+  source-oriented diagnostics; do not infer values or relationships from
+  Markdown layout. Suggested commit:
+  `feat(vocabulary): extract canonical source records`.
+- [ ] **R0-05004 — Enforce vocabulary identity, graph, and ambiguity invariants
+  from R0-010, R0-011, R0-013, R0-015, `AC-R0-011-07` through
+  `AC-R0-011-08`, `AC-R0-013-07` through `AC-R0-013-10`, analysis section
+  5.2, and design sections 5.1-5.2.** Add failing cases before implementing
+  checks for duplicate composite identities, missing or cross-type parents,
+  self-parenting, cycles, orphaned records, and duplicate normalized canonical
+  labels or aliases within a parent branch. Preserve identical codes or labels
+  across vocabulary types when the composite identities are distinct.
+  Suggested commit: `feat(vocabulary): validate canonical invariants`.
+- [ ] **R0-05005 — Generate the runtime artifact and enforce source drift from
+  R0-010, R0-015, `AC-R0-015-18` through `AC-R0-015-19`, analysis sections
+  5.1 and 5.5, and design section 5.1.** Generate the stable checked-in artifact
+  only after whole-source validation, with deterministic ordering and no
+  timestamps, machine paths, or environment-dependent output. Add a drift-check
+  command and CI-facing test that regenerates in memory and reports field-level
+  differences. Make backend runtime data and deterministic fixtures consume the
+  artifact rather than hand-maintained vocabulary constants. Suggested commit:
+  `build(vocabulary): generate and verify canonical artifact`.
+- [ ] **R0-05006 — Implement the central Release 0 availability policy from
+  R0-012, R0-013, R0-016, `AC-R0-012-04`, `AC-R0-013-14`, analysis section
+  5.4, and design section 5.3.** Test first, then return typed allow/deny
+  decisions with stable reason codes and safe messages for the five approved
+  task types, `NONE`/`BROWSER`/`CPU_LIGHT` compute tiers, approved scoring
+  methods, and the mutually exclusive `NONE` modality rule. Preserve all valid
+  future-facing canonical records while making unavailable values
+  publication-blocking; do not silently downgrade them. Suggested commit:
   `feat(vocabulary): enforce release 0 availability`.
+- [ ] **R0-05007 — Add the canonical vocabulary PostgreSQL schema from R0-010,
+  R0-015, `AC-R0-015-07` through `AC-R0-015-09`, analysis sections 5.2 and
+  9, and design sections 5.4, 9, and 10.** Add explicit SQLAlchemy 2 mappings
+  and a descriptive Alembic migration for records, labels, aliases, statuses,
+  and topic parentage. Protect composite identity and enforceable parent/status
+  invariants with PostgreSQL constraints; add hierarchy and normalized-search
+  indexes. Integration-test upgrade, safe downgrade, constraints, and rollback
+  against PostgreSQL without turning ORM rows into domain objects. Suggested
+  commit: `feat(vocabulary): migrate canonical records`.
+- [ ] **R0-05008 — Synchronize the validated artifact idempotently from R0-010,
+  R0-015, analysis section 5.5, and design sections 4.1 and 5.4.** Define the
+  narrow vocabulary repository/source ports and implement one transactional
+  synchronization use case. Validate the complete artifact before writing;
+  report added, updated, unchanged, rejected, and policy-disabled records;
+  permit approved label/alias/status updates; and never repurpose a changed
+  vocabulary type or code as an existing identity. Cover repeated sync,
+  rollback, update, and identity-change behavior with PostgreSQL integration
+  tests, then wire the existing deterministic vocabulary seed command to this
+  use case. Suggested commit: `feat(vocabulary): synchronize canonical records`.
+- [ ] **R0-05009 — Implement hierarchical and bilingual vocabulary queries from
+  R0-011, R0-013, `AC-R0-011-07` through `AC-R0-011-08`,
+  `AC-R0-013-07` through `AC-R0-013-09`, analysis sections 5.2-5.3 and 9,
+  and design sections 5.2 and 6.** Test repository behavior for type-scoped
+  identity lookup, stable hierarchy/breadcrumb ordering, English and Vietnamese
+  label search, approved alias matching, ambiguity handling, and explicit
+  descendant expansion. Return canonical composite identities and never persist
+  or return a display label as identity. Suggested commit:
+  `feat(vocabulary): query canonical hierarchy`.
+- [ ] **R0-05010 — Expose separate public and author-safe vocabulary contracts
+  from R0-011, R0-013, R0-015, analysis sections 5.3 and 9, and design sections
+  5.2, 6, 7, and 8.** Add versioned FastAPI read routes and Pydantic contracts
+  around the query use case, including explicit type/search/root/
+  include-descendants inputs, deterministic ordering, bounded results, stable
+  machine-readable errors, and availability metadata only where the projection
+  permits it. Prove public responses contain canonical active values and no
+  proposals, persistence objects, internal diagnostics, or author-only fields.
+  Suggested commit: `feat(api): expose canonical vocabulary reads`.
+- [ ] **R0-05011 — Record missing-value proposals without creating canonical
+  metadata from R0-010, R0-013, `AC-R0-013-10`, analysis sections 5.3 and
+  5.5, and design section 5.4.** Define and test a bounded author proposal
+  command, persistence model, migration, and author-safe contract carrying the
+  vocabulary context and note. A proposal must remain separately reviewable,
+  must not enter the generated artifact or public vocabulary response, and must
+  never satisfy a canonical problem reference. Do not add a broader vocabulary
+  editor or curriculum-owner administration UI. Suggested commit:
+  `feat(vocabulary): record canonical value proposals`.
+- [ ] **R0-05012 — Generate and consume vocabulary client types from R0-011,
+  R0-013, R0-015, analysis sections 5.1 and 9, and design sections 2, 5.1, and
+  8.** Regenerate deterministic OpenAPI and `@ioai/api-client` types, replace
+  the placeholder `@ioai/vocabulary` exports with generated-artifact-backed
+  typed helpers, and add contract/drift tests proving the frontend does not
+  duplicate backend schemas or canonical labels. Exercise type-scoped identity,
+  bilingual labels, hierarchy, aliases, and availability in package tests
+  without building Phase 6 editor UI or Phase 7 learner filters. Suggested
+  commit: `feat(frontend): consume canonical vocabulary contract`.
+- [ ] **R0-05013 — Verify and baseline the canonical vocabulary vertical slice
+  against R0-010 through R0-016, analysis section 5, and design section 5.**
+  Prove source-to-artifact determinism, graph and branch invariants, drift
+  failure, policy-disabled value preservation, migration up/down behavior,
+  transactional idempotent synchronization, bilingual hierarchy/search,
+  proposal isolation, safe API projections, and OpenAPI/client compatibility.
+  Run all affected backend/frontend formatting, lint, type, unit, PostgreSQL
+  integration, migration, generation, and build gates; update traceability,
+  developer commands, and relevant decisions. Record exact limitations instead
+  of claiming completion when a gate is skipped or failing. Suggested commit:
+  `feat(vocabulary): baseline canonical vertical slice`.
 
 ## Phase 6 — Problem domain and authoring
 

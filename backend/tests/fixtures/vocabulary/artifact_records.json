@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source": "vocab.md",
+  "records": [
+    {
+      "vocabulary_type": "PATHWAY_STAGE",
+      "code": "AI_1_FOUNDATIONS",
+      "labels": {
+        "en": "AI Foundations",
+        "vi": "Nen tang AI"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_LOGISTIC_REGRESSION",
+      "labels": {
+        "en": "Logistic Regression",
+        "vi": "Hoi quy logistic"
+      },
+      "aliases": [
+        "logit"
+      ],
+      "parent_code": "ML_CLASSIFICATION_METHODS",
+      "status": "ACTIVE"
+    }
+  ]
+}
