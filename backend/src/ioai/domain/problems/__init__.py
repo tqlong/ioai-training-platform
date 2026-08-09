@@ -41,16 +41,23 @@ from .revision import (
     ValidationSection,
     ValidationSeverity,
 )
-from .workflow import EditorialStatus
+from .workflow import (
+    ActorContext,
+    EditorialStatus,
+    EditorialTransition,
+    transition_for_review,
+)
 
 __all__ = [
     "Choice",
+    "ActorContext",
     "CodeFunctionResponse",
     "CodeTestCase",
     "ContentBlock",
     "ContentBlockKind",
     "CurriculumMetadata",
     "EditorialStatus",
+    "EditorialTransition",
     "LearningObjective",
     "LearningEvidence",
     "LocalizedText",
@@ -80,4 +87,5 @@ __all__ = [
     "ValidationReport",
     "ValidationSection",
     "ValidationSeverity",
+    "transition_for_review",
 ]

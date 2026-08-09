@@ -753,7 +753,7 @@ state and version, require a bounded human-entered note, use the injected
 clock and available local actor context, and append immutable history in the
 same transaction as its state change.
 
-- [ ] **R0-07001 — Define the editorial transition policy from
+- [x] **R0-07001 — Define the editorial transition policy from
   `AC-R0-014-01` through `AC-R0-014-04`, `AC-R0-014-13`, and
   `AC-R0-014-16`, analysis sections 8.1-8.2, and design sections 3.2 and
   7.4.** Add framework-free commands and history values for exactly

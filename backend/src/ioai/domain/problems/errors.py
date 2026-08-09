@@ -15,3 +15,11 @@ class InvalidAssessmentConfigurationError(ProblemDomainError):
 
 class InvalidProblemMetadataError(ProblemDomainError):
     """Curriculum, prerequisite, or resource metadata is invalid."""
+
+
+class InvalidEditorialTransitionError(ProblemDomainError):
+    """An editorial state change is not part of the Release 0 workflow."""
+
+
+class InvalidTransitionNoteError(ProblemDomainError):
+    """An editorial decision note is missing or exceeds its safe bound."""
