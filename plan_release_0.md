@@ -922,7 +922,7 @@ replace the learner fixture shell rather than creating a parallel public data
 path. Each step must trace its tests to the cited acceptance criteria and
 observe the required red step before implementation.
 
-- [ ] **R0-08001 — Baseline learner gaps against the current implementation.**
+- [x] **R0-08001 — Baseline learner gaps against the current implementation.**
   Inventory the existing published snapshot reader/repository, public DTO and
   OpenAPI/client coverage, learner fixture shell, and PostgreSQL schema against
   `AC-R0-011-01` through `AC-R0-012-17`. Update the implementation/test
