@@ -302,3 +302,82 @@ class IdempotencyRecordModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
+
+
+class LearnerAttemptModel(Base):
+    """Bounded anonymous assessment record tied to a public snapshot."""
+
+    __tablename__ = "learner_attempt"
+    __table_args__ = (
+        CheckConstraint(
+            "outcome IN ('ACCEPTED_RESULT', 'PENDING_ASSESSMENT')",
+            name="outcome",
+        ),
+        CheckConstraint(
+            "length(submission_key) BETWEEN 1 AND 200",
+            name="bounded_submission_key",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(result) = 'object' AND octet_length(result::text) <= 16384",
+            name="bounded_result",
+        ),
+        UniqueConstraint(
+            "snapshot_id",
+            "submission_key",
+            name="uq_learner_attempt_snapshot_submission_key",
+        ),
+        Index("ix_learner_attempt_snapshot_submitted", "snapshot_id", "submitted_at"),
+    )
+
+    attempt_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    snapshot_id: Mapped[str] = mapped_column(
+        ForeignKey("published_snapshot.snapshot_id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    submission_key: Mapped[str] = mapped_column(String(200), nullable=False)
+    request_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(32), nullable=False)
+    result: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
+class ProblemFeedbackModel(Base):
+    """Bounded anonymous feedback tied to the content the learner saw."""
+
+    __tablename__ = "problem_feedback"
+    __table_args__ = (
+        CheckConstraint(
+            "category IN ('CONTENT_ISSUE', 'TYPO', 'SCORING_ISSUE', "
+            "'ACCESSIBILITY', 'OTHER')",
+            name="category",
+        ),
+        CheckConstraint(
+            "length(btrim(message)) BETWEEN 1 AND 2000",
+            name="bounded_message",
+        ),
+        CheckConstraint(
+            "length(feedback_key) BETWEEN 1 AND 200",
+            name="bounded_feedback_key",
+        ),
+        UniqueConstraint(
+            "snapshot_id",
+            "feedback_key",
+            name="uq_problem_feedback_snapshot_feedback_key",
+        ),
+        Index("ix_problem_feedback_snapshot_submitted", "snapshot_id", "submitted_at"),
+    )
+
+    feedback_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    snapshot_id: Mapped[str] = mapped_column(
+        ForeignKey("published_snapshot.snapshot_id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    feedback_key: Mapped[str] = mapped_column(String(200), nullable=False)
+    request_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    category: Mapped[str] = mapped_column(String(32), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )

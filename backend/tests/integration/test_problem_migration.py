@@ -24,6 +24,8 @@ def test_problem_migration_creates_phase_6_tables(migrated_database) -> None:
         "editorial_transition",
         "published_snapshot",
         "idempotency_record",
+        "learner_attempt",
+        "problem_feedback",
     } <= set(inspector.get_table_names())
 
     problem_columns = {column["name"] for column in inspector.get_columns("problem")}
@@ -86,6 +88,20 @@ def test_editorial_publication_migration_up_and_down(migrated_database) -> None:
     assert inspector.has_table("editorial_transition")
     assert inspector.has_table("published_snapshot")
     assert inspector.has_table("idempotency_record")
+
+
+def test_learner_record_migration_up_and_down(migrated_database) -> None:
+    command.downgrade(alembic_config(), "20260809_07002")
+
+    inspector = inspect(migrated_database)
+    assert not inspector.has_table("learner_attempt")
+    assert not inspector.has_table("problem_feedback")
+
+    command.upgrade(alembic_config(), "head")
+
+    inspector = inspect(migrated_database)
+    assert inspector.has_table("learner_attempt")
+    assert inspector.has_table("problem_feedback")
 
 
 def test_editorial_storage_rejects_duplicate_operations_and_blank_notes(

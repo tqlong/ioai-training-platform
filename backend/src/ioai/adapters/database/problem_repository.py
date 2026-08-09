@@ -15,6 +15,12 @@ from ioai.application.problems.errors import (
     SlugConflictError,
     SuccessorRevisionError,
 )
+from ioai.application.problems.learner_records import (
+    FeedbackCategory,
+    LearnerAttempt,
+    LearnerOutcome,
+    ProblemFeedback,
+)
 from ioai.application.problems.payload import (
     decode_revision_payload,
     encode_revision_payload,
@@ -38,7 +44,9 @@ from ioai.domain.problems.workflow import (
 from .problem_model import (
     EditorialTransitionModel,
     IdempotencyRecordModel,
+    LearnerAttemptModel,
     PrerequisiteReferenceModel,
+    ProblemFeedbackModel,
     ProblemModel,
     ProblemRevisionModel,
     PublishedSnapshotModel,
@@ -49,6 +57,81 @@ from .problem_model import (
 )
 
 StoredDraftSummary = DraftSummary
+
+
+class SqlAlchemyLearnerRecordRepository:
+    """Persist bounded learner records without accepting revision identities."""
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def add_attempt(self, attempt: LearnerAttempt) -> None:
+        self._session.add(
+            LearnerAttemptModel(
+                attempt_id=attempt.attempt_id,
+                snapshot_id=attempt.snapshot_id,
+                submission_key=attempt.submission_key,
+                request_digest=attempt.request_digest,
+                outcome=attempt.outcome.value,
+                result=attempt.result,
+                submitted_at=attempt.submitted_at,
+            )
+        )
+
+    def replay_attempt(
+        self, snapshot_id: str, submission_key: str
+    ) -> LearnerAttempt | None:
+        row = self._session.scalar(
+            select(LearnerAttemptModel).where(
+                LearnerAttemptModel.snapshot_id == snapshot_id,
+                LearnerAttemptModel.submission_key == submission_key,
+            )
+        )
+        if row is None:
+            return None
+        return LearnerAttempt(
+            attempt_id=row.attempt_id,
+            snapshot_id=row.snapshot_id,
+            submission_key=row.submission_key,
+            request_digest=row.request_digest,
+            outcome=LearnerOutcome(row.outcome),
+            result=row.result,
+            submitted_at=row.submitted_at,
+        )
+
+    def add_feedback(self, feedback: ProblemFeedback) -> None:
+        self._session.add(
+            ProblemFeedbackModel(
+                feedback_id=feedback.feedback_id,
+                snapshot_id=feedback.snapshot_id,
+                feedback_key=feedback.feedback_key,
+                request_digest=feedback.request_digest,
+                category=feedback.category.value,
+                message=feedback.message,
+                submitted_at=feedback.submitted_at,
+            )
+        )
+
+    def replay_feedback(
+        self, snapshot_id: str, feedback_key: str
+    ) -> ProblemFeedback | None:
+        row = self._session.scalar(
+            select(ProblemFeedbackModel).where(
+                ProblemFeedbackModel.snapshot_id == snapshot_id,
+                ProblemFeedbackModel.feedback_key == feedback_key,
+            )
+        )
+        if row is None:
+            return None
+        return ProblemFeedback(
+            feedback_id=row.feedback_id,
+            snapshot_id=row.snapshot_id,
+            feedback_key=row.feedback_key,
+            request_digest=row.request_digest,
+            category=FeedbackCategory(row.category),
+            message=row.message,
+            submitted_at=row.submitted_at,
+        )
 
 
 class SqlAlchemyPublishedProblemReader(PublishedProblemReader):

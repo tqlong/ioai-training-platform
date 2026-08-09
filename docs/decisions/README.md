@@ -91,3 +91,4 @@ Update this as artifacts land.
 | R0-061 | Pending | Pending | Pending | Pending |
 | R0-062 | Pending | Pending | Pending | Pending |
 | R0-08001 | `requirement_release_0.md` §§10-11; `analysis_release_0.md` §§4,6,9-10 | `design_release_0.md` §§3-6,8-12,15; `ui_release_0.md` §5 | `docs/learner-phase8-baseline.md` inventories current snapshot/API/client/schema/Learn boundaries and assigns all 33 learner criteria to Phase 8 steps | Documentation review plus repository evidence cited by the baseline |
+| R0-08002 | `AC-R0-012-06`–`08`, `AC-R0-012-12`–`14`; `analysis_release_0.md` §§4,9-10 | `design_release_0.md` §§3-4,6.4,9-10 | `learner_records.py`, snapshot-bound SQLAlchemy learner record repository/models, Alembic `08002` | learner-record unit/model tests and isolated PostgreSQL migration/repository tests, including rollback and duplicate constraints |

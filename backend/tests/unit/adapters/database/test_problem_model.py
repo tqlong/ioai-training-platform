@@ -3,7 +3,9 @@ from __future__ import annotations
 from ioai.adapters.database.problem_model import (
     EditorialTransitionModel,
     IdempotencyRecordModel,
+    LearnerAttemptModel,
     PrerequisiteReferenceModel,
+    ProblemFeedbackModel,
     ProblemModel,
     ProblemRevisionModel,
     PublishedSnapshotModel,
@@ -25,6 +27,8 @@ def test_problem_tables_have_explicit_revision_owned_boundaries() -> None:
     assert EditorialTransitionModel.__tablename__ == "editorial_transition"
     assert PublishedSnapshotModel.__tablename__ == "published_snapshot"
     assert IdempotencyRecordModel.__tablename__ == "idempotency_record"
+    assert LearnerAttemptModel.__tablename__ == "learner_attempt"
+    assert ProblemFeedbackModel.__tablename__ == "problem_feedback"
 
 
 def test_problem_identity_and_revision_version_constraints_are_declared() -> None:
@@ -53,3 +57,21 @@ def test_publication_models_declare_uniqueness_and_audit_constraints() -> None:
     assert "uq_published_snapshot_revision_id" in snapshot_constraints
     assert "uq_idempotency_operation_target_key" in idempotency_constraints
     assert ProblemModel.current_published_snapshot_id.property.columns[0].nullable
+
+
+def test_learner_record_models_are_snapshot_bound_and_bounded() -> None:
+    attempt_constraints = {
+        item.name for item in LearnerAttemptModel.__table__.constraints
+    }
+    feedback_constraints = {
+        item.name for item in ProblemFeedbackModel.__table__.constraints
+    }
+
+    assert "uq_learner_attempt_snapshot_submission_key" in attempt_constraints
+    assert "ck_learner_attempt_outcome" in attempt_constraints
+    assert "ck_learner_attempt_bounded_result" in attempt_constraints
+    assert "uq_problem_feedback_snapshot_feedback_key" in feedback_constraints
+    assert "ck_problem_feedback_category" in feedback_constraints
+    assert "ck_problem_feedback_bounded_message" in feedback_constraints
+    assert "revision_id" not in LearnerAttemptModel.__table__.columns
+    assert "revision_id" not in ProblemFeedbackModel.__table__.columns

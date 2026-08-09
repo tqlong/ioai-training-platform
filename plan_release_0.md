@@ -930,7 +930,7 @@ observe the required red step before implementation.
   recording which Phase 7 isolation guarantees are reused and which learner
   contracts remain absent. Do not change product behavior in this step.
   Suggested commit: `docs(learn): baseline learner implementation gaps`.
-- [ ] **R0-08002 — Add learner-attempt and problem-feedback persistence from
+- [x] **R0-08002 — Add learner-attempt and problem-feedback persistence from
   `AC-R0-012-06` through `AC-R0-012-08` and `AC-R0-012-12` through
   `AC-R0-012-14`.** Add a descriptive Alembic migration, explicit SQLAlchemy 2
   mappings, constraints, indexes, bounded/idempotent record shapes, and
