@@ -34,6 +34,13 @@ from .metadata import (
     PrerequisiteTargetType,
     ResourceLimits,
 )
+from .revision import (
+    ProblemRevision,
+    ValidationIssue,
+    ValidationReport,
+    ValidationSection,
+    ValidationSeverity,
+)
 from .workflow import EditorialStatus
 
 __all__ = [
@@ -56,6 +63,7 @@ __all__ = [
     "PrerequisiteTargetType",
     "ProblemContent",
     "ProblemId",
+    "ProblemRevision",
     "QuizMultipleResponse",
     "QuizSingleResponse",
     "ResponseConfiguration",
@@ -68,4 +76,8 @@ __all__ = [
     "ScoringScheme",
     "ShortAnswerResponse",
     "TranslationState",
+    "ValidationIssue",
+    "ValidationReport",
+    "ValidationSection",
+    "ValidationSeverity",
 ]

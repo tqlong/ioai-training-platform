@@ -576,7 +576,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   tiers. Reuse Phase 5 composite vocabulary identities and the central Release
   0 availability policy rather than defining parallel enums or labels.
   Suggested commit: `feat(problems): model curriculum and resources`.
-- [ ] **R0-06005 — Assemble the problem revision aggregate and layered validation
+- [x] **R0-06005 — Assemble the problem revision aggregate and layered validation
   report from R0-013, `AC-R0-013-19`, analysis sections 4.2 and 7.3, and design
   sections 3.2-3.4 and 7.3.** Compose the content, curriculum, prerequisites,
   response, scoring, and resources under a stable problem identity while
