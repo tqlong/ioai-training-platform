@@ -539,48 +539,206 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
 
 ## Phase 6 — Problem domain and authoring
 
-- [ ] **R0-060 — Define the problem aggregate.** Test first, then implement IDs,
-  stable slug rules, bilingual titles/content, observable objectives, stage and
-  difficulty, competencies, topics, prerequisites, expected time, modality,
-  resources, response configuration, and decimal-safe scoring components.
-  Suggested commit: `feat(problems): define problem aggregate`.
-- [ ] **R0-061 — Add problem persistence and migrations.** Design migrations for
-  problems, revisions, metadata associations, prerequisites, response/scoring
-  configuration, and optimistic versioning; add PostgreSQL repository tests.
-  Suggested commit: `feat(problems): persist drafts and revisions`.
-- [ ] **R0-062 — Implement create-draft API.** Add the application use case,
-  author endpoint, Pydantic contracts, error cases, OpenAPI update, generated
-  client, and tests. Suggested commit: `feat(authoring): create draft problems`.
-- [ ] **R0-063 — Implement edit and autosave API.** Add partial draft updates,
-  optimistic concurrency, conflict responses, recoverable failures, generated
-  client changes, and integration tests. Suggested commit:
-  `feat(authoring): update drafts safely`.
-- [ ] **R0-064 — Build the author problem list.** Implement status tabs, search,
-  filters, validation summary, row actions, loading/empty/error states, and
-  component tests at `/author/problems`. Suggested commit:
-  `feat(studio): build author problem list`.
-- [ ] **R0-065 — Build editor basics and content sections.** Implement bilingual
-  basics, objectives, structured content blocks, hints, explanation, feedback
-  prompt, visible validation, autosave state, and unsaved-change protection with
-  component tests. Suggested commit:
-  `feat(studio): build problem content editor`.
-- [ ] **R0-066 — Build response and scoring sections.** Implement only approved
-  Release 0 response forms, scoring weights, response-specific validation, and
-  accessible repeated-field interactions with component tests. Suggested
-  commit: `feat(studio): configure responses and scoring`.
-- [ ] **R0-067 — Build curriculum metadata section.** Add canonical selectors,
-  vocabulary-type disambiguation, hierarchical topic breadcrumbs, descendant
-  control, up-to-three secondary competencies, and typed prerequisites.
-  Suggested commit: `feat(studio): edit curriculum metadata`.
-- [ ] **R0-068 — Build resource and release-policy validation.** Add expected
-  minutes, modalities, compute/runtime limits, network policy, and clear errors
-  for unavailable Release 0 values. Suggested commit:
-  `feat(studio): validate problem resources`.
-- [ ] **R0-069 — Add complete draft validation.** Implement a domain/application
-  validation report grouped by content, curriculum, assessment, resources, and
-  publication; link Studio errors to fields and prove invalid drafts cannot move
-  to publication. Suggested commit:
-  `feat(authoring): validate complete drafts`.
+- [x] **R0-06001 — Baseline the Phase 6 authoring slice against R0-013,
+  `AC-R0-013-01` through `AC-R0-013-21`, analysis sections 4 and 7, and design
+  sections 3, 4, 7, 9, 11, and 13.** Replace the current problem fixture and
+  Studio placeholder assumptions with a written implementation map covering
+  domain ownership, author-only projections, revision/version semantics,
+  validation layers, routes, and the boundary with Phase 7 editorial actions.
+  Record tests to observe red for each subsequent behavior and keep public
+  snapshots, transitions, and learner assessment outside this phase except for
+  the interfaces the authoring slice requires. Suggested commit:
+  `docs(authoring): baseline problem authoring slice`.
+- [ ] **R0-06002 — Define stable problem identity and structured content value
+  objects from R0-013, R0-014, `AC-R0-013-02` through `AC-R0-013-06`, analysis
+  sections 4.1-4.2, and design section 3.2.** Test first, then implement problem
+  and revision IDs, immutable normalized slugs, editorial status as a distinct
+  dimension, localized title/objective/content values, ordered statement,
+  provided-information, example, constraint, hint, explanation, and feedback
+  blocks, plus explicit pending-translation warnings. Validate bounded fields
+  and observable assessable objectives without importing frameworks into the
+  domain. Suggested commit: `feat(problems): define identity and content`.
+- [ ] **R0-06003 — Define response variants and decimal-safe scoring from
+  `AC-R0-013-12` through `AC-R0-013-13`, analysis section 6.2, and design
+  sections 3.2-3.3.** Add discriminated domain configurations for exactly
+  `QUIZ_SINGLE`, `QUIZ_MULTIPLE`, `NUMERIC_ANSWER`, `SHORT_ANSWER`, and
+  `CODE_FUNCTION`, including their applicable choices, tolerances, signatures,
+  starter code, tests, and rubric guidance. Add scoring components using exact
+  decimals, require at least one component and a total of exactly `1.0`, and
+  reject fields or scoring methods that do not apply to the selected variant.
+  Suggested commit: `feat(problems): model response and scoring`.
+- [ ] **R0-06004 — Define curriculum, prerequisite, and resource values from
+  `AC-R0-013-07` through `AC-R0-013-14`, analysis sections 4.2 and 5.2-5.4,
+  and design sections 3.2-3.3.** Test exact cardinalities for stage, difficulty,
+  task type, primary and zero-to-three secondary competencies; typed canonical
+  topics and prerequisites; positive expected minutes; exact runtime/resource
+  limits; modality `NONE` exclusivity; network policy; and allowed compute
+  tiers. Reuse Phase 5 composite vocabulary identities and the central Release
+  0 availability policy rather than defining parallel enums or labels.
+  Suggested commit: `feat(problems): model curriculum and resources`.
+- [ ] **R0-06005 — Assemble the problem revision aggregate and layered validation
+  report from R0-013, `AC-R0-013-19`, analysis sections 4.2 and 7.3, and design
+  sections 3.2-3.4 and 7.3.** Compose the content, curriculum, prerequisites,
+  response, scoring, and resources under a stable problem identity while
+  keeping editorial validity separate from publication. Return deterministic
+  errors and warnings with stable code, section, field path, safe correction
+  message, revision/version context, and `publication_eligible`; group them as
+  Content, Curriculum, Assessment, Resources, and Publication. Suggested
+  commit: `feat(problems): validate problem revisions`.
+- [ ] **R0-06006 — Add PostgreSQL problem and revision migrations from R0-013,
+  R0-014, analysis sections 4 and 9, and design sections 9.1-9.5.** Create
+  explicit SQLAlchemy 2 mappings and Alembic revisions for stable problems,
+  versioned revisions, localized structured content, competency/topic joins,
+  typed prerequisites, one response configuration, scoring components, and
+  resources. Enforce critical uniqueness, cardinality, foreign-key, exact
+  numeric, and optimistic-version constraints without creating published
+  snapshots or transition history early; test safe upgrade and downgrade
+  against PostgreSQL. Suggested commit: `feat(problems): migrate draft storage`.
+- [ ] **R0-06007 — Implement author-only draft repositories and transactions from
+  `AC-R0-013-01` through `AC-R0-013-03` and `AC-R0-013-18`, analysis sections
+  7.1-7.2 and 9, and design sections 4.2 and 9.3.** Define narrow create, list,
+  read, validate-read, and compare-and-increment save ports; map persistence rows
+  to domain values; allocate the problem and initial `DRAFT` revision
+  atomically; and reject stale versions without overwriting newer data. Do not
+  add a generic reader usable by public routes. Cover rollback, ordering,
+  normalized round trips, and concurrent saves with PostgreSQL tests. Suggested
+  commit: `feat(authoring): persist versioned drafts`.
+- [ ] **R0-06008 — Implement draft creation, listing, and reading use cases from
+  `AC-R0-013-01` through `AC-R0-013-03`, analysis section 7.1, and design
+  sections 4.1 and 7.1.** Coordinate injected IDs and clocks to create an
+  initial structured draft with no public URL or snapshot, return author list
+  rows with problem/revision identity, editorial status, version, last-save and
+  validation summary, and read the current author aggregate. Define the port
+  needed for Phase 7 to start a revision of a published problem, but defer that
+  snapshot-preserving use case until publication storage exists. Suggested
+  commit: `feat(authoring): create and query drafts`.
+- [ ] **R0-06009 — Expose safe author draft read/create contracts from R0-013,
+  R0-015, analysis sections 3 and 9, and design sections 7.1-7.2 and 8.** Add
+  `GET` and `POST /api/v1/author/problems` and
+  `GET /api/v1/author/problems/{problem_id}` with bounded Pydantic contracts,
+  stable errors, request IDs, and explicit author DTOs. Prove these schemas are
+  not used by public routes, regenerate deterministic OpenAPI and the frontend
+  client, and add compatibility/drift tests before replacing Studio fixtures.
+  Suggested commit: `feat(api): expose author drafts`.
+- [ ] **R0-06010 — Implement versioned draft saves from `AC-R0-013-15` through
+  `AC-R0-013-18`, analysis section 7.2, and design sections 7.2 and 9.3.** Add
+  the save use case and `PUT /api/v1/author/revisions/{revision_id}` contract
+  with `expected_version`, a structured patch or complete revision, and an
+  optional bounded client save key. Return the normalized accepted revision and
+  incremented version; map stale writes to `REVISION_CONFLICT` with a safe
+  current-version reference; make retries non-duplicating; and prove failed
+  writes leave no partial associations. Regenerate client types. Suggested
+  commit: `feat(authoring): save drafts optimistically`.
+- [ ] **R0-06011 — Replace the Studio problem-list fixture with the author API
+  from `AC-R0-013-01`, analysis section 7.1, and design section 13.1.** Build
+  `/author/problems` with distinct IOAI Studio presentation, status tabs,
+  search and filters supported by the author contract, revision identity,
+  last-saved time, validation summary, create/resume actions, and accessible
+  loading, empty, and safe retry states. Keep the list separate from public
+  learner content and cover the page by accessible role/name queries.
+  Suggested commit: `feat(studio): build author problem list`.
+- [ ] **R0-06012 — Build the draft editor route and form coordinator from
+  `AC-R0-013-02`, `AC-R0-013-15`, design sections 13.1-13.3, and the current
+  Studio shell.** Implement `/author/problems/new` initialization and
+  `/author/problems/[id]` editing, normalized local form state, revision/version
+  ownership, dirty-field tracking, section navigation, explicit Save, Validate,
+  and Preview actions, and unsaved-change protection. Keep save, validation,
+  preview, review, approval, and publication visibly distinct. Suggested
+  commit: `feat(studio): establish draft editor state`.
+- [ ] **R0-06013 — Build bilingual structured content editing from
+  `AC-R0-013-04` through `AC-R0-013-06` and design section 13.2.** Add visible
+  English/Vietnamese fields in learner reading order for title, objective,
+  statement, provided information, examples, constraints, hints, explanation,
+  and feedback content. First run and document a bounded package spike, then use
+  a stable, maintained Vietnamese input package for optional in-browser Telex;
+  do not implement or vendor an application-owned input-method engine. Treat a
+  package as eligible only when its release/maintenance history, issue response,
+  production adoption, license, provenance, security posture, documented API,
+  and test coverage provide evidence of stability; a recent version number or
+  an unverified “stable” claim is insufficient. Also evaluate bundle cost, strict
+  TypeScript/React controlled-input support, textarea and rich-editor behavior,
+  caret/selection correctness, undo/redo, paste, keyboard and mobile behavior,
+  browser composition events, cleanup/scoping, accessibility, and interaction
+  with an operating-system Vietnamese IME. Record the selected package and
+  pinned version with the evidence and rejection reasons for alternatives; do
+  not add a dependency until these checks and representative Telex tests pass,
+  and do not ship browser Telex if no package meets the stability gate. Provide
+  an accessible `EN` / `VI` segmented toggle that changes the active editing
+  language while preserving
+  both translations, dirty state, validation state, and focus context. Scope an
+  independently visible Telex on/off control to Vietnamese editable fields only
+  so authors using a native IME can disable browser conversion and English/code
+  fields are never transformed. Support accessible ordered/repeated block
+  operations, mark missing translations pending, display warnings without
+  treating them as learner content, and link objective validation to its field.
+  Test language switching, translation preservation, Telex enable/disable and
+  representative tone/diacritic sequences, native composition safety, and
+  keyboard/screen-reader names before integration. Suggested commit:
+  `feat(studio): edit bilingual content with optional telex`.
+- [ ] **R0-06014 — Build canonical curriculum and prerequisite editing from
+  `AC-R0-013-07` through `AC-R0-013-11`, analysis sections 5.2-5.4 and 7.1,
+  and design sections 5.2-5.4 and 13.2.** Consume the Phase 5 vocabulary client
+  for type-disambiguated stage, difficulty, task type, competency, and
+  searchable hierarchical topic selectors; show breadcrumbs and intermediate-
+  topic specificity warnings; enforce zero-to-three secondary competencies;
+  and store typed prerequisite relationship, target type/identity, and optional
+  minimum evidence. Integrate the existing separately reviewable proposal
+  command without allowing proposals to become metadata. Suggested commit:
+  `feat(studio): edit canonical problem metadata`.
+- [ ] **R0-06015 — Build response and scoring editors from `AC-R0-013-12`
+  through `AC-R0-013-13`, analysis section 6.2, and design section 13.2.** Render
+  only the fields for the selected approved response variant, preserve no stale
+  inapplicable configuration when the type changes, and add keyboard-safe
+  repeated choice/test/component controls. Display the exact decimal scoring
+  total and field-level errors, blocking validation until it is exactly `1.0`.
+  Suggested commit: `feat(studio): configure response and scoring`.
+- [ ] **R0-06016 — Build resource and Release 0 policy editing from
+  `AC-R0-013-14`, analysis sections 5.4 and 7.1, and design sections 3.3 and
+  13.2.** Add positive expected minutes, data modalities, exact compute/runtime
+  limits, and network policy fields; derive display categories rather than
+  persisting them; enforce `NONE` exclusivity; and show actionable blockers for
+  canonical but unavailable stages, task types, compute tiers, scoring methods,
+  or resource combinations. Suggested commit:
+  `feat(studio): edit problem resource policy`.
+- [ ] **R0-06017 — Implement Studio autosave, local recovery, and conflict
+  resolution from `AC-R0-013-15` through `AC-R0-013-18`, analysis section 7.2,
+  and design section 13.3.** Coalesce idle changes, show revision-bound
+  `Saving...`, `Saved`, and `Save failed` states, and keep a schema-versioned
+  local recovery copy on failure. On reopen or `REVISION_CONFLICT`, compare the
+  server and local target and require an explicit restore, discard, retry, or
+  resolve choice; never silently overwrite newer server work or discard unsaved
+  fields. Test timers and storage deterministically, including unavailable or
+  corrupt local storage. Suggested commit: `feat(studio): recover draft saves`.
+- [ ] **R0-06018 — Expose and render complete draft validation from
+  `AC-R0-013-06`, `AC-R0-013-14`, and `AC-R0-013-19`, analysis section 7.3,
+  and design sections 7.3 and 13.4.** Add
+  `POST /api/v1/author/revisions/{revision_id}/validate`, require the current
+  version, return the stable layered report, and regenerate the client. Build a
+  Studio panel grouped by Content, Curriculum, Assessment, Resources, and
+  Publication; link every issue to its field, move focus to the first blocker,
+  keep warnings distinct, and expose `publication_eligible` without adding a
+  Phase 7 transition. Suggested commit: `feat(authoring): validate complete drafts`.
+- [ ] **R0-06019 — Prepare the isolated learner-preview projection from
+  `AC-R0-013-20` through `AC-R0-013-21`, analysis sections 7.1 and 9, and
+  design sections 7.3, 11.2, and 13.4.** Define and test an author-only preview
+  use case and `POST /api/v1/author/revisions/{revision_id}/preview` contract
+  that accepts current saved state or explicit unsaved editor state, returns a
+  learner-shaped projection plus author warnings and a mandatory
+  `Draft preview - not public` marker, and cannot resolve through a public slug,
+  route, search, recommendation, build, or cache. Regenerate client types; leave
+  the responsive learner-page rendering and browser workflow to R0-072.
+  Suggested commit: `feat(authoring): isolate draft preview data`.
+- [ ] **R0-06020 — Verify and baseline the problem-authoring vertical slice
+  against R0-013, analysis sections 4 and 7, and design sections 3, 4, 7, 9,
+  11, and 13.** Prove aggregate invariants, response variants, exact scoring,
+  canonical metadata, policy blockers, migration up/down safety, transactional
+  draft creation, normalized persistence, version conflicts, API/schema
+  separation, generated-client agreement, Studio list/editor accessibility,
+  autosave recovery, validation focus, and preview isolation. Run all affected
+  backend/frontend formatting, lint, type, unit, PostgreSQL integration,
+  migration, OpenAPI/client generation, component, and production-build gates;
+  update traceability and document exact skipped or failing gates. Suggested
+  commit: `feat(authoring): baseline problem authoring slice`.
 
 ## Phase 7 — Editorial review and publication
 
