@@ -1035,7 +1035,7 @@ observe the required red step before implementation.
   visible field guidance, and never request GPU, distributed, hosted-notebook,
   or other deferred execution. Suggested commit:
   `feat(learn): add release 0 response forms`.
-- [ ] **R0-08013 — Implement snapshot-bound assessment use cases from
+- [x] **R0-08013 — Implement snapshot-bound assessment use cases from
   `AC-R0-012-05` through `AC-R0-012-08`.** Add type-specific boundary
   validation and lightweight scoring for the approved exact, decimal-safe
   weighted, unit-test/partial-test, and human-rubric paths already allowed by

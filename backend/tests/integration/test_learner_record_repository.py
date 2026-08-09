@@ -3,9 +3,13 @@ from datetime import UTC, datetime
 import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
-from ioai.adapters.database.problem_repository import SqlAlchemyLearnerRecordRepository
+from ioai.adapters.database.problem_repository import (
+    SqlAlchemyAssessmentUnitOfWork,
+    SqlAlchemyLearnerRecordRepository,
+)
+from ioai.application.problems.assessment import AssessSubmission, SubmissionCommand
 from ioai.application.problems.learner_records import (
     FeedbackCategory,
     LearnerAttempt,
@@ -21,7 +25,7 @@ __all__ = ["migrated_database"]
 NOW = datetime(2026, 8, 9, tzinfo=UTC)
 
 
-def seed_published_problem(database) -> str:
+def seed_published_problem(database, public_payload: str = "{}") -> str:
     with database.begin() as connection:
         connection.execute(
             text(
@@ -49,9 +53,10 @@ def seed_published_problem(database) -> str:
                     (snapshot_id, problem_id, revision_id, slug, public_payload,
                      published_at)
                 VALUES ('learner-snapshot', 'learner-problem', 'learner-revision',
-                        'learner-problem', '{}', now())
+                        'learner-problem', CAST(:payload AS jsonb), now())
                 """
-            )
+            ),
+            {"payload": public_payload},
         )
         connection.execute(
             text(
@@ -62,6 +67,28 @@ def seed_published_problem(database) -> str:
             )
         )
     return "learner-snapshot"
+
+
+def test_assessment_unit_of_work_resolves_current_snapshot_and_commits_once(
+    migrated_database,
+) -> None:
+    seed_published_problem(
+        migrated_database,
+        '{"response":{"type":"QUIZ_SINGLE","correct_choice_id":"a"},"scoring":{"response_type":"QUIZ_SINGLE","components":[{"method":"EXACT_MATCH","weight":"1.0","configuration":null}]},"metadata":{"resources":{"compute_tier":["COMPUTE_TIER","NONE"]}}}',
+    )
+    use_case = AssessSubmission(
+        lambda: SqlAlchemyAssessmentUnitOfWork(sessionmaker(migrated_database)),
+        lambda: "attempt-assessed",
+        lambda: NOW,
+    )
+    command = SubmissionCommand(
+        "learner-problem",
+        "submission-assessed",
+        {"type": "QUIZ_SINGLE", "choice_id": "a"},
+    )
+
+    assert use_case(command).result["score"] == "1.0"
+    assert use_case(command).attempt_id == "attempt-assessed"
 
 
 def test_records_attempt_and_replays_same_submission(migrated_database) -> None:

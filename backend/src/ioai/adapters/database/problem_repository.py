@@ -8,6 +8,7 @@ from typing import Self
 from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
+from ioai.application.problems.assessment import AssessmentUnitOfWork
 from ioai.application.problems.errors import (
     DraftNotFoundError,
     IdempotencyConflictError,
@@ -140,6 +141,48 @@ class SqlAlchemyLearnerRecordRepository:
             message=row.message,
             submitted_at=row.submitted_at,
         )
+
+
+class SqlAlchemyAssessmentUnitOfWork(AssessmentUnitOfWork):
+    def __init__(self, session_factory: sessionmaker[Session]) -> None:
+        self._session_factory = session_factory
+        self._session: Session | None = None
+        self._published: SqlAlchemyPublishedProblemReader | None = None
+        self._records: SqlAlchemyLearnerRecordRepository | None = None
+
+    @property
+    def published(self) -> PublishedProblemReader:
+        if self._published is None:
+            raise RuntimeError("unit of work must be entered before reader access")
+        return self._published
+
+    @property
+    def records(self) -> SqlAlchemyLearnerRecordRepository:
+        if self._records is None:
+            raise RuntimeError("unit of work must be entered before repository access")
+        return self._records
+
+    def __enter__(self) -> Self:
+        self._session = self._session_factory()
+        self._published = SqlAlchemyPublishedProblemReader(self._session)
+        self._records = SqlAlchemyLearnerRecordRepository(self._session)
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        if self._session is None:
+            return
+        try:
+            self._session.commit() if exc_type is None else self._session.rollback()
+        finally:
+            self._session.close()
+            self._session = None
+            self._published = None
+            self._records = None
 
 
 class SqlAlchemyPublishedProblemReader(PublishedProblemReader):
