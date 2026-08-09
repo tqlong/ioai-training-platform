@@ -435,7 +435,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   parent references. Return specific actionable domain errors and keep FastAPI,
   Pydantic, SQLAlchemy, Markdown parsing, and UI concerns outside the domain.
   Suggested commit: `feat(vocabulary): define canonical domain values`.
-- [ ] **R0-05003 — Implement deterministic `vocab.md` extraction from R0-010,
+- [x] **R0-05003 — Implement deterministic `vocab.md` extraction from R0-010,
   R0-013, R0-015, analysis section 5.1, and design section 5.1.** Test first,
   then add the adapter and project command that parse every approved source
   shape into normalized domain input. Reject malformed rows, missing bilingual
