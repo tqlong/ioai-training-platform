@@ -637,7 +637,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   loading, empty, and safe retry states. Keep the list separate from public
   learner content and cover the page by accessible role/name queries.
   Suggested commit: `feat(studio): build author problem list`.
-- [ ] **R0-06012 — Build the draft editor route and form coordinator from
+- [x] **R0-06012 — Build the draft editor route and form coordinator from
   `AC-R0-013-02`, `AC-R0-013-15`, design sections 13.1-13.3, and the current
   Studio shell.** Implement `/author/problems/new` initialization and
   `/author/problems/[id]` editing, normalized local form state, revision/version
