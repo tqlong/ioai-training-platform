@@ -25,7 +25,9 @@ def build_session_factory(engine: Engine) -> sessionmaker[Session]:
     return sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
-def unit_of_work(settings: DatabaseSettings | None = None) -> Generator[Session, None, None]:
+def unit_of_work(
+    settings: DatabaseSettings | None = None,
+) -> Generator[Session, None, None]:
     engine = build_engine(settings=settings)
     factory = build_session_factory(engine)
     with factory() as session:

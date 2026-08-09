@@ -7,11 +7,14 @@
 - Learner/Studio app shells in separate Next.js apps.
 - Shared frontend package placeholders and typed fixtures.
 - Docker Compose topology with local PostgreSQL, API, Learn, and Studio services.
-- Local operation scripts for start/stop, migration, seed placeholders, health checks, and backup/restore.
+- Local operation scripts for start/stop, migration, canonical vocabulary sync,
+  health checks, and backup/restore.
 - Foundation smoke checks and CI skeleton.
 
 ## Deferred until later phases
 
 - Advanced content workflows, scoring implementations, public detail pages, and editorial automations.
 - Advanced storage, retrieval, or async execution services.
-- Concrete client SDK generation and contract drift enforcement (placeholder gate in place).
+- Vocabulary-driven author editor controls and learner discovery filters remain
+  deferred to Phases 6 and 7; deterministic client generation and drift
+  enforcement are implemented in Phase 5.

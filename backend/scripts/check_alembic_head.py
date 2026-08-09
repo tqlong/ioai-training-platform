@@ -3,7 +3,6 @@ from __future__ import annotations
 from alembic.config import Config
 from alembic.script import ScriptDirectory
 
-
 ALEMBIC_INI_PATH = "backend/alembic.ini"
 
 

@@ -2,6 +2,8 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "allowJs": false,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "incremental": false,
     "jsx": "preserve",
     "lib": [
@@ -16,6 +18,7 @@
     },
     "noEmit": true,
     "isolatedModules": true,
+    "types": ["node", "vitest/globals"],
     "plugins": [
       {
         "name": "next"

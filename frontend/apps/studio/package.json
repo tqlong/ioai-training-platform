@@ -7,9 +7,9 @@
     "dev": "next dev -p 3001 --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint app src tests",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --globals"
   },
   "dependencies": {
     "next": "^14.0.0",

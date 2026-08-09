@@ -74,12 +74,19 @@ Update this as artifacts land.
 | R0-04013 | `analysis_release_0.md` §§3,9,10 | `design_release_0.md` §§11-15 | `backend/tests/integration/test_foundation_stack_smoke.py` | boundary smoke suite |
 | R0-04014 | `analysis_release_0.md` §10; `design_release_0.md` §§8,15 | `design_release_0.md` §§8,15 | `.github/workflows/release-0-ci.yml`, `scripts/openapi_drift_check.sh` | CI config review |
 | R0-04015 | `requirement_release_0.md`, `analysis_release_0.md`, `design_release_0.md` | same as row source | `docs/decisions/README.md` | traceability review checklist |
-| R0-050 | Pending | Pending | Pending | Pending |
-| R0-051 | Pending | Pending | Pending | Pending |
-| R0-052 | Pending | Pending | Pending | Pending |
-| R0-053 | Pending | Pending | Pending | Pending |
-| R0-054 | Pending | Pending | Pending | Pending |
-| R0-055 | Pending | Pending | Pending | Pending |
+| R0-05001 | `analysis_release_0.md` §§5.1-5.2 | `design_release_0.md` §5.1 | artifact contract and representative source fixtures | artifact contract tests |
+| R0-05002 | `analysis_release_0.md` §§4,5.2 | `design_release_0.md` §§3,5.2 | `ioai.domain.vocabulary.values` | domain value tests |
+| R0-05003 | `analysis_release_0.md` §5.1 | `design_release_0.md` §5.1 | Markdown source adapter and parse command | source parser tests |
+| R0-05004 | `analysis_release_0.md` §5.2 | `design_release_0.md` §§5.1-5.2 | vocabulary collection validator | identity, graph, cycle, and branch tests |
+| R0-05005 | `analysis_release_0.md` §§5.1,5.5 | `design_release_0.md` §5.1 | generated backend artifact, runtime loader, drift command | generation, runtime, and drift tests |
+| R0-05006 | `analysis_release_0.md` §5.4 | `design_release_0.md` §5.3 | central Release 0 availability policy | allowed/disabled/modality tests |
+| R0-05007 | `analysis_release_0.md` §§5.2,9 | `design_release_0.md` §§5.4,9-10 | SQLAlchemy mapping and Alembic `05007` | PostgreSQL migration/constraint tests |
+| R0-05008 | `analysis_release_0.md` §5.5 | `design_release_0.md` §§4.1,5.4 | synchronization use case, repository/UoW, Alembic `05008`, seed command | idempotency, update, identity, rollback tests |
+| R0-05009 | `analysis_release_0.md` §§5.2-5.3,9 | `design_release_0.md` §§5.2,6 | typed query and PostgreSQL reader | bilingual, alias, hierarchy, breadcrumb tests |
+| R0-05010 | `analysis_release_0.md` §§5.3,9 | `design_release_0.md` §§5.2,6-8 | public/author FastAPI vocabulary routes and contracts | API, errors, projection, OpenAPI tests |
+| R0-05011 | `analysis_release_0.md` §§5.3,5.5 | `design_release_0.md` §5.4 | proposal domain/use case/table/routes, Alembic `05011` | domain, application, persistence, API isolation tests |
+| R0-05012 | `analysis_release_0.md` §§5.1,9 | `design_release_0.md` §§2,5.1,8 | generated OpenAPI TypeScript and artifact-backed vocabulary package | client, package, contract/artifact drift tests |
+| R0-05013 | `analysis_release_0.md` §§5,10 | `design_release_0.md` §§5,15 | `docs/vocabulary-baseline.md`, quality and deployment scripts | complete backend/frontend/migration/build/health gates |
 | R0-060 | Pending | Pending | Pending | Pending |
 | R0-061 | Pending | Pending | Pending | Pending |
 | R0-062 | Pending | Pending | Pending | Pending |

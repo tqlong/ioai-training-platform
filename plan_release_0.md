@@ -525,7 +525,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   bilingual labels, hierarchy, aliases, and availability in package tests
   without building Phase 6 editor UI or Phase 7 learner filters. Suggested
   commit: `feat(frontend): consume canonical vocabulary contract`.
-- [ ] **R0-05013 — Verify and baseline the canonical vocabulary vertical slice
+- [x] **R0-05013 — Verify and baseline the canonical vocabulary vertical slice
   against R0-010 through R0-016, analysis section 5, and design section 5.**
   Prove source-to-artifact determinism, graph and branch invariants, drift
   failure, policy-disabled value preservation, migration up/down behavior,

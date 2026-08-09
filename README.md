@@ -82,9 +82,14 @@ available.
   - `bash scripts/dev_migrate.sh`
   - `bash scripts/dev_seed.sh`
   - `bash scripts/dev_health.sh`
+  - `bash scripts/generate_contracts.sh`
+  - `bash scripts/openapi_drift_check.sh`
+  - `bash scripts/vocabulary_drift_check.sh`
   - `bash scripts/db_backup_restore.sh <backup|restore|reset>`
 
 ## Setup status
 
-This baseline currently captures Release 0 planning and governance. Code scaffolding
-commands may be added as the repository is implemented in later phases.
+The executable foundation and canonical vocabulary vertical slice are
+implemented. The vocabulary APIs and generated packages are foundations for the
+author editor in Phase 6 and learner discovery UI in Phase 7; Phase 5 does not
+claim those screens are complete.
