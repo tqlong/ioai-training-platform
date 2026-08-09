@@ -3,11 +3,14 @@ from __future__ import annotations
 from typing import Protocol
 
 from fastapi import APIRouter, HTTPException, status
-from fastapi.encoders import jsonable_encoder
 
 from ioai.application.problems.authoring import AuthorDraftListItem
-from ioai.application.problems.errors import DraftNotFoundError
-from ioai.domain.problems.identity import ProblemId
+from ioai.application.problems.errors import (
+    DraftNotFoundError,
+    RevisionConflictError,
+)
+from ioai.application.problems.payload import encode_revision_payload
+from ioai.domain.problems.identity import ProblemId, RevisionId
 from ioai.domain.problems.revision import ProblemRevision
 
 from ..contracts.errors import ErrorResponse
@@ -16,6 +19,7 @@ from ..contracts.problems import (
     AuthorDraftListResponse,
     AuthorDraftResponse,
     CreateDraftRequest,
+    SaveDraftRequest,
 )
 
 
@@ -25,6 +29,10 @@ class AuthorProblemService(Protocol):
     def list(self) -> tuple[AuthorDraftListItem, ...]: ...
 
     def get(self, problem_id: ProblemId) -> ProblemRevision: ...
+
+    def save(
+        self, revision_id: RevisionId, request: SaveDraftRequest
+    ) -> ProblemRevision: ...
 
 
 def author_problem_router(service: AuthorProblemService) -> APIRouter:
@@ -59,11 +67,36 @@ def author_problem_router(service: AuthorProblemService) -> APIRouter:
                 detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
             ) from error
 
+    @router.put(
+        "/revisions/{revision_id}",
+        response_model=AuthorDraftResponse,
+        responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
+    )
+    def save_draft(revision_id: str, request: SaveDraftRequest) -> AuthorDraftResponse:
+        try:
+            return _draft_response(service.save(RevisionId(revision_id), request))
+        except RevisionConflictError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "REVISION_CONFLICT",
+                    "message": "A newer draft version exists.",
+                    "current_version": error.current_version,
+                },
+            ) from error
+        except DraftNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
+            ) from error
+
     return router
 
 
 def _draft_response(revision: ProblemRevision) -> AuthorDraftResponse:
-    encoded = jsonable_encoder(revision)
+    encoded = encode_revision_payload(
+        revision.content, revision.metadata, revision.response, revision.scoring
+    )
     return AuthorDraftResponse(
         problem_id=revision.problem_id.value,
         revision_id=revision.revision_id.value,

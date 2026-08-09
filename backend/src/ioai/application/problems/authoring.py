@@ -75,3 +75,32 @@ class GetDraft:
     def __call__(self, problem_id: ProblemId) -> ProblemRevision:
         with self._unit_of_work_factory() as unit_of_work:
             return unit_of_work.drafts.get_current(problem_id)
+
+
+class GetRevisionDraft:
+    def __init__(self, unit_of_work_factory: Callable[[], DraftUnitOfWork]) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
+
+    def __call__(self, revision_id: RevisionId) -> ProblemRevision:
+        with self._unit_of_work_factory() as unit_of_work:
+            return unit_of_work.drafts.get(revision_id)
+
+
+class SaveDraft:
+    def __init__(
+        self,
+        unit_of_work_factory: Callable[[], DraftUnitOfWork],
+        clock: Callable[[], datetime],
+    ) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
+        self._clock = clock
+
+    def __call__(
+        self, revision: ProblemRevision, *, expected_version: int
+    ) -> ProblemRevision:
+        with self._unit_of_work_factory() as unit_of_work:
+            return unit_of_work.drafts.save(
+                revision,
+                expected_version=expected_version,
+                saved_at=self._clock(),
+            )

@@ -12,12 +12,15 @@ from ioai.application.problems.errors import (
     DraftNotFoundError,
     RevisionConflictError,
 )
+from ioai.application.problems.payload import (
+    decode_revision_payload,
+    encode_revision_payload,
+)
 from ioai.application.problems.ports import DraftRepository, DraftSummary
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision
 from ioai.domain.problems.workflow import EditorialStatus
 
-from .problem_codec import decode_revision_payload, encode_revision_payload
 from .problem_model import ProblemModel, ProblemRevisionModel
 
 StoredDraftSummary = DraftSummary

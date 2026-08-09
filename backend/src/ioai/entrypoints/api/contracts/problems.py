@@ -39,3 +39,16 @@ class AuthorDraftListResponse(BaseModel):
 
     items: list[AuthorDraftListItemResponse]
     count: int = Field(ge=0)
+
+
+class SaveDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    problem_id: str = Field(min_length=1, max_length=128)
+    expected_version: int = Field(ge=1)
+    client_save_key: str | None = Field(default=None, min_length=1, max_length=128)
+    slug: str | None = Field(default=None, max_length=120)
+    content: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
+    response: dict[str, Any] | None = None
+    scoring: dict[str, Any] | None = None

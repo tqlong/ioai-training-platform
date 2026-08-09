@@ -43,7 +43,7 @@ def encode_revision_payload(
     metadata: CurriculumMetadata | None,
     response: ResponseConfiguration | None,
     scoring: ScoringScheme | None,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     return {
         "content": _encode_content(content),
         "metadata": _encode_metadata(metadata),

@@ -620,7 +620,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   not used by public routes, regenerate deterministic OpenAPI and the frontend
   client, and add compatibility/drift tests before replacing Studio fixtures.
   Suggested commit: `feat(api): expose author drafts`.
-- [ ] **R0-06010 — Implement versioned draft saves from `AC-R0-013-15` through
+- [x] **R0-06010 — Implement versioned draft saves from `AC-R0-013-15` through
   `AC-R0-013-18`, analysis section 7.2, and design sections 7.2 and 9.3.** Add
   the save use case and `PUT /api/v1/author/revisions/{revision_id}` contract
   with `expected_version`, a structured patch or complete revision, and an

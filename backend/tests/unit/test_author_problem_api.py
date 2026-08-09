@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
 
 from ioai.application.problems.authoring import AuthorDraftListItem
+from ioai.application.problems.errors import RevisionConflictError
 from ioai.domain.problems.identity import ProblemId, RevisionId
 from ioai.domain.problems.revision import ProblemRevision
 from ioai.domain.problems.workflow import EditorialStatus
+from ioai.entrypoints.api.contracts.problems import SaveDraftRequest
 from ioai.entrypoints.api.factory import create_app
 
 
@@ -42,6 +45,17 @@ class FakeAuthorProblemService:
 
     def get(self, problem_id: ProblemId) -> ProblemRevision:
         assert problem_id == self.draft.problem_id
+        return self.draft
+
+    def save(
+        self, revision_id: RevisionId, request: SaveDraftRequest
+    ) -> ProblemRevision:
+        if request.expected_version != self.draft.version:
+            raise RevisionConflictError(revision_id, self.draft.version)
+        self.draft = replace(
+            self.draft,
+            version=request.expected_version + 1,
+        )
         return self.draft
 
 
@@ -80,3 +94,30 @@ def test_author_draft_schemas_are_not_public_problem_contracts() -> None:
     author_schema = str(schema["components"]["schemas"]["AuthorDraftResponse"])
     assert "revision_id" in author_schema
     assert "editorial_status" in author_schema
+
+
+def test_versioned_save_returns_increment_and_stable_conflict() -> None:
+    service = FakeAuthorProblemService()
+    client = TestClient(create_app(author_problem_service=service))
+    body = {
+        "problem_id": "problem-1",
+        "expected_version": 1,
+        "client_save_key": "save-1",
+        "slug": None,
+        "content": None,
+        "metadata": None,
+        "response": None,
+        "scoring": None,
+    }
+
+    saved = client.put("/api/v1/author/problems/revisions/revision-1", json=body)
+    stale = client.put("/api/v1/author/problems/revisions/revision-1", json=body)
+
+    assert saved.status_code == 200
+    assert saved.json()["version"] == 2
+    assert stale.status_code == 409
+    assert stale.json()["detail"] == {
+        "code": "REVISION_CONFLICT",
+        "message": "A newer draft version exists.",
+        "current_version": 2,
+    }

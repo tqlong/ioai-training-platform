@@ -18,8 +18,18 @@ from ...adapters.database.session import (
 )
 from ...adapters.database.settings import DatabaseSettings
 from ...adapters.database.vocabulary_repository import SqlAlchemyVocabularyRepository
-from ...application.problems.authoring import CreateDraft, GetDraft, ListDrafts
+from ...application.problems.authoring import (
+    CreateDraft,
+    GetDraft,
+    GetRevisionDraft,
+    ListDrafts,
+    SaveDraft,
+)
+from ...application.problems.payload import decode_revision_payload
 from ...application.vocabulary.proposals import RecordVocabularyProposal
+from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
+from ...domain.problems.revision import ProblemRevision
+from .contracts.problems import SaveDraftRequest
 from .errors import install_error_handlers
 from .routes.health import health_router
 from .routes.problems import AuthorProblemService, author_problem_router
@@ -85,6 +95,8 @@ def create_app(
             ),
             list_drafts=ListDrafts(draft_uow),
             get=GetDraft(draft_uow),
+            get_revision=GetRevisionDraft(draft_uow),
+            save=SaveDraft(draft_uow, lambda: datetime.now(UTC)),
         )
 
     app = FastAPI(
@@ -128,10 +140,20 @@ def create_app(
 
 
 class _DefaultAuthorProblemService:
-    def __init__(self, *, create: CreateDraft, list_drafts: ListDrafts, get: GetDraft):
+    def __init__(
+        self,
+        *,
+        create: CreateDraft,
+        list_drafts: ListDrafts,
+        get: GetDraft,
+        get_revision: GetRevisionDraft,
+        save: SaveDraft,
+    ):
         self._create = create
         self._list = list_drafts
         self._get = get
+        self._get_revision = get_revision
+        self._save = save
 
     def create(self):
         return self._create()
@@ -141,6 +163,29 @@ class _DefaultAuthorProblemService:
 
     def get(self, problem_id):
         return self._get(problem_id)
+
+    def save(self, revision_id: RevisionId, request: SaveDraftRequest):
+        current = self._get_revision(revision_id)
+        content, metadata, response, scoring = decode_revision_payload(
+            {
+                "content": request.content,
+                "metadata": request.metadata,
+                "response": request.response,
+                "scoring": request.scoring,
+            }
+        )
+        revision = ProblemRevision(
+            problem_id=ProblemId(request.problem_id),
+            revision_id=revision_id,
+            version=request.expected_version,
+            slug=StableSlug(request.slug) if request.slug else None,
+            status=current.status,
+            content=content,
+            metadata=metadata,
+            response=response,
+            scoring=scoring,
+        )
+        return self._save(revision, expected_version=request.expected_version)
 
 
 class _RequestIdMiddleware:
