@@ -470,7 +470,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   future-facing canonical records while making unavailable values
   publication-blocking; do not silently downgrade them. Suggested commit:
   `feat(vocabulary): enforce release 0 availability`.
-- [ ] **R0-05007 — Add the canonical vocabulary PostgreSQL schema from R0-010,
+- [x] **R0-05007 — Add the canonical vocabulary PostgreSQL schema from R0-010,
   R0-015, `AC-R0-015-07` through `AC-R0-015-09`, analysis sections 5.2 and
   9, and design sections 5.4, 9, and 10.** Add explicit SQLAlchemy 2 mappings
   and a descriptive Alembic migration for records, labels, aliases, statuses,

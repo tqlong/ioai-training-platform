@@ -11,7 +11,11 @@ dev = [
 ]
 
 [dependency-groups]
-backend = []
+backend = [
+    "alembic>=1.13,<2",
+    "psycopg[binary]>=3.2,<4",
+    "sqlalchemy>=2.0,<3",
+]
 backend-dev = []
 frontend = []
 
