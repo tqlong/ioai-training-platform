@@ -10,10 +10,21 @@
     "test": "pnpm -r run test",
     "test:e2e": "pnpm -r run test:e2e",
     "build": "pnpm -r run build",
+    "generate:contracts": "bash scripts/generate_contracts.sh",
+    "check:contracts": "bash scripts/openapi_drift_check.sh",
     "quality": "bash scripts/foundation_quality.sh",
     "quality:migration": "bash scripts/foundation_migration_check.sh"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^22.20.1",
+    "eslint": "^9.39.5",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.66.0",
+    "vitest": "^2.1.9"
   }
 }

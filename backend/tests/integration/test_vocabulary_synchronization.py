@@ -53,7 +53,7 @@ def test_generated_artifact_sync_is_idempotent_and_updates_labels(
     second = synchronize(records)
     changed = list(records)
     changed[0] = replace(
-        changed[0], labels=LocalizedLabels(en="Updated label", vi="Nhan moi")
+        changed[0], labels=LocalizedLabels(en="Updated label", vi="Nhãn mới")
     )
     third = synchronize(changed)
 

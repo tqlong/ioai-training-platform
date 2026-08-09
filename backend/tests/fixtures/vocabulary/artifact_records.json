@@ -7,7 +7,7 @@
       "code": "AI_1_FOUNDATIONS",
       "labels": {
         "en": "AI Foundations",
-        "vi": "Nen tang AI"
+        "vi": "Nền tảng AI"
       },
       "aliases": [],
       "parent_code": null,
@@ -18,7 +18,7 @@
       "code": "ML_LOGISTIC_REGRESSION",
       "labels": {
         "en": "Logistic Regression",
-        "vi": "Hoi quy logistic"
+        "vi": "Hồi quy logistic"
       },
       "aliases": [
         "logit"

@@ -516,7 +516,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   never satisfy a canonical problem reference. Do not add a broader vocabulary
   editor or curriculum-owner administration UI. Suggested commit:
   `feat(vocabulary): record canonical value proposals`.
-- [ ] **R0-05012 — Generate and consume vocabulary client types from R0-011,
+- [x] **R0-05012 — Generate and consume vocabulary client types from R0-011,
   R0-013, R0-015, analysis sections 5.1 and 9, and design sections 2, 5.1, and
   8.** Regenerate deterministic OpenAPI and `@ioai/api-client` types, replace
   the placeholder `@ioai/vocabulary` exports with generated-artifact-backed

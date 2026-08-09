@@ -6,6 +6,7 @@ from fastapi import APIRouter, status
 
 from ioai.domain.vocabulary.proposals import VocabularyProposal
 
+from ..contracts.errors import ErrorResponse
 from ..contracts.proposals import (
     RecordVocabularyProposalRequest,
     VocabularyProposalListResponse,
@@ -26,6 +27,7 @@ def proposal_router(service: ProposalService) -> APIRouter:
         "",
         response_model=VocabularyProposalResponse,
         status_code=status.HTTP_201_CREATED,
+        responses={422: {"model": ErrorResponse}},
     )
     def record_proposal(
         request: RecordVocabularyProposalRequest,

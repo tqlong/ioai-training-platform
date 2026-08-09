@@ -9,9 +9,12 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "lint": "echo \"vocabulary lint placeholder\"",
+    "lint": "eslint src tests",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ioai/api-client": "workspace:*"
   }
 }

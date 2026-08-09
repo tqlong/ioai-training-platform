@@ -52,7 +52,7 @@ def test_database_rejects_invalid_parent_and_rolls_back(migrated_database) -> No
                 INSERT INTO vocabulary_record
                     (vocabulary_type, code, label_en, label_vi, aliases, status)
                 VALUES
-                    ('TOPIC', 'TOPIC_ROOT', 'Root', 'Goc', '[]', 'ACTIVE')
+                    ('TOPIC', 'TOPIC_ROOT', 'Root', 'Gốc', '[]', 'ACTIVE')
                 """
             )
         )
@@ -66,7 +66,7 @@ def test_database_rejects_invalid_parent_and_rolls_back(migrated_database) -> No
                         (vocabulary_type, code, label_en, label_vi, aliases, status,
                          parent_vocabulary_type, parent_code)
                     VALUES
-                        ('TOPIC', 'TOPIC_CHILD', 'Child', 'Con', '[]', 'ACTIVE',
+                        ('TOPIC', 'TOPIC_CHILD', 'Child', 'Chủ đề con', '[]', 'ACTIVE',
                          'TOPIC', 'TOPIC_MISSING')
                     """
                 )

@@ -38,7 +38,7 @@ def test_artifact_contract_accepts_nested_labels_aliases_and_explicit_parent() -
     ]
     assert records[1]["labels"] == {
         "en": "Logistic Regression",
-        "vi": "Hoi quy logistic",
+        "vi": "Hồi quy logistic",
     }
     assert records[1]["aliases"] == ["logit"]
     assert records[1]["parent_code"] == "ML_CLASSIFICATION_METHODS"

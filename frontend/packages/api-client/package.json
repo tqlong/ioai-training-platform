@@ -9,7 +9,8 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "lint": "echo \"api-client lint placeholder\"",
+    "generate": "openapi-typescript ../../../backend/generated/openapi.json -o src/generated/openapi.ts",
+    "lint": "eslint src tests",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build": "tsc -p tsconfig.json"

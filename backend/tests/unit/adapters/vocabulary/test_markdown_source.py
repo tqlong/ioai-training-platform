@@ -48,11 +48,11 @@ def test_parser_extracts_every_canonical_family_from_vocab_source() -> None:
 
 def test_parser_uses_explicit_topic_parent_not_markdown_heading() -> None:
     source = """\
-## 5. Topic taxonomy / Phan loai chu de
+## 5. Topic taxonomy / Phân loại chủ đề
 
 ### Misleading visual group
 
-- `TOPIC_CHILD` - Child - Con - Parent: `TOPIC_DECLARED_PARENT`
+- `TOPIC_CHILD` - Child - Chủ đề con - Parent: `TOPIC_DECLARED_PARENT`
 """
 
     [record] = parse_vocabulary_markdown(source)
@@ -69,14 +69,14 @@ def test_parser_uses_explicit_topic_parent_not_markdown_heading() -> None:
 ## 2. Pathway stage / Giai doan
 | Code | English label | Vietnamese label |
 |---|---|---|
-| `AI_1_FOUNDATIONS` | | Nen tang AI |
+| `AI_1_FOUNDATIONS` | | Nền tảng AI |
 """,
             "line 4.*English label",
         ),
         (
             """\
 ## 5. Topic taxonomy / Chu de
-- `TOPIC_CHILD` - Child - Con
+- `TOPIC_CHILD` - Child - Chủ đề con
 """,
             "line 2.*Parent",
         ),
@@ -85,7 +85,7 @@ def test_parser_uses_explicit_topic_parent_not_markdown_heading() -> None:
 ## 5. Topic taxonomy / Chu de
 | Code | English label | Vietnamese label | Parent code | Status |
 |---|---|---|---|---|
-| `TOPIC_ROOT` | Root | Goc | `null` | `active` |
+| `TOPIC_ROOT` | Root | Gốc | `null` | `active` |
 """,
             "line 4.*status",
         ),

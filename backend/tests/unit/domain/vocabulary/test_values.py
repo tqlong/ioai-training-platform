@@ -39,14 +39,14 @@ def test_vocabulary_record_preserves_bilingual_labels_aliases_status_and_parent(
     parent = identity(code="TOPIC_MACHINE_LEARNING")
     record = VocabularyRecord(
         identity=identity(code="ML_CLASSIFICATION"),
-        labels=LocalizedLabels(en="Classification", vi="Phan loai"),
+        labels=LocalizedLabels(en="Classification", vi="Phân loại"),
         aliases=("Classifier",),
         status=VocabularyStatus("ACTIVE"),
         parent=parent,
     )
 
     assert record.labels.en == "Classification"
-    assert record.labels.vi == "Phan loai"
+    assert record.labels.vi == "Phân loại"
     assert record.aliases == ("Classifier",)
     assert record.status.value == "ACTIVE"
     assert record.parent == parent
@@ -66,7 +66,7 @@ def test_identity_rejects_noncanonical_type_or_code(
         identity(vocabulary_type, code)
 
 
-@pytest.mark.parametrize(("en", "vi"), [("", "Phan loai"), ("Classification", " ")])
+@pytest.mark.parametrize(("en", "vi"), [("", "Phân loại"), ("Classification", " ")])
 def test_labels_require_nonempty_english_and_vietnamese(en: str, vi: str) -> None:
     with pytest.raises(InvalidVocabularyLabelError):
         LocalizedLabels(en=en, vi=vi)
@@ -75,7 +75,7 @@ def test_labels_require_nonempty_english_and_vietnamese(en: str, vi: str) -> Non
 def test_aliases_reject_empty_and_normalized_duplicates() -> None:
     base = {
         "identity": identity(),
-        "labels": LocalizedLabels(en="Classification", vi="Phan loai"),
+        "labels": LocalizedLabels(en="Classification", vi="Phân loại"),
         "status": VocabularyStatus("ACTIVE"),
     }
 
@@ -92,7 +92,7 @@ def test_status_requires_a_canonical_uppercase_code() -> None:
 
 def test_only_topics_can_have_topic_parents() -> None:
     parent = identity(code="TOPIC_MACHINE_LEARNING")
-    labels = LocalizedLabels(en="Classification", vi="Phan loai")
+    labels = LocalizedLabels(en="Classification", vi="Phân loại")
 
     with pytest.raises(InvalidTopicParentError, match="only TOPIC"):
         VocabularyRecord(

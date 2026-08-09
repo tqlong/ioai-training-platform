@@ -15,6 +15,7 @@ from ioai.application.vocabulary.queries import (
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 from ioai.domain.vocabulary.values import VocabularyIdentity
 
+from ..contracts.errors import ErrorResponse
 from ..contracts.vocabulary import (
     AuthorVocabularyRecord,
     AuthorVocabularyResponse,
@@ -35,7 +36,11 @@ def vocabulary_router(
     router = APIRouter(tags=["vocabulary"])
     availability_policy = policy or Release0AvailabilityPolicy()
 
-    @router.get("/vocabulary", response_model=PublicVocabularyResponse)
+    @router.get(
+        "/vocabulary",
+        response_model=PublicVocabularyResponse,
+        responses={422: {"model": ErrorResponse}},
+    )
     def list_public_vocabulary(
         vocabulary_type: Annotated[str, Query(pattern=r"^[A-Z][A-Z0-9_]*$")],
         search: Annotated[str | None, Query(max_length=200)] = None,
@@ -57,7 +62,11 @@ def vocabulary_router(
             ]
         return PublicVocabularyResponse(items=items, count=len(items))
 
-    @router.get("/author/vocabulary", response_model=AuthorVocabularyResponse)
+    @router.get(
+        "/author/vocabulary",
+        response_model=AuthorVocabularyResponse,
+        responses={422: {"model": ErrorResponse}},
+    )
     def list_author_vocabulary(
         vocabulary_type: Annotated[str, Query(pattern=r"^[A-Z][A-Z0-9_]*$")],
         search: Annotated[str | None, Query(max_length=200)] = None,
