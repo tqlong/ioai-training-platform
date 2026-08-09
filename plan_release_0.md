@@ -594,7 +594,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   numeric, and optimistic-version constraints without creating published
   snapshots or transition history early; test safe upgrade and downgrade
   against PostgreSQL. Suggested commit: `feat(problems): migrate draft storage`.
-- [ ] **R0-06007 — Implement author-only draft repositories and transactions from
+- [x] **R0-06007 — Implement author-only draft repositories and transactions from
   `AC-R0-013-01` through `AC-R0-013-03` and `AC-R0-013-18`, analysis sections
   7.1-7.2 and 9, and design sections 4.2 and 9.3.** Define narrow create, list,
   read, validate-read, and compare-and-increment save ports; map persistence rows
