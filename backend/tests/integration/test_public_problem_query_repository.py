@@ -244,3 +244,43 @@ def test_public_list_api_serializes_only_current_snapshot_fields(
     assert "private-draft" not in serialized
     assert "revision-" not in serialized
     assert "editorial_status" not in serialized
+
+
+def test_recommendation_candidates_are_stage_scoped_and_editorially_ordered(
+    migrated_database,
+) -> None:
+    _seed_library(migrated_database)
+    with Session(migrated_database) as session:
+        candidates = SqlAlchemyPublishedProblemReader(
+            session
+        ).recommendation_candidates("AI_1_FOUNDATIONS")
+
+    assert [item.slug.value for item in candidates] == [
+        "regression-metrics",
+        "confusion-basics",
+    ]
+
+
+def test_public_recommendation_uses_only_current_published_candidates(
+    migrated_database,
+) -> None:
+    _seed_library(migrated_database)
+    client = TestClient(create_app())
+
+    response = client.get(
+        "/api/v1/problems/confusion-basics/recommendation",
+        params=[
+            ("stage", "AI_1_FOUNDATIONS"),
+            ("completed", "confusion-basics"),
+        ],
+    )
+    private = client.get(
+        "/api/v1/problems/private-draft/recommendation",
+        params={"stage": "AI_1_FOUNDATIONS"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["slug"] == "regression-metrics"
+    assert response.json()["permanent_url"] == "/problems/regression-metrics"
+    assert "private-draft" not in response.text
+    assert private.status_code == 404

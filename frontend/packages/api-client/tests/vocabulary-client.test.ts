@@ -27,6 +27,31 @@ describe('generated vocabulary client', () => {
     );
   });
 
+  it('requests one next recommendation with bounded local context', async () => {
+    const fetchFn = vi.fn(async () => Response.json({
+      slug: 'next-problem', permanent_url: '/problems/next-problem',
+      title: { en: 'Next', vi: 'Tiếp theo' }, stage_code: 'AI_1_FOUNDATIONS',
+      difficulty_code: 'EASY', expected_minutes: 10, compute_tier_code: 'NONE',
+      label: 'Recommended next', reason: 'Matches the editorial path.',
+    }));
+    const client = createApiClient({
+      baseUrl: 'http://localhost:8000/api/v1',
+      fetchFn,
+    });
+
+    const result = await client.getPublicRecommendation('current', {
+      stage: 'AI_1_FOUNDATIONS',
+      completed: ['current'],
+      evidence: ['TOPIC:EVAL_CONFUSION_MATRIX:PRACTICED'],
+    });
+
+    expect(result?.slug).toBe('next-problem');
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/problems/current/recommendation?stage=AI_1_FOUNDATIONS&completed=current&evidence=TOPIC%3AEVAL_CONFUSION_MATRIX%3APRACTICED',
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
+
   it('returns the OpenAPI-derived public vocabulary response', async () => {
     const fetchFn = vi.fn(async () =>
       Response.json({

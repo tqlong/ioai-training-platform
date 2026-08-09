@@ -46,6 +46,7 @@ from ioai.domain.problems.workflow import (
     EditorialTransition,
 )
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
+from ioai.domain.vocabulary.values import VocabularyIdentity, VocabularyType
 
 from .problem_model import (
     EditorialTransitionModel,
@@ -183,6 +184,15 @@ class SqlAlchemyPublishedProblemReader(PublishedProblemReader):
         )
         return _snapshot_domain(row) if row is not None else None
 
+    def recommendation_candidates(self, stage: str) -> tuple[PublishedSnapshot, ...]:
+        return self.list_current(
+            PublicProblemQuery(
+                stage=stage,
+                sort=PublicProblemSort.EDITORIAL,
+                page_size=100,
+            )
+        ).snapshots
+
 
 def _matches_public_query(
     row: PublishedSnapshotModel,
@@ -205,6 +215,8 @@ def _matches_public_query(
                 query.search,
             )
         )
+    if not _is_release_eligible(metadata):
+        return False
     scalar_filters = (
         (query.stage, _identity_code(metadata.get("stage"))),
         (query.competency, _identity_code(metadata.get("primary_competency"))),
@@ -236,6 +248,22 @@ def _matches_public_query(
     ):
         return False
     return True
+
+
+def _is_release_eligible(metadata: dict[str, object]) -> bool:
+    policy = Release0AvailabilityPolicy()
+    selected = (
+        ("PATHWAY_STAGE", _identity_code(metadata.get("stage"))),
+        ("TASK_TYPE", _identity_code(metadata.get("task_type"))),
+        ("COMPUTE_TIER", _compute_tier_code(metadata)),
+    )
+    return all(
+        code is not None
+        and policy.evaluate(
+            VocabularyIdentity(VocabularyType(vocabulary_type), code)
+        ).is_available
+        for vocabulary_type, code in selected
+    )
 
 
 def _identity_code(value: object) -> str | None:

@@ -20,6 +20,7 @@ export type StartRevisionRequest = components['schemas']['StartRevisionRequest']
 export type ArchiveProblemRequest = components['schemas']['ArchiveProblemRequest'];
 export type ArchiveProblemResult = components['schemas']['ArchiveProblemResponse'];
 export type PublicProblemList = components['schemas']['PublicProblemListResponse'];
+export type PublicProblemRecommendation = components['schemas']['PublicProblemRecommendationResponse'];
 export type EditorialAction = 'submit-review' | 'request-changes' | 'approve';
 
 export type PublicVocabularyQuery = {
@@ -45,6 +46,11 @@ export type PublicProblemQuery = {
   sort?: 'EDITORIAL' | 'NEWEST' | 'EXPECTED_TIME' | 'TITLE';
   page?: number;
   pageSize?: number;
+};
+export type PublicRecommendationQuery = {
+  stage: string;
+  completed?: string[];
+  evidence?: string[];
 };
 
 export type FetchFunction = (
@@ -75,6 +81,10 @@ export type ApiClient = {
     query: PublicVocabularyQuery,
   ) => Promise<PublicVocabularyResponse>;
   listPublicProblems: (query?: PublicProblemQuery) => Promise<PublicProblemList>;
+  getPublicRecommendation: (
+    slug: string,
+    query: PublicRecommendationQuery,
+  ) => Promise<PublicProblemRecommendation | null>;
   listAuthorDrafts: (query?: AuthorDraftQuery) => Promise<AuthorDraftList>;
   listAuthorVocabulary: (
     query: AuthorVocabularyQuery,
@@ -162,6 +172,23 @@ export const createApiClient = ({
         `${normalizedBaseUrl}/problems${suffix}`,
         { cache: 'no-store' },
       );
+    },
+    async getPublicRecommendation(slug, query) {
+      const parameters = new URLSearchParams({ stage: query.stage });
+      for (const value of query.completed ?? []) {
+        parameters.append('completed', value);
+      }
+      for (const value of query.evidence ?? []) {
+        parameters.append('evidence', value);
+      }
+      const response = await fetchFn(
+        `${normalizedBaseUrl}/problems/${encodeURIComponent(slug)}/recommendation?${parameters.toString()}`,
+        { cache: 'no-store', headers: { accept: 'application/json' } },
+      );
+      if (response.status === 204) return null;
+      const payload: unknown = await response.json();
+      if (!response.ok) throw toApiError(payload, response.status);
+      return payload as PublicProblemRecommendation;
     },
     async listAuthorDrafts(query = {}) {
       const parameters = new URLSearchParams();

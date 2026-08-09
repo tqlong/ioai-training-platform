@@ -38,3 +38,17 @@ class PublicProblemListResponse(BaseModel):
     page: int = Field(ge=1)
     page_size: int = Field(ge=1, le=100)
     active_filters: dict[str, str | bool | int]
+
+
+class PublicProblemRecommendationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    slug: str
+    permanent_url: str
+    title: PublicLocalizedTextResponse
+    stage_code: str
+    difficulty_code: str
+    expected_minutes: int = Field(gt=0)
+    compute_tier_code: str
+    label: str
+    reason: str

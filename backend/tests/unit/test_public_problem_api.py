@@ -7,12 +7,19 @@ from ioai.application.problems.public_queries import (
     PublicProblemProjectionPage,
     PublicProblemQuery,
 )
+from ioai.application.problems.recommendations import (
+    LearningEvidenceContext,
+    ProblemRecommendation,
+    RecommendationContext,
+)
 from ioai.entrypoints.api.factory import create_app
 
 
 class FakePublicProblemService:
     def __init__(self) -> None:
         self.query: PublicProblemQuery | None = None
+        self.recommendation_context: RecommendationContext | None = None
+        self.has_recommendation = True
 
     def list(self, query: PublicProblemQuery) -> PublicProblemProjectionPage:
         self.query = query
@@ -44,6 +51,25 @@ class FakePublicProblemService:
             total=3,
             page=query.page,
             page_size=query.page_size,
+        )
+
+    def recommend(self, context: RecommendationContext) -> ProblemRecommendation | None:
+        self.recommendation_context = context
+        if not self.has_recommendation:
+            return None
+        return ProblemRecommendation(
+            slug="next-problem",
+            title={"en": "Next problem", "vi": "Bài tiếp theo"},
+            stage_code=context.stage,
+            difficulty_code="EASY",
+            expected_minutes=15,
+            compute_tier_code="NONE",
+            label=(
+                "Recommended next" if context.completed_slugs else "Recommended start"
+            ),
+            reason=(
+                "Matches your stage and editorial path with available prerequisites."
+            ),
         )
 
 
@@ -109,3 +135,54 @@ def test_public_problem_list_rejects_unknown_and_unavailable_canonical_values() 
     assert unavailable.status_code == 422
     assert unavailable.json()["detail"]["code"] == "POLICY_DISALLOWED"
     assert leaked.status_code == 422
+
+
+def test_public_recommendation_accepts_bounded_local_context() -> None:
+    service = FakePublicProblemService()
+    client = TestClient(create_app(public_problem_service=service))
+
+    response = client.get(
+        "/api/v1/problems/current/recommendation",
+        params=[
+            ("stage", "AI_1_FOUNDATIONS"),
+            ("completed", "current"),
+            ("evidence", "TOPIC:EVAL_CONFUSION_MATRIX:PRACTICED"),
+        ],
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "slug": "next-problem",
+        "permanent_url": "/problems/next-problem",
+        "title": {"en": "Next problem", "vi": "Bài tiếp theo"},
+        "stage_code": "AI_1_FOUNDATIONS",
+        "difficulty_code": "EASY",
+        "expected_minutes": 15,
+        "compute_tier_code": "NONE",
+        "label": "Recommended next",
+        "reason": "Matches your stage and editorial path with available prerequisites.",
+    }
+    assert service.recommendation_context == RecommendationContext(
+        stage="AI_1_FOUNDATIONS",
+        current_slug="current",
+        completed_slugs=("current",),
+        evidence=(
+            LearningEvidenceContext(
+                vocabulary_type="TOPIC",
+                code="EVAL_CONFUSION_MATRIX",
+                level="PRACTICED",
+            ),
+        ),
+    )
+
+
+def test_public_recommendation_returns_no_content_when_no_candidate_exists() -> None:
+    service = FakePublicProblemService()
+    service.has_recommendation = False
+    client = TestClient(create_app(public_problem_service=service))
+
+    response = client.get(
+        "/api/v1/problems/current/recommendation?stage=AI_1_FOUNDATIONS"
+    )
+
+    assert response.status_code == 204

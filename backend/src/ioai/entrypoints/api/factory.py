@@ -40,10 +40,15 @@ from ...application.problems.editorial import (
 )
 from ...application.problems.payload import decode_revision_payload
 from ...application.problems.public_queries import (
+    GetPublishedProblem,
     ListPublishedProblems,
     PublicProblemQuery,
 )
 from ...application.problems.publication import ArchiveProblem, PublishRevision
+from ...application.problems.recommendations import (
+    RecommendationContext,
+    RecommendNextProblem,
+)
 from ...application.vocabulary.proposals import RecordVocabularyProposal
 from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ...domain.problems.revision import ProblemRevision
@@ -231,6 +236,12 @@ class _DefaultPublicProblemService:
         with self._session_factory() as session:
             use_case = ListPublishedProblems(SqlAlchemyPublishedProblemReader(session))
             return use_case(query)
+
+    def recommend(self, context: RecommendationContext):
+        with self._session_factory() as session:
+            reader = SqlAlchemyPublishedProblemReader(session)
+            GetPublishedProblem(reader)(context.current_slug or "")
+            return RecommendNextProblem(reader)(context)
 
 
 class _DefaultAuthorProblemService:

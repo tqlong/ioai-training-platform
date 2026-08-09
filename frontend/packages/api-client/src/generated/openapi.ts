@@ -261,6 +261,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/problems/{slug}/recommendation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recommend Problem */
+        get: operations["recommend_problem_api_v1_problems__slug__recommendation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/vocabulary": {
         parameters: {
             query?: never;
@@ -581,6 +598,26 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /** PublicProblemRecommendationResponse */
+        PublicProblemRecommendationResponse: {
+            /** Compute Tier Code */
+            compute_tier_code: string;
+            /** Difficulty Code */
+            difficulty_code: string;
+            /** Expected Minutes */
+            expected_minutes: number;
+            /** Label */
+            label: string;
+            /** Permanent Url */
+            permanent_url: string;
+            /** Reason */
+            reason: string;
+            /** Slug */
+            slug: string;
+            /** Stage Code */
+            stage_code: string;
+            title: components["schemas"]["PublicLocalizedTextResponse"];
         };
         /**
          * PublicProblemSort
@@ -1468,6 +1505,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    recommend_problem_api_v1_problems__slug__recommendation_get: {
+        parameters: {
+            query: {
+                stage: string;
+                completed?: string[];
+                evidence?: string[];
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProblemRecommendationResponse"];
+                };
+            };
+            /** @description No eligible recommendation */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

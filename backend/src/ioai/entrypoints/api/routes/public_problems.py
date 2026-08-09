@@ -2,13 +2,19 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from fastapi import APIRouter, HTTPException, Query, Request, status
+from fastapi import APIRouter, HTTPException, Query, Request, Response, status
 
+from ioai.application.problems.errors import PublishedProblemNotFoundError
 from ioai.application.problems.public_queries import (
     PublicProblemProjection,
     PublicProblemProjectionPage,
     PublicProblemQuery,
     PublicProblemSort,
+)
+from ioai.application.problems.recommendations import (
+    LearningEvidenceContext,
+    ProblemRecommendation,
+    RecommendationContext,
 )
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 from ioai.domain.vocabulary.values import (
@@ -22,11 +28,16 @@ from ..contracts.public_problems import (
     PublicLocalizedTextResponse,
     PublicProblemListItemResponse,
     PublicProblemListResponse,
+    PublicProblemRecommendationResponse,
 )
 
 
 class PublicProblemService(Protocol):
     def list(self, query: PublicProblemQuery) -> PublicProblemProjectionPage: ...
+
+    def recommend(
+        self, context: RecommendationContext
+    ) -> ProblemRecommendation | None: ...
 
 
 _QUERY_PARAMETERS = {
@@ -140,6 +151,43 @@ def public_problem_router(
             active_filters=_active_filters(query),
         )
 
+    @router.get(
+        "/{slug}/recommendation",
+        response_model=PublicProblemRecommendationResponse,
+        responses={204: {"description": "No eligible recommendation"}},
+    )
+    def recommend_problem(
+        slug: str,
+        stage: str,
+        completed: list[str] = Query(default_factory=list, max_length=50),
+        evidence: list[str] = Query(default_factory=list, max_length=100),
+    ) -> PublicProblemRecommendationResponse | Response:
+        _validate_identity(known, policy, "PATHWAY_STAGE", stage)
+        try:
+            context = RecommendationContext(
+                stage=stage,
+                current_slug=slug,
+                completed_slugs=tuple(completed),
+                evidence=tuple(_evidence_context(value) for value in evidence),
+            )
+            recommendation = service.recommend(context)
+        except PublishedProblemNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "PUBLIC_NOT_FOUND", "message": "Problem not found."},
+            ) from error
+        except ValueError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={
+                    "code": "INVALID_RECOMMENDATION_CONTEXT",
+                    "message": str(error),
+                },
+            ) from error
+        if recommendation is None:
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return _recommendation_response(recommendation)
+
     return router
 
 
@@ -211,3 +259,49 @@ def _active_filters(query: PublicProblemQuery) -> dict[str, str | bool | int]:
         ),
     )
     return {key: value for key, value in values if value is not None}
+
+
+def _validate_identity(
+    known: set[VocabularyIdentity],
+    policy: Release0AvailabilityPolicy,
+    vocabulary_type: str,
+    code: str,
+) -> None:
+    identity = VocabularyIdentity(VocabularyType(vocabulary_type), code)
+    if identity not in known:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={
+                "code": "UNKNOWN_VOCABULARY_VALUE",
+                "message": "A selected value is not canonical.",
+            },
+        )
+    decision = policy.evaluate(identity)
+    if not decision.is_available:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={"code": "POLICY_DISALLOWED", "message": decision.message},
+        )
+
+
+def _evidence_context(value: str) -> LearningEvidenceContext:
+    parts = value.split(":")
+    if len(parts) != 3:
+        raise ValueError("evidence must use VOCABULARY_TYPE:CODE:LEVEL format")
+    return LearningEvidenceContext(parts[0], parts[1], parts[2])
+
+
+def _recommendation_response(
+    value: ProblemRecommendation,
+) -> PublicProblemRecommendationResponse:
+    return PublicProblemRecommendationResponse(
+        slug=value.slug,
+        permanent_url=value.permanent_url,
+        title=PublicLocalizedTextResponse(**value.title),
+        stage_code=value.stage_code,
+        difficulty_code=value.difficulty_code,
+        expected_minutes=value.expected_minutes,
+        compute_tier_code=value.compute_tier_code,
+        label=value.label,
+        reason=value.reason,
+    )

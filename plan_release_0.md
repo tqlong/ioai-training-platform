@@ -959,7 +959,7 @@ observe the required red step before implementation.
   unavailable values and exclude draft, workflow, answer, test, object-key, and
   internal-ID fields. Suggested commit:
   `feat(api): expose the learner problem library`.
-- [ ] **R0-08005 — Implement published recommendation policy and contract from
+- [x] **R0-08005 — Implement published recommendation policy and contract from
   `AC-R0-012-15` through `AC-R0-012-17`.** Add the application policy, narrow
   ports, PostgreSQL candidate query, and
   `GET /api/v1/problems/{slug}/recommendation` contract. Select the editorially

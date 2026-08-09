@@ -800,6 +800,60 @@
         "title": "PublicProblemListResponse",
         "type": "object"
       },
+      "PublicProblemRecommendationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "compute_tier_code": {
+            "title": "Compute Tier Code",
+            "type": "string"
+          },
+          "difficulty_code": {
+            "title": "Difficulty Code",
+            "type": "string"
+          },
+          "expected_minutes": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Minutes",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "permanent_url": {
+            "title": "Permanent Url",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "stage_code": {
+            "title": "Stage Code",
+            "type": "string"
+          },
+          "title": {
+            "$ref": "#/components/schemas/PublicLocalizedTextResponse"
+          }
+        },
+        "required": [
+          "slug",
+          "permanent_url",
+          "title",
+          "stage_code",
+          "difficulty_code",
+          "expected_minutes",
+          "compute_tier_code",
+          "label",
+          "reason"
+        ],
+        "title": "PublicProblemRecommendationResponse",
+        "type": "object"
+      },
       "PublicProblemSort": {
         "enum": [
           "EDITORIAL",
@@ -2497,6 +2551,86 @@
           }
         },
         "summary": "List Problems",
+        "tags": [
+          "public-problems"
+        ]
+      }
+    },
+    "/api/v1/problems/{slug}/recommendation": {
+      "get": {
+        "operationId": "recommend_problem_api_v1_problems__slug__recommendation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stage",
+            "required": true,
+            "schema": {
+              "title": "Stage",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "completed",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 50,
+              "title": "Completed",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "evidence",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 100,
+              "title": "Evidence",
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProblemRecommendationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "204": {
+            "description": "No eligible recommendation"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recommend Problem",
         "tags": [
           "public-problems"
         ]
