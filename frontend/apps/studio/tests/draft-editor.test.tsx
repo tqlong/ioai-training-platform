@@ -86,4 +86,14 @@ describe('draft editor coordinator', () => {
     expect(screen.queryByRole('dialog', { name: 'Recover unsaved draft' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Save draft' })).toBeTruthy();
   });
+
+  it('remains editable when browser storage is unavailable', async () => {
+    const storage = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new DOMException('blocked'); });
+    render(<DraftEditor initialDraft={draft} saveDraft={async () => { throw new Error('offline'); }} />);
+    fireEvent.change(screen.getByRole('textbox', { name: 'URL slug' }), { target: { value: 'still-here' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save draft' }));
+    await waitFor(() => expect(screen.getByText('Save failed')).toBeTruthy());
+    expect((screen.getByRole('textbox', { name: 'URL slug' }) as HTMLInputElement).value).toBe('still-here');
+    storage.mockRestore();
+  });
 });

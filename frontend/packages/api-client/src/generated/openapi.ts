@@ -22,23 +22,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/author/problems/revisions/{revision_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Save Draft */
-        put: operations["save_draft_api_v1_author_problems_revisions__revision_id__put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/author/problems/{problem_id}": {
         parameters: {
             query?: never;
@@ -49,6 +32,23 @@ export interface paths {
         /** Read Draft */
         get: operations["read_draft_api_v1_author_problems__problem_id__get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/author/revisions/{revision_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Draft */
+        put: operations["save_draft_api_v1_author_revisions__revision_id__put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -193,6 +193,10 @@ export interface components {
             problem_id: string;
             /** Revision Id */
             revision_id: string;
+            /** Validation Summary */
+            validation_summary: {
+                [key: string]: unknown;
+            } | null;
             /** Version */
             version: number;
         };
@@ -263,6 +267,11 @@ export interface components {
         };
         /** CreateDraftRequest */
         CreateDraftRequest: Record<string, never>;
+        /**
+         * EditorialStatus
+         * @enum {string}
+         */
+        EditorialStatus: "DRAFT" | "IN_REVIEW" | "CHANGES_REQUESTED" | "APPROVED" | "PUBLISHED" | "ARCHIVED";
         /** ErrorDetailResponse */
         ErrorDetailResponse: {
             /** Code */
@@ -464,7 +473,10 @@ export type $defs = Record<string, never>;
 export interface operations {
     list_drafts_api_v1_author_problems_get: {
         parameters: {
-            query?: never;
+            query?: {
+                search?: string | null;
+                editorial_status?: components["schemas"]["EditorialStatus"] | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -478,6 +490,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthorDraftListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -515,7 +536,47 @@ export interface operations {
             };
         };
     };
-    save_draft_api_v1_author_problems_revisions__revision_id__put: {
+    read_draft_api_v1_author_problems__problem_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorDraftResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_draft_api_v1_author_revisions__revision_id__put: {
         parameters: {
             query?: never;
             header?: never;
@@ -550,46 +611,6 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_draft_api_v1_author_problems__problem_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                problem_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthorDraftResponse"];
-                };
-            };
-            /** @description Not Found */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };

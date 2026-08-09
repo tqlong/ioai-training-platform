@@ -728,7 +728,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   route, search, recommendation, build, or cache. Regenerate client types; leave
   the responsive learner-page rendering and browser workflow to R0-072.
   Suggested commit: `feat(authoring): isolate draft preview data`.
-- [ ] **R0-06020 — Verify and baseline the problem-authoring vertical slice
+- [x] **R0-06020 — Verify and baseline the problem-authoring vertical slice
   against R0-013, analysis sections 4 and 7, and design sections 3, 4, 7, 9,
   11, and 13.** Prove aggregate invariants, response variants, exact scoring,
   canonical metadata, policy blockers, migration up/down safety, transactional

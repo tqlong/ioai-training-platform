@@ -33,11 +33,13 @@ class FakeAuthorProblemService:
             scoring=None,
         )
         self.now = datetime(2026, 8, 9, tzinfo=UTC)
+        self.list_query = None
 
     def create(self) -> ProblemRevision:
         return self.draft
 
-    def list(self) -> tuple[AuthorDraftListItem, ...]:
+    def list(self, *, search=None, status=None) -> tuple[AuthorDraftListItem, ...]:
+        self.list_query = (search, status)
         return (
             AuthorDraftListItem(
                 problem_id=self.draft.problem_id,
@@ -109,6 +111,16 @@ def test_author_can_create_list_and_read_private_draft_contracts() -> None:
     assert read.json() == created.json()
 
 
+def test_author_list_accepts_bounded_search_and_editorial_status_filters() -> None:
+    service = FakeAuthorProblemService()
+    client = TestClient(create_app(author_problem_service=service))
+    response = client.get(
+        "/api/v1/author/problems?search=problem&editorial_status=DRAFT"
+    )
+    assert response.status_code == 200
+    assert service.list_query == ("problem", EditorialStatus.DRAFT)
+
+
 def test_author_draft_schemas_are_not_public_problem_contracts() -> None:
     app = create_app(author_problem_service=FakeAuthorProblemService())
     schema = app.openapi()
@@ -135,8 +147,8 @@ def test_versioned_save_returns_increment_and_stable_conflict() -> None:
         "scoring": None,
     }
 
-    saved = client.put("/api/v1/author/problems/revisions/revision-1", json=body)
-    stale = client.put("/api/v1/author/problems/revisions/revision-1", json=body)
+    saved = client.put("/api/v1/author/revisions/revision-1", json=body)
+    stale = client.put("/api/v1/author/revisions/revision-1", json=body)
 
     assert saved.status_code == 200
     assert saved.json()["version"] == 2

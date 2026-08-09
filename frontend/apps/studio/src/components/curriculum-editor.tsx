@@ -141,6 +141,17 @@ export function CurriculumEditor({
     byType('TOPIC').flatMap((item) => item.parent_identity ? [item.parent_identity.code] : []),
   );
   const selectedIntermediateTopic = value.topics.some((topic) => intermediateTopics.has(topic[1]));
+  const unavailableSelection = (
+    [
+      ['Pathway stage', value.stage],
+      ['Task type', value.task_type],
+    ] as const
+  ).map(([label, selected]) => ({
+    label,
+    record: selected
+      ? vocabulary.find((item) => item.identity.vocabulary_type === selected[0] && item.identity.code === selected[1])
+      : undefined,
+  })).find((item) => item.record && !item.record.availability.is_available);
 
   return (
     <section aria-labelledby="curriculum-heading" className="editor-section" id="curriculum">
@@ -152,6 +163,7 @@ export function CurriculumEditor({
         {select('Task type', 'TASK_TYPE', value.task_type, (task_type) => onChange({ ...value, task_type }))}
         {select('Primary competency', 'COMPETENCY', value.primary_competency, (primary_competency) => onChange({ ...value, primary_competency }))}
       </div>
+      {unavailableSelection?.record && <p role="alert">{unavailableSelection.record.availability.message} Select an available Release 0 {unavailableSelection.label.toLowerCase()}.</p>}
 
       <fieldset>
         <legend>Secondary competencies (up to three)</legend>

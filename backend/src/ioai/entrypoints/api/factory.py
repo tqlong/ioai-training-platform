@@ -175,8 +175,8 @@ class _DefaultAuthorProblemService:
     def create(self):
         return self._create()
 
-    def list(self):
-        return self._list()
+    def list(self, *, search=None, status=None):
+        return self._list(search=search, status=status)
 
     def get(self, problem_id):
         return self._get(problem_id)

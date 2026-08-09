@@ -19,6 +19,7 @@ class AuthorDraftListItem:
     version: int
     status: EditorialStatus
     last_saved_at: datetime
+    validation_summary: dict[str, object] | None = None
 
 
 class CreateDraft:
@@ -54,9 +55,11 @@ class ListDrafts:
     def __init__(self, unit_of_work_factory: Callable[[], DraftUnitOfWork]) -> None:
         self._unit_of_work_factory = unit_of_work_factory
 
-    def __call__(self) -> tuple[AuthorDraftListItem, ...]:
+    def __call__(
+        self, *, search: str | None = None, status: EditorialStatus | None = None
+    ) -> tuple[AuthorDraftListItem, ...]:
         with self._unit_of_work_factory() as unit_of_work:
-            items = unit_of_work.drafts.list()
+            items = unit_of_work.drafts.list(search=search, status=status)
         return tuple(
             AuthorDraftListItem(
                 problem_id=item.problem_id,
@@ -64,6 +67,7 @@ class ListDrafts:
                 version=item.version,
                 status=item.status,
                 last_saved_at=item.last_saved_at,
+                validation_summary=item.validation_summary,
             )
             for item in items
         )
@@ -121,11 +125,13 @@ class ValidateDraft:
     ) -> ValidationReport:
         with self._unit_of_work_factory() as unit_of_work:
             revision = unit_of_work.drafts.get(revision_id)
-        if revision.version != expected_version:
-            from .errors import RevisionConflictError
+            if revision.version != expected_version:
+                from .errors import RevisionConflictError
 
-            raise RevisionConflictError(revision_id, revision.version)
-        return revision.validate(self._policy)
+                raise RevisionConflictError(revision_id, revision.version)
+            report = revision.validate(self._policy)
+            unit_of_work.drafts.record_validation(report)
+            return report
 
 
 @dataclass(frozen=True, slots=True)

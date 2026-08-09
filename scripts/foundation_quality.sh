@@ -12,7 +12,7 @@ uv run pyright
 uv run pytest
 
 printf 'Running frontend quality gates\n'
-pnpm install --frozen-lockfile
+CI=true pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
 pnpm test

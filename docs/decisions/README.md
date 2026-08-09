@@ -29,7 +29,7 @@ Update this as artifacts land.
 | R0-010 | `requirement_release_0.md` sections 1-9 | `requirement_release_0.md` sections 1-9 | Phase 1 documentation | Requirements review |
 | R0-011 | `master_plan.md`, `ui_release_0.md`, `vocab.md` | `requirement_release_0.md` section 10 | Pending Phase 4/7 implementation | Public API, UI, accessibility, and E2E tests |
 | R0-012 | `master_plan.md`, `ui_release_0.md`, `vocab.md` | `requirement_release_0.md` section 11 | Pending Phase 4/7 implementation | Submission, progress, feedback, and E2E tests |
-| R0-013 | `ui_release_0.md`, `code_standard.md` | `requirement_release_0.md` section 12 | Pending Phase 4/6 implementation | Author validation, autosave, and preview tests |
+| R0-013 | `ui_release_0.md`, `code_standard.md` | `requirement_release_0.md` section 12 | Phase 6 problem domain, persistence, author API, generated client, and Studio authoring; published-revision editing remains Phase 7 | Domain, PostgreSQL, API, generated-client, and Studio component tests indexed by R0-060 |
 | R0-014 | `master_plan.md`, `ui_release_0.md`, `AGENTS.md` | `requirement_release_0.md` section 13 | Pending Phase 4/6/7 implementation | Workflow, isolation, and publication E2E tests |
 | R0-015 | `AGENTS.md`, `code_standard.md`, `ui_release_0.md` | `requirement_release_0.md` section 14 | Pending Phase 3/4/7 implementation | Quality, security, accessibility, and operations checks |
 | R0-016 | All governing documents and `plan_release_0.md` | `requirement_release_0.md` section 15 | `docs/decisions/README.md` | Traceability and baseline review |
@@ -38,7 +38,7 @@ Update this as artifacts land.
 | R0-022 | `requirement_release_0.md` R0-012/R0-013/R0-014/R0-015 | `analysis_release_0.md` section 4 | Pending Phase 4/6 | Domain and persistence tests |
 | R0-023 | `requirement_release_0.md` R0-010/R0-011/R0-012/R0-013/R0-015/R0-016 | `analysis_release_0.md` section 5 | Pending Phase 4/5 | Import, graph, drift, and policy tests |
 | R0-024 | `requirement_release_0.md` R0-011/R0-012 | `analysis_release_0.md` section 6 | Pending Phase 4/7 | Learner API/UI/E2E tests |
-| R0-025 | `requirement_release_0.md` R0-013 | `analysis_release_0.md` section 7 | Pending Phase 3/6 | Autosave, validation, and preview tests |
+| R0-025 | `requirement_release_0.md` R0-013 | `analysis_release_0.md` section 7 | Phase 6 authoring use cases, revision commands, recovery, validation, and preview projection | `test_author_problem_api.py`, `test_authoring.py`, `draft-editor.test.tsx`, `validation-panel.test.tsx` |
 | R0-026 | `requirement_release_0.md` R0-014 | `analysis_release_0.md` section 8 | Pending Phase 3/6/7 | Workflow and publication tests |
 | R0-027 | `requirement_release_0.md` R0-011/R0-012/R0-013/R0-014/R0-015 | `analysis_release_0.md` section 9 | Pending Phase 3/4/7 | Public/draft isolation tests |
 | R0-028 | `requirement_release_0.md` R0-015 and all affected groups | `analysis_release_0.md` section 10 | Pending Phase 3/4/7 | Risk matrix and quality gates |
@@ -49,7 +49,7 @@ Update this as artifacts land.
 | R0-03004 | `requirement_release_0.md` R0-012/R0-013/R0-014/R0-015 | `design_release_0.md` section 4 | Pending Phase 5/6/7 | Use-case and port tests |
 | R0-03005 | `requirement_release_0.md` R0-010/R0-011/R0-012/R0-013/R0-016 | `design_release_0.md` section 5 | Pending Phase 5 | Import, graph, drift, and policy tests |
 | R0-03006 | `requirement_release_0.md` R0-011/R0-012/R0-015 | `design_release_0.md` section 6 | Pending Phase 4/7 | Public API and learner E2E tests |
-| R0-03007 | `requirement_release_0.md` R0-013/R0-014/R0-015 | `design_release_0.md` section 7 | Pending Phase 6/7 | Author API and workflow tests |
+| R0-03007 | `requirement_release_0.md` R0-013/R0-014/R0-015 | `design_release_0.md` section 7 | Phase 6 author revision API; editorial transitions remain Phase 7 | `test_author_problem_api.py`, generated OpenAPI/client drift tests |
 | R0-03008 | `requirement_release_0.md` R0-011 through R0-015 | `design_release_0.md` section 8 | Pending Phase 4/7 | OpenAPI/client drift tests |
 | R0-03009 | `requirement_release_0.md` R0-012 through R0-015 | `design_release_0.md` section 9 | Pending Phase 4/6 | PostgreSQL repository tests |
 | R0-03010 | `requirement_release_0.md` R0-013 through R0-015 | `design_release_0.md` section 10 | Pending Phase 4/6/7 | Transaction and migration tests |
@@ -87,6 +87,6 @@ Update this as artifacts land.
 | R0-05011 | `analysis_release_0.md` §§5.3,5.5 | `design_release_0.md` §5.4 | proposal domain/use case/table/routes, Alembic `05011` | domain, application, persistence, API isolation tests |
 | R0-05012 | `analysis_release_0.md` §§5.1,9 | `design_release_0.md` §§2,5.1,8 | generated OpenAPI TypeScript and artifact-backed vocabulary package | client, package, contract/artifact drift tests |
 | R0-05013 | `analysis_release_0.md` §§5,10 | `design_release_0.md` §§5,15 | `docs/vocabulary-baseline.md`, quality and deployment scripts | complete backend/frontend/migration/build/health gates |
-| R0-060 | Pending | Pending | Pending | Pending |
+| R0-060 | `requirement_release_0.md` R0-013; `analysis_release_0.md` §§4,7,9 | `design_release_0.md` §§3,4,7,9,11,13; `ui_release_0.md` §§6.1–6.7,6.9 | `ioai.domain.problems`, authoring application/UoW/API, Alembic `06006`, generated API client, Studio list/editor components, `scripts/dev_{start,redeploy}.sh` | `backend/tests/unit/domain/problems`, `backend/tests/unit/application/problems`, `test_author_problem_api.py`, `test_problem_{migration,repository}.py`, Studio component tests, contract drift and production builds; see `docs/problem-authoring-baseline.md` |
 | R0-061 | Pending | Pending | Pending | Pending |
 | R0-062 | Pending | Pending | Pending | Pending |

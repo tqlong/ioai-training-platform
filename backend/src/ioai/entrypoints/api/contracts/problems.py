@@ -32,6 +32,7 @@ class AuthorDraftListItemResponse(BaseModel):
     version: int = Field(ge=1)
     editorial_status: str
     last_saved_at: datetime
+    validation_summary: dict[str, Any] | None
 
 
 class AuthorDraftListResponse(BaseModel):

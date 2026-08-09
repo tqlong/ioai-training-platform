@@ -21,6 +21,18 @@
             "title": "Revision Id",
             "type": "string"
           },
+          "validation_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validation Summary"
+          },
           "version": {
             "minimum": 1.0,
             "title": "Version",
@@ -32,7 +44,8 @@
           "revision_id",
           "version",
           "editorial_status",
-          "last_saved_at"
+          "last_saved_at",
+          "validation_summary"
         ],
         "title": "AuthorDraftListItemResponse",
         "type": "object"
@@ -262,6 +275,18 @@
         "properties": {},
         "title": "CreateDraftRequest",
         "type": "object"
+      },
+      "EditorialStatus": {
+        "enum": [
+          "DRAFT",
+          "IN_REVIEW",
+          "CHANGES_REQUESTED",
+          "APPROVED",
+          "PUBLISHED",
+          "ARCHIVED"
+        ],
+        "title": "EditorialStatus",
+        "type": "string"
       },
       "ErrorDetailResponse": {
         "additionalProperties": false,
@@ -867,6 +892,42 @@
     "/api/v1/author/problems": {
       "get": {
         "operationId": "list_drafts_api_v1_author_problems_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "in": "query",
+            "name": "editorial_status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EditorialStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Editorial Status"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -877,6 +938,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "List Drafts",
@@ -924,9 +995,61 @@
         ]
       }
     },
-    "/api/v1/author/problems/revisions/{revision_id}": {
+    "/api/v1/author/problems/{problem_id}": {
+      "get": {
+        "operationId": "read_draft_api_v1_author_problems__problem_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Draft",
+        "tags": [
+          "author-problems"
+        ]
+      }
+    },
+    "/api/v1/author/revisions/{revision_id}": {
       "put": {
-        "operationId": "save_draft_api_v1_author_problems_revisions__revision_id__put",
+        "operationId": "save_draft_api_v1_author_revisions__revision_id__put",
         "parameters": [
           {
             "in": "path",
@@ -992,59 +1115,7 @@
         },
         "summary": "Save Draft",
         "tags": [
-          "author-problems"
-        ]
-      }
-    },
-    "/api/v1/author/problems/{problem_id}": {
-      "get": {
-        "operationId": "read_draft_api_v1_author_problems__problem_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "problem_id",
-            "required": true,
-            "schema": {
-              "title": "Problem Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthorDraftResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Read Draft",
-        "tags": [
-          "author-problems"
+          "author-revisions"
         ]
       }
     },

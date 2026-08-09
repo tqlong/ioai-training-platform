@@ -7,7 +7,7 @@ from decimal import Decimal
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.orm import sessionmaker
 
 from ioai.adapters.database.problem_model import ProblemModel, ProblemRevisionModel
@@ -31,8 +31,19 @@ from ioai.domain.problems.content import (
     ProblemContent,
 )
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
+from ioai.domain.problems.metadata import (
+    CurriculumMetadata,
+    ExpectedMinutes,
+    NetworkPolicy,
+    PrerequisiteReference,
+    PrerequisiteRelationship,
+    PrerequisiteTargetType,
+    ResourceLimits,
+)
 from ioai.domain.problems.revision import ProblemRevision
 from ioai.domain.problems.workflow import EditorialStatus
+from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
+from ioai.domain.vocabulary.values import VocabularyIdentity, VocabularyType
 
 DATABASE_URL = os.getenv(
     "IOAI_TEST_DATABASE_URL",
@@ -147,3 +158,113 @@ def test_compare_and_increment_save_rejects_stale_write(session_factory) -> None
     assert conflict.value.current_version == 2
     with SqlAlchemyDraftUnitOfWork(session_factory) as work:
         assert work.drafts.get(RevisionId("revision-01")) == saved
+
+
+def test_create_persists_normalized_curriculum_response_and_scoring(
+    session_factory,
+) -> None:
+    with session_factory.begin() as session:
+        session.execute(
+            text("""
+            INSERT INTO vocabulary_record
+              (vocabulary_type, code, label_en, label_vi, aliases, status)
+            VALUES
+              ('COMPETENCY', 'EVAL_METRICS', 'Metrics', 'Độ đo', '[]', 'ACTIVE'),
+              ('COMPETENCY', 'MATH_STATISTICS', 'Statistics', 'Thống kê',
+               '[]', 'ACTIVE'),
+              ('TOPIC', 'ML_EVALUATION', 'Evaluation', 'Đánh giá', '[]', 'ACTIVE')
+        """)
+        )
+
+    def vid(type_: str, code: str) -> VocabularyIdentity:
+        return VocabularyIdentity(VocabularyType(type_), code)
+
+    metadata = CurriculumMetadata(
+        stage=vid("PATHWAY_STAGE", "AI_1_FOUNDATIONS"),
+        difficulty=vid("DIFFICULTY", "EASY"),
+        primary_competency=vid("COMPETENCY", "EVAL_METRICS"),
+        secondary_competencies=(vid("COMPETENCY", "MATH_STATISTICS"),),
+        task_type=vid("TASK_TYPE", "QUIZ_SINGLE"),
+        topics=(vid("TOPIC", "ML_EVALUATION"),),
+        prerequisites=(
+            PrerequisiteReference(
+                PrerequisiteRelationship.RECOMMENDED,
+                PrerequisiteTargetType.TOPIC,
+                target_identity=vid("TOPIC", "ML_EVALUATION"),
+            ),
+        ),
+        modalities=(vid("DATA_MODALITY", "NONE"),),
+        expected_minutes=ExpectedMinutes(15),
+        resources=ResourceLimits(
+            vid("COMPUTE_TIER", "NONE"),
+            vid("RUNTIME_CLASS", "INSTANT"),
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            NetworkPolicy.DENIED,
+        ),
+    )
+    bilingual = LocalizedText(en="Metrics", vi="Độ đo")
+    revision = ProblemRevision(
+        problem_id=ProblemId("problem-normalized"),
+        revision_id=RevisionId("revision-normalized"),
+        version=1,
+        slug=None,
+        status=EditorialStatus.DRAFT,
+        content=None,
+        metadata=metadata,
+        response=QuizSingleResponse(
+            (Choice("A", bilingual), Choice("B", bilingual)), "A"
+        ),
+        scoring=ScoringScheme(
+            ResponseType.QUIZ_SINGLE,
+            (ScoringComponent(ScoringMethod.EXACT_MATCH, Decimal("1.0")),),
+        ),
+    )
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        work.drafts.create(revision, NOW)
+        work.drafts.record_validation(revision.validate(Release0AvailabilityPolicy()))
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        summary = work.drafts.list()[0].validation_summary
+    assert summary is not None
+    assert summary["revision_version"] == 1
+    expected_counts = {
+        "revision_competency": 2,
+        "revision_topic": 1,
+        "prerequisite_reference": 1,
+        "response_configuration": 1,
+        "scoring_component": 1,
+    }
+    with session_factory() as session:
+        for table, expected in expected_counts.items():
+            count = session.scalar(
+                text(f"SELECT count(*) FROM {table} WHERE revision_id=:revision_id"),
+                {"revision_id": "revision-normalized"},
+            )
+            assert count == expected
+
+    cleared = ProblemRevision(
+        problem_id=revision.problem_id,
+        revision_id=revision.revision_id,
+        version=1,
+        slug=None,
+        status=revision.status,
+        content=None,
+        metadata=None,
+        response=None,
+        scoring=None,
+    )
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        work.drafts.save(cleared, expected_version=1, saved_at=NOW)
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        assert work.drafts.list()[0].validation_summary is None
+    with session_factory() as session:
+        for table in expected_counts:
+            count = session.scalar(
+                text(f"SELECT count(*) FROM {table} WHERE revision_id=:revision_id"),
+                {"revision_id": "revision-normalized"},
+            )
+            assert count == 0

@@ -10,6 +10,7 @@ from ioai.application.problems.authoring import (
     GetDraft,
     ListDrafts,
     PreviewDraft,
+    ValidateDraft,
 )
 from ioai.application.problems.errors import DraftNotFoundError, RevisionConflictError
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
@@ -23,6 +24,7 @@ class FakeDraftRepository:
         self.items: dict[RevisionId, ProblemRevision] = {}
         self.summaries: tuple[StoredDraftSummary, ...] = ()
         self.created_at: datetime | None = None
+        self.validation_report = None
 
     def create(self, revision: ProblemRevision, created_at: datetime) -> None:
         self.items[revision.revision_id] = revision
@@ -40,11 +42,15 @@ class FakeDraftRepository:
                 return item
         raise DraftNotFoundError(RevisionId(problem_id.value))
 
-    def list(self) -> tuple[StoredDraftSummary, ...]:
+    def list(self, *, search=None, status=None) -> tuple[StoredDraftSummary, ...]:
+        del search, status
         return self.summaries
 
     def save(self, revision, expected_version, saved_at):
         raise NotImplementedError
+
+    def record_validation(self, report) -> None:
+        self.validation_report = report
 
 
 class FakeUnitOfWork:
@@ -192,3 +198,28 @@ def test_preview_rejects_a_stale_saved_version() -> None:
             saved.revision_id,
             expected_version=2,
         )
+
+
+def test_validation_records_a_version_bound_list_summary() -> None:
+    repository = FakeDraftRepository()
+    work = FakeUnitOfWork(repository)
+    saved = ProblemRevision(
+        ProblemId("problem-1"),
+        RevisionId("revision-1"),
+        3,
+        None,
+        EditorialStatus.DRAFT,
+        None,
+        None,
+        None,
+        None,
+    )
+    repository.items[saved.revision_id] = saved
+
+    report = ValidateDraft(lambda: work, Release0AvailabilityPolicy())(
+        saved.revision_id,
+        expected_version=3,
+    )
+
+    assert repository.validation_report == report
+    assert report.revision_version == 3

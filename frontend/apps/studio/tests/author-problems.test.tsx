@@ -1,5 +1,5 @@
 import type { AuthorDraftList } from '@ioai/api-client';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { AuthorProblemsView } from '../src/components/author-problems-view';
 
@@ -11,6 +11,7 @@ const result: AuthorDraftList = {
     version: 2,
     editorial_status: 'DRAFT',
     last_saved_at: '2026-08-09T00:00:00Z',
+    validation_summary: null,
   }],
 };
 
@@ -31,5 +32,18 @@ describe('IOAI Studio author problem list', () => {
 
     expect(screen.getByRole('heading', { name: 'No author problems yet' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Create the first problem' })).toBeTruthy();
+  });
+
+  it('filters drafts by search and editorial status', () => {
+    const twoDrafts: AuthorDraftList = { count: 2, items: [
+      result.items[0]!,
+      { ...result.items[0]!, problem_id: 'problem-review', revision_id: 'revision-review', editorial_status: 'IN_REVIEW' },
+    ] };
+    render(<AuthorProblemsView result={twoDrafts} />);
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search author problems' }), { target: { value: 'review' } });
+    expect(screen.queryByText('problem-1')).toBeNull();
+    expect(screen.getByText('problem-review')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Draft/ }));
+    expect(screen.getByText('No matching author problems')).toBeTruthy();
   });
 });

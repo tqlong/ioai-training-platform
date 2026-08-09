@@ -108,4 +108,14 @@ describe('canonical curriculum editor', () => {
       target_identity: ['TOPIC', 'ML_CONFUSION_MATRIX'],
     });
   });
+
+  it('shows an actionable blocker for a selected unavailable canonical value', () => {
+    const unavailable = {
+      ...record('PATHWAY_STAGE', 'AI_3_NATIONAL', 'National selection'),
+      availability: { is_available: false, reason_code: 'UNAVAILABLE_IN_RELEASE_0', message: 'AI_3_NATIONAL is canonical but unavailable in Release 0.' },
+    };
+    const value = { ...emptyCurriculumDraft(), stage: ['PATHWAY_STAGE', 'AI_3_NATIONAL'] as [string, string] };
+    render(<CurriculumEditor onChange={() => undefined} value={value} vocabulary={[...vocabulary, unavailable]} />);
+    expect(screen.getByRole('alert').textContent).toContain('Select an available Release 0 pathway stage');
+  });
 });

@@ -6,7 +6,7 @@ from types import TracebackType
 from typing import Protocol, Self
 
 from ioai.domain.problems.identity import ProblemId, RevisionId
-from ioai.domain.problems.revision import ProblemRevision
+from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import EditorialStatus
 
 
@@ -17,6 +17,7 @@ class DraftSummary:
     version: int
     status: EditorialStatus
     last_saved_at: datetime
+    validation_summary: dict[str, object] | None = None
 
 
 class DraftRepository(Protocol):
@@ -26,7 +27,9 @@ class DraftRepository(Protocol):
 
     def get_current(self, problem_id: ProblemId) -> ProblemRevision: ...
 
-    def list(self) -> tuple[DraftSummary, ...]: ...
+    def list(
+        self, *, search: str | None = None, status: EditorialStatus | None = None
+    ) -> tuple[DraftSummary, ...]: ...
 
     def save(
         self,
@@ -34,6 +37,8 @@ class DraftRepository(Protocol):
         expected_version: int,
         saved_at: datetime,
     ) -> ProblemRevision: ...
+
+    def record_validation(self, report: ValidationReport) -> None: ...
 
 
 class DraftUnitOfWork(Protocol):

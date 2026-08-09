@@ -21,6 +21,7 @@ export type PublicVocabularyQuery = {
   limit?: number;
 };
 export type AuthorVocabularyQuery = PublicVocabularyQuery;
+export type AuthorDraftQuery = { search?: string; editorialStatus?: string };
 
 export type FetchFunction = (
   input: string,
@@ -49,7 +50,7 @@ export type ApiClient = {
   listPublicVocabulary: (
     query: PublicVocabularyQuery,
   ) => Promise<PublicVocabularyResponse>;
-  listAuthorDrafts: () => Promise<AuthorDraftList>;
+  listAuthorDrafts: (query?: AuthorDraftQuery) => Promise<AuthorDraftList>;
   listAuthorVocabulary: (
     query: AuthorVocabularyQuery,
   ) => Promise<AuthorVocabularyResponse>;
@@ -92,8 +93,12 @@ export const createApiClient = ({
       if (!response.ok) throw toApiError(payload, response.status);
       return payload as PublicVocabularyResponse;
     },
-    async listAuthorDrafts() {
-      return requestJson<AuthorDraftList>(fetchFn, `${normalizedBaseUrl}/author/problems`);
+    async listAuthorDrafts(query = {}) {
+      const parameters = new URLSearchParams();
+      if (query.search !== undefined) parameters.set('search', query.search);
+      if (query.editorialStatus !== undefined) parameters.set('editorial_status', query.editorialStatus);
+      const suffix = parameters.size ? `?${parameters.toString()}` : '';
+      return requestJson<AuthorDraftList>(fetchFn, `${normalizedBaseUrl}/author/problems${suffix}`);
     },
     async listAuthorVocabulary(query) {
       const parameters = vocabularyParameters(query);
@@ -117,7 +122,7 @@ export const createApiClient = ({
     async saveAuthorDraft(revisionId, request) {
       return requestJson<AuthorDraft>(
         fetchFn,
-        `${normalizedBaseUrl}/author/problems/revisions/${encodeURIComponent(revisionId)}`,
+        `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}`,
         { method: 'PUT', body: JSON.stringify(request) },
       );
     },

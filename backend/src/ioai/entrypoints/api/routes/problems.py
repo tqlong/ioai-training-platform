@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
 from ioai.application.problems.errors import (
@@ -12,6 +12,7 @@ from ioai.application.problems.errors import (
 from ioai.application.problems.payload import encode_revision_payload
 from ioai.domain.problems.identity import ProblemId, RevisionId
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
+from ioai.domain.problems.workflow import EditorialStatus
 
 from ..contracts.errors import ErrorResponse
 from ..contracts.problems import (
@@ -31,7 +32,9 @@ from ..contracts.problems import (
 class AuthorProblemService(Protocol):
     def create(self) -> ProblemRevision: ...
 
-    def list(self) -> tuple[AuthorDraftListItem, ...]: ...
+    def list(
+        self, *, search: str | None = None, status: EditorialStatus | None = None
+    ) -> tuple[AuthorDraftListItem, ...]: ...
 
     def get(self, problem_id: ProblemId) -> ProblemRevision: ...
 
@@ -62,8 +65,14 @@ def author_problem_router(service: AuthorProblemService) -> APIRouter:
         return _draft_response(service.create())
 
     @router.get("", response_model=AuthorDraftListResponse)
-    def list_drafts() -> AuthorDraftListResponse:
-        items = [_summary_response(item) for item in service.list()]
+    def list_drafts(
+        search: str | None = Query(default=None, min_length=1, max_length=128),
+        editorial_status: EditorialStatus | None = None,
+    ) -> AuthorDraftListResponse:
+        items = [
+            _summary_response(item)
+            for item in service.list(search=search, status=editorial_status)
+        ]
         return AuthorDraftListResponse(items=items, count=len(items))
 
     @router.get(
@@ -80,8 +89,14 @@ def author_problem_router(service: AuthorProblemService) -> APIRouter:
                 detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
             ) from error
 
+    return router
+
+
+def author_revision_router(service: AuthorProblemService) -> APIRouter:
+    router = APIRouter(prefix="/author/revisions", tags=["author-revisions"])
+
     @router.put(
-        "/revisions/{revision_id}",
+        "/{revision_id}",
         response_model=AuthorDraftResponse,
         responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
     )
@@ -102,12 +117,6 @@ def author_problem_router(service: AuthorProblemService) -> APIRouter:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
             ) from error
-
-    return router
-
-
-def author_revision_router(service: AuthorProblemService) -> APIRouter:
-    router = APIRouter(prefix="/author/revisions", tags=["author-revisions"])
 
     @router.post(
         "/{revision_id}/validate",
@@ -294,4 +303,5 @@ def _summary_response(item: AuthorDraftListItem) -> AuthorDraftListItemResponse:
         version=item.version,
         editorial_status=item.status.value,
         last_saved_at=item.last_saved_at,
+        validation_summary=item.validation_summary,
     )

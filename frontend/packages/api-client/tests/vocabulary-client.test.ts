@@ -89,4 +89,14 @@ describe('generated vocabulary client', () => {
     await client.previewAuthorDraft('revision-1', request);
     expect(fetchFn).toHaveBeenCalledWith('http://localhost:8000/api/v1/author/revisions/revision-1/preview', expect.objectContaining({ method: 'POST', body: JSON.stringify(request) }));
   });
+
+  it('sends author-list search and editorial status filters', async () => {
+    const fetchFn = vi.fn(async () => Response.json({ items: [], count: 0 }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    await client.listAuthorDrafts({ search: 'metrics', editorialStatus: 'DRAFT' });
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/author/problems?search=metrics&editorial_status=DRAFT',
+      expect.any(Object),
+    );
+  });
 });

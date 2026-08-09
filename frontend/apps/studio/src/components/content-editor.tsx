@@ -48,7 +48,10 @@ export function ContentEditor({
   onChange: (value: ContentDraft) => void;
 }) {
   const [language, setLanguage] = useState<'en' | 'vi'>('en');
+  const [newBlockType, setNewBlockType] = useState('EXAMPLE');
   const languageName = language === 'en' ? 'English' : 'Vietnamese';
+  const objectiveText = value.objectives[0]?.[language] ?? '';
+  const objectiveWarning = language === 'en' && /^(know|learn|understand)\b/i.test(objectiveText.trim());
 
   const updateLocalized = (
     target: LocalizedDraft,
@@ -75,6 +78,7 @@ export function ContentEditor({
       {multiline ? (
         <textarea
           aria-label={`${languageName} ${label}`}
+          aria-describedby={label === 'learning objective' ? `objective-guidance${objectiveWarning ? ' objective-warning' : ''}` : undefined}
           id={`field-content-${label.replaceAll(' ', '-')}-${language}`}
           onChange={(event) => update(updateLocalized(target, event.target.value))}
           rows={label === 'title' ? 2 : 5}
@@ -83,6 +87,7 @@ export function ContentEditor({
       ) : (
         <input
           aria-label={`${languageName} ${label}`}
+          aria-describedby={label === 'learning objective' ? `objective-guidance${objectiveWarning ? ' objective-warning' : ''}` : undefined}
           id={`field-content-${label.replaceAll(' ', '-')}-${language}`}
           onChange={(event) => update(updateLocalized(target, event.target.value))}
           value={target[language]}
@@ -90,6 +95,20 @@ export function ContentEditor({
       )}
     </label>
   );
+  const renumber = (blocks: ContentDraft['blocks']) => blocks.map((block, index) => ({ ...block, order: index + 1 }));
+  const moveBlock = (index: number, offset: -1 | 1) => {
+    const target = index + offset;
+    if (target < 0 || target >= value.blocks.length) return;
+    const blocks = [...value.blocks];
+    [blocks[index], blocks[target]] = [blocks[target]!, blocks[index]!];
+    onChange({ ...value, blocks: renumber(blocks) });
+  };
+  const addBlock = () => {
+    const revealOrder = newBlockType === 'HINT'
+      ? Math.max(0, ...value.blocks.filter((block) => block.kind === 'HINT').map((block) => block.reveal_order ?? 0)) + 1
+      : null;
+    onChange({ ...value, blocks: renumber([...value.blocks, { kind: newBlockType, content: blankLocalized(), order: value.blocks.length + 1, reveal_order: revealOrder }]) });
+  };
 
   return (
     <section aria-labelledby="content-heading" className="editor-section" id="content">
@@ -99,8 +118,8 @@ export function ContentEditor({
           <p>Edit one language at a time. Both translations remain in this draft.</p>
         </div>
         <div aria-label="Editing language" className="language-toggle" role="group">
-          <button aria-pressed={language === 'en'} onClick={() => setLanguage('en')} type="button">Edit English</button>
-          <button aria-pressed={language === 'vi'} onClick={() => setLanguage('vi')} type="button">Edit Vietnamese</button>
+          <button aria-label="Edit English" aria-pressed={language === 'en'} onClick={() => setLanguage('en')} type="button">EN</button>
+          <button aria-label="Edit Vietnamese" aria-pressed={language === 'vi'} onClick={() => setLanguage('vi')} type="button">VI</button>
         </div>
       </div>
 
@@ -128,8 +147,11 @@ export function ContentEditor({
       {field('learning objective', value.objectives[0], (objective) => onChange({
         ...value, objectives: [objective, ...value.objectives.slice(1)],
       }))}
+      <p id="objective-guidance">Use an observable verb + knowledge or skill + conditions or constraints.</p>
+      {objectiveWarning && <p id="objective-warning" role="alert">Replace vague verbs such as know, learn, or understand with an observable verb.</p>}
       {value.blocks.map((block, index) => (
-        <div key={`${block.kind}-${block.order}`}>
+        <fieldset aria-label={`Content block ${index + 1}`} key={`${block.kind}-${block.order}`}>
+          <legend>{blockLabel(block.kind)} · block {index + 1}</legend>
           {field(
             blockLabel(block.kind),
             block.content,
@@ -140,8 +162,17 @@ export function ContentEditor({
               )),
             }),
           )}
-        </div>
+          <div className="repeated-actions">
+            <button aria-label={`Move block ${index + 1} up`} disabled={index === 0} onClick={() => moveBlock(index, -1)} type="button">Move up</button>
+            <button aria-label={`Move block ${index + 1} down`} disabled={index === value.blocks.length - 1} onClick={() => moveBlock(index, 1)} type="button">Move down</button>
+            <button aria-label={`Remove block ${index + 1}`} onClick={() => onChange({ ...value, blocks: renumber(value.blocks.filter((_, itemIndex) => itemIndex !== index)) })} type="button">Remove</button>
+          </div>
+        </fieldset>
       ))}
+      <div className="repeated-actions">
+        <label><span>New block type</span><select aria-label="New block type" onChange={(event) => setNewBlockType(event.target.value)} value={newBlockType}>{['STATEMENT', 'PROVIDED_INFORMATION', 'EXAMPLE', 'CONSTRAINT', 'HINT', 'EXPLANATION', 'FEEDBACK'].map((kind) => <option key={kind} value={kind}>{blockLabel(kind)}</option>)}</select></label>
+        <button onClick={addBlock} type="button">Add content block</button>
+      </div>
     </section>
   );
 }

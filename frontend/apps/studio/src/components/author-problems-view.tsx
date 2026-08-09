@@ -1,8 +1,19 @@
+'use client';
+
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 
 import type { AuthorDraftList } from '@ioai/api-client';
 
 export function AuthorProblemsView({ result }: { result: AuthorDraftList }) {
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('ALL');
+  const filtered = useMemo(() => result.items.filter((draft) => {
+    const needle = search.trim().toLocaleLowerCase();
+    const matchesSearch = !needle || draft.problem_id.toLocaleLowerCase().includes(needle) || draft.revision_id.toLocaleLowerCase().includes(needle);
+    return matchesSearch && (status === 'ALL' || draft.editorial_status === status);
+  }), [result.items, search, status]);
+  const setStatusFilter = (next: string) => setStatus(next);
   return (
     <section aria-labelledby="author-problems-title" className="studio-page">
       <div className="page-heading">
@@ -17,20 +28,20 @@ export function AuthorProblemsView({ result }: { result: AuthorDraftList }) {
       </div>
 
       <div aria-label="Problem status" className="status-tabs" role="group">
-        <button aria-pressed="true" type="button">All ({result.count})</button>
-        <button aria-pressed="false" type="button">Draft</button>
-        <button aria-pressed="false" type="button">In review</button>
-        <button aria-pressed="false" type="button">Changes requested</button>
+        <button aria-pressed={status === 'ALL'} onClick={() => setStatusFilter('ALL')} type="button">All ({result.count})</button>
+        <button aria-pressed={status === 'DRAFT'} onClick={() => setStatusFilter('DRAFT')} type="button">Draft</button>
+        <button aria-pressed={status === 'IN_REVIEW'} onClick={() => setStatusFilter('IN_REVIEW')} type="button">In review</button>
+        <button aria-pressed={status === 'CHANGES_REQUESTED'} onClick={() => setStatusFilter('CHANGES_REQUESTED')} type="button">Changes requested</button>
       </div>
 
       <div className="list-tools">
         <label>
           <span>Search author problems</span>
-          <input name="search" placeholder="Search title or problem ID" type="search" />
+          <input name="search" onChange={(event) => setSearch(event.target.value)} placeholder="Search problem or revision ID" type="search" value={search} />
         </label>
         <label>
           <span>Editorial status</span>
-          <select name="status" defaultValue="ALL">
+          <select name="status" onChange={(event) => setStatusFilter(event.target.value)} value={status}>
             <option value="ALL">All statuses</option>
             <option value="DRAFT">Draft</option>
             <option value="IN_REVIEW">In review</option>
@@ -44,6 +55,8 @@ export function AuthorProblemsView({ result }: { result: AuthorDraftList }) {
           <p>Start the first structured draft. Nothing is public until publication.</p>
           <Link href="/author/problems/new">Create the first problem</Link>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="empty-state"><h2>No matching author problems</h2><p>Adjust the search or editorial status.</p><button onClick={() => { setSearch(''); setStatusFilter('ALL'); }} type="button">Clear filters</button></div>
       ) : (
         <div className="draft-table-wrap">
           <table>
@@ -54,16 +67,18 @@ export function AuthorProblemsView({ result }: { result: AuthorDraftList }) {
                 <th scope="col">Status</th>
                 <th scope="col">Revision</th>
                 <th scope="col">Last saved</th>
+                <th scope="col">Validation</th>
                 <th scope="col"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
-              {result.items.map((draft) => (
+              {filtered.map((draft) => (
                 <tr key={draft.revision_id}>
                   <td><code>{draft.problem_id}</code></td>
                   <td><span className="status-label">{formatStatus(draft.editorial_status)}</span></td>
                   <td><code>{draft.revision_id}</code> · v{draft.version}</td>
                   <td><time dateTime={draft.last_saved_at}>{formatDate(draft.last_saved_at)}</time></td>
+                  <td>{formatValidation(draft.validation_summary)}</td>
                   <td><Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link></td>
                 </tr>
               ))}
@@ -81,3 +96,9 @@ const formatDate = (value: string) => new Intl.DateTimeFormat('en', {
   timeStyle: 'short',
   timeZone: 'UTC',
 }).format(new Date(value));
+
+const formatValidation = (summary: Record<string, unknown> | null) => {
+  if (!summary) return 'Not validated';
+  if (summary.publication_eligible === true) return 'Eligible';
+  return `${String(summary.error_count ?? 0)} blockers`;
+};

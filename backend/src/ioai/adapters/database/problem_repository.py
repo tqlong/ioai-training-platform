@@ -5,7 +5,7 @@ from datetime import datetime
 from types import TracebackType
 from typing import Self
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
 from ioai.application.problems.errors import (
@@ -18,10 +18,18 @@ from ioai.application.problems.payload import (
 )
 from ioai.application.problems.ports import DraftRepository, DraftSummary
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
-from ioai.domain.problems.revision import ProblemRevision
+from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import EditorialStatus
 
-from .problem_model import ProblemModel, ProblemRevisionModel
+from .problem_model import (
+    PrerequisiteReferenceModel,
+    ProblemModel,
+    ProblemRevisionModel,
+    ResponseConfigurationModel,
+    RevisionCompetencyModel,
+    RevisionTopicModel,
+    ScoringComponentModel,
+)
 
 StoredDraftSummary = DraftSummary
 
@@ -39,6 +47,7 @@ class SqlAlchemyDraftRepository:
             )
         )
         self._session.add(_revision_model(revision, created_at, created_at))
+        _replace_associations(self._session, revision)
 
     def get(self, revision_id: RevisionId) -> ProblemRevision:
         row = self._session.get(ProblemRevisionModel, revision_id.value)
@@ -64,8 +73,23 @@ class SqlAlchemyDraftRepository:
             raise DraftNotFoundError(RevisionId(problem_id.value))
         return _revision_domain(problem, row)
 
-    def list(self) -> tuple[DraftSummary, ...]:
-        statement = select(ProblemRevisionModel).order_by(
+    def list(
+        self, *, search: str | None = None, status: EditorialStatus | None = None
+    ) -> tuple[DraftSummary, ...]:
+        statement = select(ProblemRevisionModel)
+        if search:
+            pattern = f"%{search.strip()}%"
+            statement = statement.where(
+                or_(
+                    ProblemRevisionModel.problem_id.ilike(pattern),
+                    ProblemRevisionModel.revision_id.ilike(pattern),
+                )
+            )
+        if status is not None:
+            statement = statement.where(
+                ProblemRevisionModel.editorial_status == status.value
+            )
+        statement = statement.order_by(
             ProblemRevisionModel.updated_at.desc(),
             ProblemRevisionModel.revision_id,
         )
@@ -76,6 +100,7 @@ class SqlAlchemyDraftRepository:
                 version=row.lock_version,
                 status=EditorialStatus(row.editorial_status),
                 last_saved_at=row.updated_at,
+                validation_summary=row.validation_summary,
             )
             for row in self._session.scalars(statement)
         )
@@ -103,6 +128,7 @@ class SqlAlchemyDraftRepository:
                 lock_version=next_version,
                 editorial_status=revision.status.value,
                 content=payload,
+                validation_summary=None,
                 updated_at=saved_at,
             )
             .returning(ProblemRevisionModel.revision_id)
@@ -119,7 +145,19 @@ class SqlAlchemyDraftRepository:
         if problem is None:
             raise DraftNotFoundError(revision.revision_id)
         problem.slug = revision.slug.value if revision.slug else None
+        _replace_associations(self._session, revision)
         return replace(revision, version=next_version)
+
+    def record_validation(self, report: ValidationReport) -> None:
+        row = self._session.get(ProblemRevisionModel, report.revision_id.value)
+        if row is None:
+            raise DraftNotFoundError(report.revision_id)
+        row.validation_summary = {
+            "revision_version": report.revision_version,
+            "error_count": len(report.errors),
+            "warning_count": len(report.warnings),
+            "publication_eligible": report.publication_eligible,
+        }
 
 
 class SqlAlchemyDraftUnitOfWork:
@@ -194,3 +232,87 @@ def _revision_domain(
         response=response,
         scoring=scoring,
     )
+
+
+def _replace_associations(session: Session, revision: ProblemRevision) -> None:
+    revision_id = revision.revision_id.value
+    for model in (
+        ScoringComponentModel,
+        ResponseConfigurationModel,
+        PrerequisiteReferenceModel,
+        RevisionTopicModel,
+        RevisionCompetencyModel,
+    ):
+        session.execute(delete(model).where(model.revision_id == revision_id))
+
+    metadata = revision.metadata
+    if metadata is not None:
+        competencies = (
+            (metadata.primary_competency, "PRIMARY", 0),
+            *(
+                (identity, "SECONDARY", position)
+                for position, identity in enumerate(
+                    metadata.secondary_competencies, start=1
+                )
+            ),
+        )
+        session.add_all(
+            RevisionCompetencyModel(
+                revision_id=revision_id,
+                vocabulary_type=identity.vocabulary_type.value,
+                code=identity.code,
+                role=role,
+                position=position,
+            )
+            for identity, role, position in competencies
+        )
+        session.add_all(
+            RevisionTopicModel(
+                revision_id=revision_id,
+                vocabulary_type=identity.vocabulary_type.value,
+                code=identity.code,
+                position=position,
+            )
+            for position, identity in enumerate(metadata.topics)
+        )
+        session.add_all(
+            PrerequisiteReferenceModel(
+                revision_id=revision_id,
+                relationship=item.relationship.value,
+                target_type=item.target_type.value,
+                target_id=(
+                    item.target_identity.code
+                    if item.target_identity is not None
+                    else item.target_id
+                ),
+                minimum_evidence=(
+                    item.minimum_evidence.value if item.minimum_evidence else None
+                ),
+            )
+            for item in metadata.prerequisites
+        )
+
+    if revision.response is not None:
+        response_payload = encode_revision_payload(None, None, revision.response, None)[
+            "response"
+        ]
+        if response_payload is None:
+            raise RuntimeError("response encoding unexpectedly returned no payload")
+        session.add(
+            ResponseConfigurationModel(
+                revision_id=revision_id,
+                task_type=revision.response.response_type.value,
+                configuration=response_payload,
+            )
+        )
+    if revision.scoring is not None:
+        session.add_all(
+            ScoringComponentModel(
+                revision_id=revision_id,
+                method=item.method.value,
+                weight=item.weight,
+                position=position,
+                configuration=item.configuration,
+            )
+            for position, item in enumerate(revision.scoring.components)
+        )
