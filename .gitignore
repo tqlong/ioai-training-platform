@@ -22,3 +22,4 @@ test-results/
 *.sqlite3
 uploads/
 minio-data/
+.pnpm-store/

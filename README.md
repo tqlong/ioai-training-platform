@@ -77,6 +77,7 @@ available.
   - `bash scripts/foundation_quality.sh`
   - `bash scripts/foundation_migration_check.sh`
   - `bash scripts/dev_start.sh`
+  - `bash scripts/dev_redeploy.sh`
   - `bash scripts/dev_stop.sh`
   - `bash scripts/dev_migrate.sh`
   - `bash scripts/dev_seed.sh`

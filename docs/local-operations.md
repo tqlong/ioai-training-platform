@@ -2,7 +2,8 @@
 
 ## Start/stop
 
-- `bash scripts/dev_start.sh` starts PostgreSQL, API, Learn, and Studio services.
+- `bash scripts/dev_start.sh` starts PostgreSQL, applies migrations, and starts API, Learn, and Studio services.
+- `bash scripts/dev_redeploy.sh` recreates PostgreSQL, applies migrations, and recreates API, Learn, and Studio while preserving the database volume.
 - `bash scripts/dev_stop.sh` stops all services.
 
 ## Migration and seed
