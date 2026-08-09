@@ -23,6 +23,17 @@ from .content import (
     TranslationState,
 )
 from .identity import ProblemId, RevisionId, StableSlug
+from .metadata import (
+    CurriculumMetadata,
+    ExpectedMinutes,
+    LearningEvidence,
+    NetworkPolicy,
+    PolicyBlocker,
+    PrerequisiteReference,
+    PrerequisiteRelationship,
+    PrerequisiteTargetType,
+    ResourceLimits,
+)
 from .workflow import EditorialStatus
 
 __all__ = [
@@ -31,16 +42,25 @@ __all__ = [
     "CodeTestCase",
     "ContentBlock",
     "ContentBlockKind",
+    "CurriculumMetadata",
     "EditorialStatus",
     "LearningObjective",
+    "LearningEvidence",
     "LocalizedText",
     "NumericResponse",
+    "NetworkPolicy",
+    "ExpectedMinutes",
+    "PolicyBlocker",
+    "PrerequisiteReference",
+    "PrerequisiteRelationship",
+    "PrerequisiteTargetType",
     "ProblemContent",
     "ProblemId",
     "QuizMultipleResponse",
     "QuizSingleResponse",
     "ResponseConfiguration",
     "ResponseType",
+    "ResourceLimits",
     "RevisionId",
     "StableSlug",
     "ScoringComponent",

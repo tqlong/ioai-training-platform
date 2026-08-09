@@ -11,3 +11,7 @@ class InvalidProblemContentError(ProblemDomainError):
 
 class InvalidAssessmentConfigurationError(ProblemDomainError):
     """A response or scoring configuration violates an assessment invariant."""
+
+
+class InvalidProblemMetadataError(ProblemDomainError):
+    """Curriculum, prerequisite, or resource metadata is invalid."""

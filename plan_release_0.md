@@ -567,7 +567,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   decimals, require at least one component and a total of exactly `1.0`, and
   reject fields or scoring methods that do not apply to the selected variant.
   Suggested commit: `feat(problems): model response and scoring`.
-- [ ] **R0-06004 — Define curriculum, prerequisite, and resource values from
+- [x] **R0-06004 — Define curriculum, prerequisite, and resource values from
   `AC-R0-013-07` through `AC-R0-013-14`, analysis sections 4.2 and 5.2-5.4,
   and design sections 3.2-3.3.** Test exact cardinalities for stage, difficulty,
   task type, primary and zero-to-three secondary competencies; typed canonical
