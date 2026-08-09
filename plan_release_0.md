@@ -898,7 +898,7 @@ same transaction as its state change.
   blockers, and the rule that the prior public snapshot remains unchanged
   throughout unpublished edits. Suggested commit:
   `test(e2e): cover editorial publication workflow`.
-- [ ] **R0-07014 — Baseline Phase 7 against R0-014, analysis sections 8-10,
+- [x] **R0-07014 — Baseline Phase 7 against R0-014, analysis sections 8-10,
   design sections 4 and 7-13, and `ui_release_0.md`.** Update requirement-to-
   implementation/test traceability and operational documentation; verify
   migration up/down safety, transaction rollback, idempotency, concurrency,

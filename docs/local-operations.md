@@ -34,6 +34,12 @@
 ## Recovery and maintenance
 
 - `bash scripts/foundation_quality.sh` runs baseline quality gates.
+- `bash scripts/phase7_quality.sh` stops API/frontend development services,
+  runs the complete editorial-publication quality and isolation gates,
+  redeploys the database/migrations/backend/frontends, and runs the focused
+  Chromium workflow.
+- `bash scripts/test_editorial_e2e.sh` runs the editorial publication browser
+  workflow against an already healthy local stack.
 - `bash scripts/db_backup_restore.sh backup` creates a PostgreSQL dump.
 - `bash scripts/db_backup_restore.sh restore <file>` restores from backup.
 - `bash scripts/db_backup_restore.sh reset` recreates stack data by removing local volumes.
@@ -44,3 +50,5 @@
 - Studio is published on host loopback at `127.0.0.1:3001`; this is not
   authentication or production authorization.
 - Backup/restore applies only to PostgreSQL data; browser-local progress is intentionally not stored there.
+- Playwright failure traces, screenshots, and the HTML report are local ignored
+  artifacts under `test-results/` and `playwright-report/`.

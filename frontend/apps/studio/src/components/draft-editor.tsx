@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 
 import { ApiError, type AuthorDraft, type SaveDraftRequest, type ValidationReport } from '@ioai/api-client';
@@ -78,6 +78,7 @@ export function DraftEditor({
   const [recoveryAvailable, setRecoveryAvailable] = useState(false);
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [validationFailed, setValidationFailed] = useState(false);
+  const previewing = useRef(false);
   const recoveryKey = `ioai:studio:recovery:${initialDraft.revision_id}`;
 
   const isDirty = dirtyFields.size > 0;
@@ -115,6 +116,7 @@ export function DraftEditor({
   }, [initialDraft.problem_id, initialDraft.revision_id, recoveryKey]);
 
   const save = async () => {
+    if (previewing.current) return;
     setSaveState('saving');
     try {
       const saved = await saveDraft(draft.revision_id, request);
@@ -246,6 +248,7 @@ export function DraftEditor({
           <Link
             href={`/author/problems/${draft.problem_id}/preview`}
             onClick={() => {
+              previewing.current = true;
               try {
                 sessionStorage.setItem(`ioai:studio:preview:${draft.revision_id}`, JSON.stringify({
                   expected_version: draft.version,

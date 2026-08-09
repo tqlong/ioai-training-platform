@@ -76,6 +76,9 @@ available.
 - Foundation scripts:
   - `bash scripts/foundation_quality.sh`
   - `bash scripts/foundation_migration_check.sh`
+  - `bash scripts/phase7_quality.sh`
+  - `bash scripts/test_editorial_e2e.sh`
+  - `bash scripts/public_isolation_check.sh`
   - `bash scripts/dev_start.sh`
   - `bash scripts/dev_redeploy.sh`
   - `bash scripts/dev_stop.sh`

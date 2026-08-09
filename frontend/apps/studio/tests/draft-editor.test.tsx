@@ -18,7 +18,7 @@ const draft: AuthorDraft = {
 };
 
 describe('draft editor coordinator', () => {
-  afterEach(() => { localStorage.clear(); vi.useRealTimers(); });
+  afterEach(() => { localStorage.clear(); sessionStorage.clear(); vi.useRealTimers(); });
   it('owns draft identity and keeps editorial actions distinct', () => {
     render(<DraftEditor initialDraft={draft} />);
 
@@ -82,6 +82,27 @@ describe('draft editor coordinator', () => {
     expect(saveDraft).toHaveBeenCalledTimes(1);
     expect(screen.getByText('Save failed')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('ioai:studio:recovery:revision-1') ?? '{}')).toMatchObject({ schemaVersion: 1, slug: 'second', serverVersion: 1 });
+  });
+
+  it('keeps unsaved preview state stable instead of racing the autosave timer', async () => {
+    vi.useFakeTimers();
+    const saveDraft = vi.fn();
+    render(<DraftEditor autosaveDelay={800} initialDraft={draft} saveDraft={saveDraft} />);
+    fireEvent.change(screen.getByRole('textbox', { name: 'English title' }), {
+      target: { value: 'Unsaved preview title' },
+    });
+
+    const previewLink = screen.getByRole('link', { name: 'Preview as learner' });
+    previewLink.addEventListener('click', (event) => event.preventDefault());
+    fireEvent.click(previewLink);
+    await act(async () => { await vi.advanceTimersByTimeAsync(800); });
+
+    expect(saveDraft).not.toHaveBeenCalled();
+    expect(JSON.parse(sessionStorage.getItem('ioai:studio:preview:revision-1') ?? '{}'))
+      .toMatchObject({
+        expected_version: 1,
+        unsaved_state: { content: { title: { en: 'Unsaved preview title' } } },
+      });
   });
 
   it('requires an explicit choice after a revision conflict', async () => {
