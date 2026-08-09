@@ -12,7 +12,7 @@ it('retries safely with one key and renders actionable assessment feedback', asy
   const submit = vi.fn()
     .mockRejectedValueOnce(new Error('provider secret'))
     .mockResolvedValueOnce({ attempt_id: 'a1', outcome: 'ACCEPTED_RESULT', score: '0.5', passed: false, components: [{ method: 'EXACT_MATCH', score: '0.5' }], message: 'Your answer was assessed.' });
-  render(<ResponseEntry slug="metrics" schema={schema} submit={submit} keyGenerator={() => 'stable-key'} />);
+  render(<ResponseEntry slug="metrics" title="Metrics" schema={schema} submit={submit} keyGenerator={() => 'stable-key'} />);
   fireEvent.click(screen.getByRole('radio', { name: 'Alpha' }));
   fireEvent.click(screen.getByRole('button', { name: 'Submit answer' }));
   expect(await screen.findByRole('alert')).toHaveTextContent('could not be assessed');
@@ -26,7 +26,7 @@ it('retries safely with one key and renders actionable assessment feedback', asy
 
 it('renders pending assessment without claiming completion', async () => {
   const submit = vi.fn().mockResolvedValue({ attempt_id: 'a1', outcome: 'PENDING_ASSESSMENT', message: 'Your answer is waiting for assessment.' });
-  render(<ResponseEntry slug="metrics" schema={schema} submit={submit} keyGenerator={() => 'key'} />);
+  render(<ResponseEntry slug="metrics" title="Metrics" schema={schema} submit={submit} keyGenerator={() => 'key'} />);
   fireEvent.click(screen.getByRole('radio', { name: 'Beta' }));
   fireEvent.click(screen.getByRole('button', { name: 'Submit answer' }));
   expect(await screen.findByText('Your answer is waiting for assessment.')).toBeInTheDocument();

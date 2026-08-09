@@ -4,11 +4,13 @@ import type { PublicProblemDetail, PublicSubmissionRequest, PublicSubmissionResu
 import { useRef, useState } from 'react';
 
 import { learnApi } from '../api';
+import { browserProgressAdapter } from '../learner-progress';
 import { ResponseForm, type LearnerResponse } from './response-form';
 
 type Submit = (slug: string, request: PublicSubmissionRequest) => Promise<PublicSubmissionResult>;
 type Props = {
   slug: string;
+  title: string;
   schema: PublicProblemDetail['response_schema'];
   submit?: Submit;
   keyGenerator?: () => string;
@@ -16,6 +18,7 @@ type Props = {
 
 export function ResponseEntry({
   slug,
+  title,
   schema,
   submit = (problemSlug, request) => learnApi.submitPublicProblem(problemSlug, request),
   keyGenerator = () => crypto.randomUUID(),
@@ -33,10 +36,17 @@ export function ResponseEntry({
     setPending(true);
     setError(false);
     try {
-      setResult(await submit(slug, {
+      const assessed = await submit(slug, {
         submission_key: submissionKey.current,
         response: answer,
-      }));
+      });
+      setResult(assessed);
+      browserProgressAdapter()?.record({
+        slug, title,
+        status: assessed.outcome === 'ACCEPTED_RESULT' && assessed.passed
+          ? 'COMPLETED'
+          : 'ATTEMPTED',
+      });
     } catch {
       setError(true);
     } finally {

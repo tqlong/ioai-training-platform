@@ -8,6 +8,7 @@ import {
   type StarterRecommendation,
 } from './learning-guidance';
 import { ProblemResultsTable } from './problem-results-table';
+import { browserProgressAdapter, type LearnerProgress } from '../learner-progress';
 
 
 export type VocabularyOption = { code: string; label: string };
@@ -123,11 +124,26 @@ export function ProblemDiscovery({
   starter,
 }: ProblemDiscoveryProps) {
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [progress, setProgress] = useState<LearnerProgress['problems']>({});
+  const [storageUnavailable, setStorageUnavailable] = useState(false);
   const openFiltersButton = useRef<HTMLButtonElement>(null);
   const firstFilter = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (filtersOpen) firstFilter.current?.focus();
   }, [filtersOpen]);
+  useEffect(() => {
+    const adapter = browserProgressAdapter();
+    if (!adapter) return setStorageUnavailable(true);
+    const restored = adapter.read();
+    setProgress(restored.state.problems);
+    setStorageUnavailable(!restored.available);
+    const update = (event: Event) => {
+      const state = (event as CustomEvent<LearnerProgress>).detail;
+      setProgress(state.problems);
+    };
+    window.addEventListener('ioai-progress', update);
+    return () => window.removeEventListener('ioai-progress', update);
+  }, []);
   const queryParams = toSearchParams(query);
   const families = vocabulary.topics.filter((item) => item.parentCode === null);
   const activeFilters = activeFilterEntries(query, vocabulary);
@@ -173,6 +189,7 @@ export function ProblemDiscovery({
           </button>
         ))}
       </div>
+      {storageUnavailable ? <p className="storage-notice" role="status">Progress is temporary because storage is unavailable on this device. Browsing and solving still work.</p> : null}
 
       {starter ? (
         <LearningGuidance
@@ -335,6 +352,7 @@ export function ProblemDiscovery({
             items={items}
             labels={labels}
             returnUrl={queryParams.size ? `/problems?${queryParams}` : '/problems'}
+            progress={progress}
           />
         ) : (
           <div className="empty-results" role="status" aria-label="No matching problems">

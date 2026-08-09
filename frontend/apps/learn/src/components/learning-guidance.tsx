@@ -3,9 +3,8 @@
 import { createApiClient, type ApiClient } from '@ioai/api-client';
 import { useEffect, useState } from 'react';
 
+import { browserProgressAdapter, LEARNER_PROGRESS_KEY, parseLearnerProgress } from '../learner-progress';
 
-const STORAGE_KEY = 'ioai.learn.guidance.v1';
-const MAX_STORAGE_LENGTH = 20_000;
 const EMPTY_LABELS: Record<string, string> = {};
 
 export type StarterRecommendation = {
@@ -52,9 +51,9 @@ export function LearningGuidance({
   const [reason, setReason] = useState('First published problem in this stage.');
 
   useEffect(() => {
-    const source = storage ?? safeLocalStorage();
-    if (!source) return;
-    const restored = parseLearningGuidanceContext(source.getItem(STORAGE_KEY));
+    const restored = storage
+      ? parseLearningGuidanceContext(storage.getItem(LEARNER_PROGRESS_KEY))
+      : browserProgressAdapter()?.read().state ?? null;
     setContext(restored);
     const current = restored?.recentCompleted[0];
     if (!current || !starter.stageCode) return;
@@ -147,74 +146,4 @@ export function LearningGuidance({
 
 export const parseLearningGuidanceContext = (
   raw: string | null,
-): LearningGuidanceContext | null => {
-  if (!raw || raw.length > MAX_STORAGE_LENGTH) return null;
-  try {
-    const value: unknown = JSON.parse(raw);
-    if (!isRecord(value) || value.schemaVersion !== 1) return null;
-    const weeklyGoal = parseProgress(value.weeklyGoal, 365);
-    const currentPath = parseCurrentPath(value.currentPath);
-    if (value.weeklyGoal !== undefined && !weeklyGoal) return null;
-    if (value.currentPath !== undefined && !currentPath) return null;
-    return {
-      schemaVersion: 1,
-      weeklyGoal,
-      currentPath,
-      prerequisites: stringList(value.prerequisites, 3),
-      recentCompleted: recentList(value.recentCompleted),
-      suggestedTopics: topicList(value.suggestedTopics),
-    };
-  } catch {
-    return null;
-  }
-};
-
-const safeLocalStorage = (): StorageReader | undefined => {
-  try {
-    return window.localStorage;
-  } catch {
-    return undefined;
-  }
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const boundedInteger = (value: unknown, maximum: number): value is number =>
-  Number.isInteger(value) && typeof value === 'number' && value >= 0 && value <= maximum;
-
-const parseProgress = (
-  value: unknown,
-  maximum: number,
-): { target: number; completed: number } | undefined => {
-  if (value === undefined) return undefined;
-  if (!isRecord(value) || !boundedInteger(value.target, maximum) || value.target < 1) return undefined;
-  if (!boundedInteger(value.completed, value.target)) return undefined;
-  return { target: value.target, completed: value.completed };
-};
-
-const parseCurrentPath = (
-  value: unknown,
-): { label: string; completed: number; total: number } | undefined => {
-  if (value === undefined) return undefined;
-  if (!isRecord(value) || !shortText(value.label)) return undefined;
-  if (!boundedInteger(value.total, 1_000) || value.total < 1) return undefined;
-  if (!boundedInteger(value.completed, value.total)) return undefined;
-  return { label: value.label, completed: value.completed, total: value.total };
-};
-
-const shortText = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim().length > 0 && value.length <= 160;
-
-const stringList = (value: unknown, maximum: number): string[] =>
-  Array.isArray(value) ? value.filter(shortText).slice(0, maximum) : [];
-
-const recentList = (value: unknown): RecentProblem[] =>
-  Array.isArray(value) ? value.filter((item): item is RecentProblem => (
-    isRecord(item) && shortText(item.slug) && shortText(item.title)
-  )).slice(0, 3) : [];
-
-const topicList = (value: unknown): SuggestedTopic[] =>
-  Array.isArray(value) ? value.filter((item): item is SuggestedTopic => (
-    isRecord(item) && shortText(item.code) && shortText(item.label)
-  )).slice(0, 2) : [];
+): LearningGuidanceContext | null => parseLearnerProgress(raw);

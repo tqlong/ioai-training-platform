@@ -152,6 +152,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #67e8f9; outline-offs
 .submission-error, .assessment-result { margin-top: 0.75rem; border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.8rem; background: white; }
 .submission-error { border-color: #fca5a5; background: #fff7f7; }
 .submission-error button { min-height: 2.75rem; border: 1px solid #991b1b; border-radius: 0.45rem; padding: 0.5rem 0.8rem; background: white; color: #7f1d1d; font: inherit; font-weight: 700; }
+.storage-notice { margin: 0; border-left: 4px solid #ca8a04; padding: 0.7rem 0.9rem; background: #fefce8; color: #713f12; }
 
 @media (max-width: 1023px) {
   .stage-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }

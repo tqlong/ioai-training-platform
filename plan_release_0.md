@@ -1055,7 +1055,7 @@ observe the required red step before implementation.
   Cover malformed, duplicate, delayed, stale-publication, and dependency
   failures across unit, API, integration, and component tests. Suggested commit:
   `feat(learn): submit answers and show assessment feedback`.
-- [ ] **R0-08015 — Implement the versioned anonymous progress adapter from
+- [x] **R0-08015 — Implement the versioned anonymous progress adapter from
   `AC-R0-012-09` through `AC-R0-012-11`.** Store only stable public identity,
   `NOT_STARTED`/`ATTEMPTED`/`COMPLETED`, separate available learning evidence,
   bounded recent history, approved timing/hint counters, and weekly/path context.
