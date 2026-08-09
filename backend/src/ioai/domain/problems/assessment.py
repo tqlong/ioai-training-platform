@@ -131,10 +131,6 @@ class CodeTestCase:
             raise InvalidAssessmentConfigurationError(
                 "test id must be a bounded stable identifier"
             )
-        if not self.invocation.strip() or not self.expected.strip():
-            raise InvalidAssessmentConfigurationError(
-                "test invocation and expected value are required"
-            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,15 +148,7 @@ class CodeFunctionResponse:
             raise InvalidAssessmentConfigurationError(
                 "Release 0 code functions require PYTHON"
             )
-        if not self.signature.strip() or not self.starter_code.strip():
-            raise InvalidAssessmentConfigurationError(
-                "function signature and starter code are required"
-            )
         tests = self.public_tests + self.hidden_tests
-        if not tests:
-            raise InvalidAssessmentConfigurationError(
-                "code function requires at least one test"
-            )
         ids = [test.id for test in tests]
         if len(ids) != len(set(ids)):
             raise InvalidAssessmentConfigurationError("test ids must be unique")

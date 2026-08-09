@@ -99,4 +99,20 @@ describe('generated vocabulary client', () => {
       expect.any(Object),
     );
   });
+
+  it('never caches mutable author draft reads', async () => {
+    const fetchFn = vi.fn(async () => Response.json({
+      problem_id: 'problem-1', revision_id: 'revision-1', version: 8,
+      editorial_status: 'DRAFT', slug: null, content: null, metadata: null,
+      response: null, scoring: null,
+    }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+
+    await client.getAuthorDraft('problem-1');
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/author/problems/problem-1',
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
 });

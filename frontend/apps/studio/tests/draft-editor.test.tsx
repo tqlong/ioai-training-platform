@@ -59,6 +59,19 @@ describe('draft editor coordinator', () => {
     expect(screen.getByText('Version 2')).toBeTruthy();
   });
 
+  it('generates a slug from the English title until the author edits it', () => {
+    render(<DraftEditor initialDraft={draft} />);
+    const title = screen.getByRole('textbox', { name: 'English title' });
+    const slug = screen.getByRole('textbox', { name: 'URL slug' }) as HTMLInputElement;
+
+    fireEvent.change(title, { target: { value: 'Hello, AI World!' } });
+    expect(slug.value).toBe('hello-ai-world');
+
+    fireEvent.change(slug, { target: { value: 'my-first-problem' } });
+    fireEvent.change(title, { target: { value: 'A Different Title' } });
+    expect(slug.value).toBe('my-first-problem');
+  });
+
   it('coalesces idle changes and keeps a versioned recovery copy on failure', async () => {
     vi.useFakeTimers();
     const saveDraft = vi.fn(async () => { throw new Error('offline'); });

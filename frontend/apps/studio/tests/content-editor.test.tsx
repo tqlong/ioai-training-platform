@@ -60,6 +60,17 @@ describe('bilingual structured content editor', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'English learning objective' }), { target: { value: 'Understand confusion matrices' } });
     rerender(<ContentEditor onChange={(next) => { value = next; }} value={value} />);
     const objective = screen.getByRole('textbox', { name: 'English learning objective' });
+    const help = screen.getByRole('button', { name: 'Learning objective help' });
+    const tooltip = screen.getByText(
+      'Use an observable verb + knowledge or skill + conditions or constraints',
+    );
+    expect(help.textContent).toBe('❓');
+    expect(help.getAttribute('aria-describedby')).toBe('objective-guidance');
+    expect(tooltip.textContent).toBe(
+      'Use an observable verb + knowledge or skill + conditions or constraints',
+    );
+    expect(screen.getByRole('button', { name: 'Title help' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Problem statement help' })).toBeTruthy();
     expect(objective.getAttribute('aria-describedby')).toBe('objective-guidance objective-warning');
     expect(screen.getByRole('alert').textContent).toContain('observable verb');
   });

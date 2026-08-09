@@ -25,6 +25,19 @@ const blankLocalized = (): LocalizedDraft => ({
   en: '', vi: '', en_state: 'PENDING', vi_state: 'PENDING',
 });
 
+const fieldHelp: Record<string, string> = {
+  title: 'Use a concise learner-facing name that identifies the problem.',
+  summary: 'Summarize what the learner will do and why it matters.',
+  'learning objective': 'Use an observable verb + knowledge or skill + conditions or constraints',
+  'problem statement': 'State the task, inputs, and required outcome without revealing the answer.',
+  'provided information': 'Include the data, definitions, or context needed to solve the problem.',
+  examples: 'Show representative inputs and outputs, including important edge cases.',
+  'constraints and assumptions': 'State exact limits, assumptions, and permitted behavior.',
+  hint: 'Give progressive guidance without disclosing the complete solution.',
+  explanation: 'Explain the reasoning, method, and common mistakes after completion.',
+  'feedback prompt': 'Describe useful feedback for correct and incorrect responses.',
+};
+
 export const emptyContentDraft = (): ContentDraft => ({
   title: blankLocalized(),
   summary: blankLocalized(),
@@ -72,14 +85,23 @@ export function ContentEditor({
     target: LocalizedDraft,
     update: (next: LocalizedDraft) => void,
     multiline = true,
-  ) => (
-    <label>
-      <span>{languageName} {label}</span>
+  ) => {
+    const inputId = `field-content-${label.replaceAll(' ', '-')}-${language}`;
+    const guidanceId = label === 'learning objective'
+      ? 'objective-guidance'
+      : `${inputId}-guidance`;
+    const describedBy = `${guidanceId}${objectiveWarning && label === 'learning objective' ? ' objective-warning' : ''}`;
+    return (
+    <div className="editor-field">
+      <div className="field-label-row">
+        <label htmlFor={inputId}>{languageName} {label}</label>
+        <FieldHelp id={guidanceId} label={`${label[0]?.toUpperCase()}${label.slice(1)} help`} text={fieldHelp[label] ?? `Complete the ${label} for the learner.`} />
+      </div>
       {multiline ? (
         <textarea
           aria-label={`${languageName} ${label}`}
-          aria-describedby={label === 'learning objective' ? `objective-guidance${objectiveWarning ? ' objective-warning' : ''}` : undefined}
-          id={`field-content-${label.replaceAll(' ', '-')}-${language}`}
+          aria-describedby={describedBy}
+          id={inputId}
           onChange={(event) => update(updateLocalized(target, event.target.value))}
           rows={label === 'title' ? 2 : 5}
           value={target[language]}
@@ -87,14 +109,15 @@ export function ContentEditor({
       ) : (
         <input
           aria-label={`${languageName} ${label}`}
-          aria-describedby={label === 'learning objective' ? `objective-guidance${objectiveWarning ? ' objective-warning' : ''}` : undefined}
-          id={`field-content-${label.replaceAll(' ', '-')}-${language}`}
+          aria-describedby={describedBy}
+          id={inputId}
           onChange={(event) => update(updateLocalized(target, event.target.value))}
           value={target[language]}
         />
       )}
-    </label>
-  );
+    </div>
+    );
+  };
   const renumber = (blocks: ContentDraft['blocks']) => blocks.map((block, index) => ({ ...block, order: index + 1 }));
   const moveBlock = (index: number, offset: -1 | 1) => {
     const target = index + offset;
@@ -147,7 +170,6 @@ export function ContentEditor({
       {field('learning objective', value.objectives[0], (objective) => onChange({
         ...value, objectives: [objective, ...value.objectives.slice(1)],
       }))}
-      <p id="objective-guidance">Use an observable verb + knowledge or skill + conditions or constraints.</p>
       {objectiveWarning && <p id="objective-warning" role="alert">Replace vague verbs such as know, learn, or understand with an observable verb.</p>}
       {value.blocks.map((block, index) => (
         <fieldset aria-label={`Content block ${index + 1}`} key={`${block.kind}-${block.order}`}>
@@ -174,6 +196,15 @@ export function ContentEditor({
         <button onClick={addBlock} type="button">Add content block</button>
       </div>
     </section>
+  );
+}
+
+function FieldHelp({ id, label, text }: { id: string; label: string; text: string }) {
+  return (
+    <span className="field-help">
+      <button aria-describedby={id} aria-label={label} className="field-help-trigger" type="button">❓</button>
+      <span className="field-help-tooltip" id={id} role="tooltip">{text}</span>
+    </span>
   );
 }
 

@@ -79,15 +79,13 @@ class LocalizedText:
 class LearningObjective:
     content: LocalizedText
 
-    def __post_init__(self) -> None:
+    @property
+    def is_observable(self) -> bool:
         english = self.content.en.strip()
         if not english and self.content.en_state is TranslationState.PENDING:
-            return
+            return True
         first_word = english.split(maxsplit=1)[0].lower() if english else ""
-        if _VAGUE_OBJECTIVE.match(english) or first_word not in _OBSERVABLE_VERBS:
-            raise InvalidProblemContentError(
-                "learning objective must begin with an observable verb"
-            )
+        return not _VAGUE_OBJECTIVE.match(english) and first_word in _OBSERVABLE_VERBS
 
 
 class ContentBlockKind(StrEnum):

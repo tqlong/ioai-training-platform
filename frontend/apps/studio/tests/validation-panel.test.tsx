@@ -17,6 +17,10 @@ describe('draft validation panel', () => {
     expect(document.activeElement).toBe(blocker);
     expect(blocker.getAttribute('href')).toBe('#field-content-title-en');
     expect(screen.getByText('Translation pending.').closest('[data-severity]')?.getAttribute('data-severity')).toBe('WARNING');
+    expect(screen.getByRole('heading', { name: 'Errors (1)' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Warnings (1)' })).toBeTruthy();
+    expect(screen.getByText('Error:', { exact: true })).toBeTruthy();
+    expect(screen.getByText('Warning:', { exact: true })).toBeTruthy();
     expect(screen.getByText('Not eligible for publication')).toBeTruthy();
   });
 });

@@ -43,6 +43,24 @@ th, td { padding: .85rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
 .editor-sections { justify-content: flex-start; padding: .75rem; background: #eef2ff; border-block: 1px solid #c7d2fe; }
 .editor-section { margin: 1.5rem 0; padding: 1.5rem; background: white; border: 1px solid #cbd5e1; }
 .editor-section label { display: grid; gap: .4rem; max-width: 42rem; margin: 1rem 0; font-weight: 650; }
+.editor-field { display: grid; gap: .4rem; max-width: 42rem; margin: 1rem 0; }
+.field-label-row { display: flex; align-items: center; gap: .4rem; font-weight: 650; }
+.field-label-row label { display: inline; margin: 0; }
+.field-help { position: relative; display: inline-flex; }
+.field-help-trigger { display: inline-grid; place-items: center; width: 1.5rem; min-height: 1.5rem; height: 1.5rem; padding: 0; border: 0; background: transparent; font-size: 1rem; line-height: 1; }
+.field-help-tooltip { position: absolute; z-index: 20; left: calc(100% + .5rem); top: 50%; width: max-content; max-width: min(24rem, 70vw); padding: .55rem .7rem; border-radius: .25rem; background: #0f172a; color: white; font-size: .875rem; font-weight: 500; line-height: 1.35; opacity: 0; pointer-events: none; transform: translateY(-50%); transition: opacity .12s ease-in-out; }
+.field-help:hover .field-help-tooltip, .field-help:focus-within .field-help-tooltip { opacity: 1; }
+.field-help-trigger:focus-visible { outline: 3px solid #818cf8; outline-offset: 2px; }
+.validation-panel { margin-top: 1.5rem; padding: 1.5rem; border: 1px solid #cbd5e1; background: white; }
+.validation-eligibility { font-weight: 750; }
+.validation-issue-group ul { display: grid; gap: .5rem; padding: 0; list-style: none; }
+.validation-issue-group li { padding: .65rem .75rem; border: 1px solid; border-left-width: .35rem; border-radius: .25rem; }
+.validation-issue-group li[data-severity="ERROR"] { border-color: #b91c1c; background: #fef2f2; }
+.validation-issue-group li[data-severity="WARNING"] { border-color: #b45309; background: #fffbeb; }
+.validation-issue-group li[data-severity="ERROR"] a { color: #7f1d1d; }
+.validation-issue-group li[data-severity="WARNING"] a { color: #78350f; }
+.severity-icon, .severity-label { font-weight: 800; }
+.validation-path { color: inherit; font-family: monospace; font-size: .875em; }
 .save-status { min-width: 10rem; font-weight: 700; }
 .editor-actions { justify-content: flex-end; position: sticky; bottom: 0; padding: 1rem; background: rgba(248, 250, 252, .96); border-top: 1px solid #cbd5e1; }
 .narrow-page { max-width: 44rem; }

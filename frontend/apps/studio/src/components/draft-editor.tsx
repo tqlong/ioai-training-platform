@@ -45,8 +45,12 @@ export function DraftEditor({
   reloadDraft?: (problemId: string) => Promise<AuthorDraft>;
   autosaveDelay?: number;
 }) {
+  const initialAutoSlug = initialDraft.slug === null && isContentDraft(initialDraft.content)
+    ? slugify(initialDraft.content.title.en)
+    : '';
   const [draft, setDraft] = useState(initialDraft);
-  const [slug, setSlug] = useState(initialDraft.slug ?? '');
+  const [slug, setSlug] = useState(initialDraft.slug ?? initialAutoSlug);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(initialDraft.slug !== null);
   const [content, setContent] = useState<ContentDraft>(() => (
     isContentDraft(initialDraft.content) ? initialDraft.content : emptyContentDraft()
   ));
@@ -65,7 +69,9 @@ export function DraftEditor({
       ? resourceFromMetadata(initialDraft.metadata)
       : emptyResourceDraft()
   ));
-  const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
+  const [dirtyFields, setDirtyFields] = useState<Set<string>>(
+    () => new Set(initialAutoSlug ? ['slug'] : []),
+  );
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const [conflict, setConflict] = useState(false);
   const [recoveryAvailable, setRecoveryAvailable] = useState(false);
@@ -132,6 +138,7 @@ export function DraftEditor({
     const stored = safeReadRecovery(recoveryKey);
     if (!stored) { setRecoveryAvailable(false); return; }
     setSlug(stored.slug); setContent(stored.content); setCurriculum(stored.curriculum);
+    setSlugManuallyEdited(Boolean(stored.slug));
     setAssessment(stored.assessment); setResources(stored.resources);
     setDirtyFields(new Set(['recovered'])); setSaveState('idle'); setRecoveryAvailable(false);
   };
@@ -139,6 +146,7 @@ export function DraftEditor({
     const current = await reloadDraft(draft.problem_id);
     safeRemoveRecovery(recoveryKey);
     setDraft(current); setSlug(current.slug ?? ''); setDirtyFields(new Set());
+    setSlugManuallyEdited(current.slug !== null);
     setConflict(false); setRecoveryAvailable(false); setSaveState('saved');
   };
   const keepLocal = async () => {
@@ -183,6 +191,7 @@ export function DraftEditor({
               id="field-slug"
               onChange={(event) => {
                 setSlug(event.target.value);
+                setSlugManuallyEdited(true);
                 setDirtyFields((current) => new Set(current).add('slug'));
                 setSaveState('idle');
               }}
@@ -196,6 +205,7 @@ export function DraftEditor({
         <ContentEditor
           onChange={(next) => {
             setContent(next);
+            if (!slugManuallyEdited) setSlug(slugify(next.title.en));
             setDirtyFields((current) => new Set(current).add('content'));
             setSaveState('idle');
           }}
@@ -246,6 +256,16 @@ export function DraftEditor({
 const isContentDraft = (value: unknown): value is ContentDraft => (
   typeof value === 'object' && value !== null && 'title' in value && 'blocks' in value
 );
+
+const slugify = (title: string): string => title
+  .normalize('NFKD')
+  .replace(/[đĐ]/g, 'd')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '')
+  .slice(0, 120)
+  .replace(/-+$/g, '');
 
 const isCurriculumDraft = (value: unknown): value is Record<string, unknown> => (
   typeof value === 'object' && value !== null && 'stage' in value

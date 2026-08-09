@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from ioai.domain.problems.assessment import (
     Choice,
+    CodeFunctionResponse,
+    CodeTestCase,
     QuizSingleResponse,
     ResponseType,
     ScoringComponent,
@@ -153,6 +155,52 @@ def test_pending_translation_is_a_warning_not_publication_blocker() -> None:
     assert report.publication_eligible is True
     assert {warning.code for warning in report.warnings} == {"TRANSLATION_PENDING"}
     assert report.warnings[0].field_path == "content.title.vi"
+    assert report.warnings[0].message == "Translation is explicitly pending."
+
+
+def test_nonobservable_objective_is_saveable_but_blocks_validation() -> None:
+    localized = LocalizedText(
+        en="Understand confusion matrices.", vi="", vi_state="PENDING"
+    )
+    draft_content = ProblemContent(
+        title=localized,
+        summary=localized,
+        objectives=(LearningObjective(localized),),
+        blocks=(ContentBlock(ContentBlockKind.STATEMENT, localized, order=1),),
+    )
+
+    report = revision(content=draft_content).validate(Release0AvailabilityPolicy())
+
+    assert report.publication_eligible is False
+    assert any(
+        issue.code == "OBJECTIVE_NOT_OBSERVABLE"
+        and issue.field_path == "content.objectives.0.en"
+        for issue in report.errors
+    )
+
+
+def test_incomplete_code_test_is_saveable_but_blocks_validation() -> None:
+    incomplete = CodeFunctionResponse(
+        language="PYTHON",
+        signature="",
+        starter_code="",
+        public_tests=(CodeTestCase("test-1", "", ""),),
+        hidden_tests=(),
+    )
+
+    report = revision(response=incomplete).validate(Release0AvailabilityPolicy())
+
+    assert report.publication_eligible is False
+    assert {
+        issue.field_path
+        for issue in report.errors
+        if issue.code == "INCOMPLETE_CODE_CONFIGURATION"
+    } == {
+        "response.signature",
+        "response.starter_code",
+        "response.public_tests.0.invocation",
+        "response.public_tests.0.expected",
+    }
 
 
 def test_policy_and_response_mismatch_are_grouped_actionable_errors() -> None:

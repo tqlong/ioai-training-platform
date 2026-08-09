@@ -77,11 +77,12 @@ def test_localized_text_preserves_both_languages_and_pending_state() -> None:
         "Precision and recall.",
     ],
 )
-def test_learning_objective_rejects_vague_or_nonobservable_english(
+def test_learning_objective_retains_vague_or_nonobservable_english_for_validation(
     objective: str,
 ) -> None:
-    with pytest.raises(InvalidProblemContentError, match="observable verb"):
-        LearningObjective(LocalizedText(en=objective, vi="", vi_state="PENDING"))
+    value = LearningObjective(LocalizedText(en=objective, vi="", vi_state="PENDING"))
+
+    assert value.is_observable is False
 
 
 def test_problem_content_keeps_structured_blocks_in_learner_reading_order() -> None:

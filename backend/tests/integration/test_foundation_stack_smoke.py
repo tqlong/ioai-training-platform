@@ -25,6 +25,16 @@ def test_studio_binding_remains_loopback_in_compose() -> None:
     assert Path("frontend/apps/studio/app/author/problems/page.tsx").is_file()
 
 
+def test_studio_uses_compose_api_service_for_server_side_requests() -> None:
+    compose_text = Path("docker-compose.yml").read_text()
+    studio_service = compose_text.split("\n  studio:\n", maxsplit=1)[1].split(
+        "\nvolumes:", maxsplit=1
+    )[0]
+
+    assert "API_INTERNAL_BASE: http://api:8000" in studio_service
+    assert Path("frontend/apps/studio/next.config.mjs").is_file()
+
+
 def test_public_vocabulary_schema_does_not_expose_author_fields() -> None:
     app = create_app()
     openapi = app.openapi()

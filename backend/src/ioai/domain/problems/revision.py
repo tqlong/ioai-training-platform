@@ -5,7 +5,7 @@ from enum import StrEnum
 
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 
-from .assessment import ResponseConfiguration, ScoringScheme
+from .assessment import CodeFunctionResponse, ResponseConfiguration, ScoringScheme
 from .content import ProblemContent
 from .errors import InvalidProblemContentError
 from .identity import ProblemId, RevisionId, StableSlug
@@ -122,13 +122,27 @@ class ProblemRevision:
                         severity=ValidationSeverity.ERROR,
                     )
                 )
+        for index, objective in enumerate(self.content.objectives):
+            if not objective.is_observable:
+                errors.append(
+                    ValidationIssue(
+                        code="OBJECTIVE_NOT_OBSERVABLE",
+                        section=ValidationSection.CONTENT,
+                        field_path=f"content.objectives.{index}.en",
+                        message=(
+                            "Begin the learning objective with an observable, "
+                            "assessable verb."
+                        ),
+                        severity=ValidationSeverity.ERROR,
+                    )
+                )
         for path in self.content.pending_translation_paths:
             warnings.append(
                 ValidationIssue(
                     code="TRANSLATION_PENDING",
                     section=ValidationSection.CONTENT,
                     field_path=f"content.{path}",
-                    message="Complete this translation or keep it explicitly pending.",
+                    message="Translation is explicitly pending.",
                     severity=ValidationSeverity.WARNING,
                 )
             )
@@ -170,6 +184,8 @@ class ProblemRevision:
                     severity=ValidationSeverity.ERROR,
                 )
             )
+        if isinstance(self.response, CodeFunctionResponse):
+            self._validate_code_function(errors, self.response)
         if (
             self.metadata is not None
             and self.metadata.task_type.code != self.response.response_type.value
@@ -183,3 +199,47 @@ class ProblemRevision:
                     severity=ValidationSeverity.ERROR,
                 )
             )
+
+    @staticmethod
+    def _validate_code_function(
+        errors: list[ValidationIssue], response: CodeFunctionResponse
+    ) -> None:
+        missing: list[tuple[str, str]] = []
+        if not response.signature.strip():
+            missing.append(("response.signature", "Enter the function signature."))
+        if not response.starter_code.strip():
+            missing.append(("response.starter_code", "Enter the starter code."))
+        tests = response.public_tests + response.hidden_tests
+        if not tests:
+            missing.append(
+                ("response.tests", "Add at least one public or hidden test.")
+            )
+        for collection, test_cases in (
+            ("public_tests", response.public_tests),
+            ("hidden_tests", response.hidden_tests),
+        ):
+            for index, test in enumerate(test_cases):
+                if not test.invocation.strip():
+                    missing.append(
+                        (
+                            f"response.{collection}.{index}.invocation",
+                            "Enter the test invocation.",
+                        )
+                    )
+                if not test.expected.strip():
+                    missing.append(
+                        (
+                            f"response.{collection}.{index}.expected",
+                            "Enter the expected test result.",
+                        )
+                    )
+        errors.extend(
+            ValidationIssue(
+                code="INCOMPLETE_CODE_CONFIGURATION",
+                section=ValidationSection.ASSESSMENT,
+                field_path=field_path,
+                message=message,
+                severity=ValidationSeverity.ERROR,
+            )
+            for field_path, message in missing
+        )

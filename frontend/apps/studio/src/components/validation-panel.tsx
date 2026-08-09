@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import type { RefObject } from 'react';
 import type { ValidationReport } from '@ioai/api-client';
 
 const sections = ['CONTENT', 'CURRICULUM', 'ASSESSMENT', 'RESOURCES', 'PUBLICATION'] as const;
@@ -36,14 +37,32 @@ export function ValidationPanel({ report }: { report: ValidationReport }) {
     <h2 id="validation-heading">Draft validation</h2>
     <p className="validation-eligibility">{report.publication_eligible ? 'Eligible for publication' : 'Not eligible for publication'}</p>
     {sections.map((section) => {
-      const issues = [...report.errors, ...report.warnings].filter((issue) => issue.section === section);
+      const errors = report.errors.filter((issue) => issue.section === section);
+      const warnings = report.warnings.filter((issue) => issue.section === section);
       return <section aria-labelledby={`validation-${section}`} key={section}>
         <h3 id={`validation-${section}`}>{section[0]}{section.slice(1).toLowerCase()}</h3>
-        {issues.length === 0 ? <p>No issues.</p> : <ul>{issues.map((issue) => {
-          const first = issue.severity === 'ERROR' && report.errors[0] === issue;
-          return <li data-severity={issue.severity} key={`${issue.code}-${issue.field_path}`}><a href={`#${issueTarget(section, issue.field_path)}`} ref={first ? firstBlocker : undefined}>{issue.message} <span>({issue.field_path})</span></a></li>;
-        })}</ul>}
+        {errors.length === 0 && warnings.length === 0 ? <p>No issues.</p> : <>
+          {errors.length > 0 && <IssueGroup heading={`Errors (${errors.length})`} issues={errors} section={section} firstBlocker={firstBlocker} firstError={report.errors[0]} />}
+          {warnings.length > 0 && <IssueGroup heading={`Warnings (${warnings.length})`} issues={warnings} section={section} firstBlocker={firstBlocker} firstError={report.errors[0]} />}
+        </>}
       </section>;
     })}
   </aside>;
+}
+
+function IssueGroup({ heading, issues, section, firstBlocker, firstError }: {
+  heading: string;
+  issues: ValidationReport['errors'];
+  section: string;
+  firstBlocker: RefObject<HTMLAnchorElement>;
+  firstError: ValidationReport['errors'][number] | undefined;
+}) {
+  return <div className="validation-issue-group">
+    <h4>{heading}</h4>
+    <ul>{issues.map((issue) => {
+      const first = issue === firstError;
+      const error = issue.severity === 'ERROR';
+      return <li data-severity={issue.severity} key={`${issue.code}-${issue.field_path}`}><a href={`#${issueTarget(section, issue.field_path)}`} ref={first ? firstBlocker : undefined}><span aria-hidden="true" className="severity-icon">{error ? '✖' : '⚠'}</span> <span className="severity-label">{error ? 'Error:' : 'Warning:'}</span> {issue.message} <span className="validation-path">({issue.field_path})</span></a></li>;
+    })}</ul>
+  </div>;
 }

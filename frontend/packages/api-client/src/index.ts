@@ -98,7 +98,9 @@ export const createApiClient = ({
       if (query.search !== undefined) parameters.set('search', query.search);
       if (query.editorialStatus !== undefined) parameters.set('editorial_status', query.editorialStatus);
       const suffix = parameters.size ? `?${parameters.toString()}` : '';
-      return requestJson<AuthorDraftList>(fetchFn, `${normalizedBaseUrl}/author/problems${suffix}`);
+      return requestJson<AuthorDraftList>(fetchFn, `${normalizedBaseUrl}/author/problems${suffix}`, {
+        cache: 'no-store',
+      });
     },
     async listAuthorVocabulary(query) {
       const parameters = vocabularyParameters(query);
@@ -117,6 +119,7 @@ export const createApiClient = ({
       return requestJson<AuthorDraft>(
         fetchFn,
         `${normalizedBaseUrl}/author/problems/${encodeURIComponent(problemId)}`,
+        { cache: 'no-store' },
       );
     },
     async saveAuthorDraft(revisionId, request) {
