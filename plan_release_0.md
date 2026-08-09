@@ -549,7 +549,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   snapshots, transitions, and learner assessment outside this phase except for
   the interfaces the authoring slice requires. Suggested commit:
   `docs(authoring): baseline problem authoring slice`.
-- [ ] **R0-06002 — Define stable problem identity and structured content value
+- [x] **R0-06002 — Define stable problem identity and structured content value
   objects from R0-013, R0-014, `AC-R0-013-02` through `AC-R0-013-06`, analysis
   sections 4.1-4.2, and design section 3.2.** Test first, then implement problem
   and revision IDs, immutable normalized slugs, editorial status as a distinct
