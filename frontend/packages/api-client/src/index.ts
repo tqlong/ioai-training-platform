@@ -5,6 +5,9 @@ export type PublicVocabularyResponse = components['schemas']['PublicVocabularyRe
 export type AuthorVocabularyRecord = components['schemas']['AuthorVocabularyRecord'];
 export type AuthorVocabularyResponse = components['schemas']['AuthorVocabularyResponse'];
 export type VocabularyProposal = components['schemas']['VocabularyProposalResponse'];
+export type AuthorDraft = components['schemas']['AuthorDraftResponse'];
+export type AuthorDraftList = components['schemas']['AuthorDraftListResponse'];
+export type SaveDraftRequest = components['schemas']['SaveDraftRequest'];
 
 export type PublicVocabularyQuery = {
   vocabularyType: string;
@@ -41,6 +44,13 @@ export type ApiClient = {
   listPublicVocabulary: (
     query: PublicVocabularyQuery,
   ) => Promise<PublicVocabularyResponse>;
+  listAuthorDrafts: () => Promise<AuthorDraftList>;
+  createAuthorDraft: () => Promise<AuthorDraft>;
+  getAuthorDraft: (problemId: string) => Promise<AuthorDraft>;
+  saveAuthorDraft: (
+    revisionId: string,
+    request: SaveDraftRequest,
+  ) => Promise<AuthorDraft>;
 };
 
 export const createApiClient = ({
@@ -69,7 +79,43 @@ export const createApiClient = ({
       if (!response.ok) throw toApiError(payload, response.status);
       return payload as PublicVocabularyResponse;
     },
+    async listAuthorDrafts() {
+      return requestJson<AuthorDraftList>(fetchFn, `${normalizedBaseUrl}/author/problems`);
+    },
+    async createAuthorDraft() {
+      return requestJson<AuthorDraft>(fetchFn, `${normalizedBaseUrl}/author/problems`, {
+        method: 'POST',
+        body: '{}',
+      });
+    },
+    async getAuthorDraft(problemId) {
+      return requestJson<AuthorDraft>(
+        fetchFn,
+        `${normalizedBaseUrl}/author/problems/${encodeURIComponent(problemId)}`,
+      );
+    },
+    async saveAuthorDraft(revisionId, request) {
+      return requestJson<AuthorDraft>(
+        fetchFn,
+        `${normalizedBaseUrl}/author/problems/revisions/${encodeURIComponent(revisionId)}`,
+        { method: 'PUT', body: JSON.stringify(request) },
+      );
+    },
   };
+};
+
+const requestJson = async <Result>(
+  fetchFn: FetchFunction,
+  url: string,
+  init?: RequestInit,
+): Promise<Result> => {
+  const response = await fetchFn(url, {
+    ...init,
+    headers: { accept: 'application/json', 'content-type': 'application/json' },
+  });
+  const payload: unknown = await response.json();
+  if (!response.ok) throw toApiError(payload, response.status);
+  return payload as Result;
 };
 
 const toApiError = (payload: unknown, status: number): ApiError => {

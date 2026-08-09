@@ -1,18 +1,9 @@
-import { drafts } from '../../../src/fixtures/drafts';
+import { studioApi } from '../../../src/api';
+import { AuthorProblemsView } from '../../../src/components/author-problems-view';
 
-export default function AuthorProblemsPage() {
-  return (
-    <section>
-      <h1>Author problems</h1>
-      {drafts.length === 0 ? (
-        <p>No draft problems in progress.</p>
-      ) : (
-        <ul>
-          {drafts.map((draft) => (
-            <li key={draft.id}>{draft.title}</li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
+export const dynamic = 'force-dynamic';
+
+export default async function AuthorProblemsPage() {
+  const result = await studioApi.listAuthorDrafts();
+  return <AuthorProblemsView result={result} />;
 }

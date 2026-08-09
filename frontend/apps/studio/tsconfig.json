@@ -14,6 +14,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@ioai/api-client": [
+        "../../packages/api-client/src/index.ts"
       ]
     },
     "noEmit": true,

@@ -629,7 +629,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   current-version reference; make retries non-duplicating; and prove failed
   writes leave no partial associations. Regenerate client types. Suggested
   commit: `feat(authoring): save drafts optimistically`.
-- [ ] **R0-06011 — Replace the Studio problem-list fixture with the author API
+- [x] **R0-06011 — Replace the Studio problem-list fixture with the author API
   from `AC-R0-013-01`, analysis section 7.1, and design section 13.1.** Build
   `/author/problems` with distinct IOAI Studio presentation, status tabs,
   search and filters supported by the author contract, revision identity,
