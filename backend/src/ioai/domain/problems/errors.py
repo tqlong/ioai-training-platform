@@ -7,3 +7,7 @@ class ProblemDomainError(ValueError):
 
 class InvalidProblemContentError(ProblemDomainError):
     """Problem identity or authored content violates a domain invariant."""
+
+
+class InvalidAssessmentConfigurationError(ProblemDomainError):
+    """A response or scoring configuration violates an assessment invariant."""

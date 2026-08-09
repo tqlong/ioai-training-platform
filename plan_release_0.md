@@ -558,7 +558,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   blocks, plus explicit pending-translation warnings. Validate bounded fields
   and observable assessable objectives without importing frameworks into the
   domain. Suggested commit: `feat(problems): define identity and content`.
-- [ ] **R0-06003 — Define response variants and decimal-safe scoring from
+- [x] **R0-06003 — Define response variants and decimal-safe scoring from
   `AC-R0-013-12` through `AC-R0-013-13`, analysis section 6.2, and design
   sections 3.2-3.3.** Add discriminated domain configurations for exactly
   `QUIZ_SINGLE`, `QUIZ_MULTIPLE`, `NUMERIC_ANSWER`, `SHORT_ANSWER`, and
