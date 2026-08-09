@@ -123,6 +123,7 @@ def project_public_snapshot(snapshot: PublishedSnapshot) -> PublicProblemProject
         "type",
         "choices",
         "unit",
+        "absolute_tolerance",
         "language",
         "signature",
         "starter_code",

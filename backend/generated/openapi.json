@@ -646,6 +646,42 @@
         "title": "PreviewUnsavedState",
         "type": "object"
       },
+      "PublicContentBlockResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/PublicLocalizedTextResponse"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "order": {
+            "exclusiveMinimum": 0.0,
+            "title": "Order",
+            "type": "integer"
+          },
+          "reveal_order": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reveal Order"
+          }
+        },
+        "required": [
+          "kind",
+          "content",
+          "order"
+        ],
+        "title": "PublicContentBlockResponse",
+        "type": "object"
+      },
       "PublicLocalizedTextResponse": {
         "additionalProperties": false,
         "properties": {
@@ -665,6 +701,192 @@
           "vi"
         ],
         "title": "PublicLocalizedTextResponse",
+        "type": "object"
+      },
+      "PublicPrerequisiteResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "minimum_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum Evidence"
+          },
+          "relationship": {
+            "title": "Relationship",
+            "type": "string"
+          },
+          "target_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Code"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_type": {
+            "title": "Target Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "relationship",
+          "target_type"
+        ],
+        "title": "PublicPrerequisiteResponse",
+        "type": "object"
+      },
+      "PublicProblemDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/PublicContentBlockResponse"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "difficulty_code": {
+            "title": "Difficulty Code",
+            "type": "string"
+          },
+          "expected_minutes": {
+            "exclusiveMinimum": 0.0,
+            "title": "Expected Minutes",
+            "type": "integer"
+          },
+          "feedback_available": {
+            "title": "Feedback Available",
+            "type": "boolean"
+          },
+          "modality_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Modality Codes",
+            "type": "array"
+          },
+          "objective": {
+            "$ref": "#/components/schemas/PublicLocalizedTextResponse"
+          },
+          "permanent_url": {
+            "title": "Permanent Url",
+            "type": "string"
+          },
+          "prerequisite_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Prerequisite Codes",
+            "type": "array"
+          },
+          "prerequisites": {
+            "items": {
+              "$ref": "#/components/schemas/PublicPrerequisiteResponse"
+            },
+            "title": "Prerequisites",
+            "type": "array"
+          },
+          "primary_competency_code": {
+            "title": "Primary Competency Code",
+            "type": "string"
+          },
+          "public_short_id": {
+            "title": "Public Short Id",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "recommendation_url": {
+            "title": "Recommendation Url",
+            "type": "string"
+          },
+          "resources": {
+            "$ref": "#/components/schemas/PublicResourceLimitsResponse"
+          },
+          "response_schema": {
+            "$ref": "#/components/schemas/PublicResponseSchemaResponse"
+          },
+          "secondary_competency_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Secondary Competency Codes",
+            "type": "array"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "stage_code": {
+            "title": "Stage Code",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/PublicLocalizedTextResponse"
+          },
+          "task_type_code": {
+            "title": "Task Type Code",
+            "type": "string"
+          },
+          "title": {
+            "$ref": "#/components/schemas/PublicLocalizedTextResponse"
+          },
+          "topic_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Topic Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "slug",
+          "public_short_id",
+          "permanent_url",
+          "title",
+          "summary",
+          "objective",
+          "blocks",
+          "stage_code",
+          "difficulty_code",
+          "primary_competency_code",
+          "secondary_competency_codes",
+          "topic_codes",
+          "prerequisite_codes",
+          "prerequisites",
+          "modality_codes",
+          "task_type_code",
+          "expected_minutes",
+          "resources",
+          "response_schema",
+          "feedback_available",
+          "recommendation_url",
+          "published_at"
+        ],
+        "title": "PublicProblemDetailResponse",
         "type": "object"
       },
       "PublicProblemListItemResponse": {
@@ -863,6 +1085,165 @@
         ],
         "title": "PublicProblemSort",
         "type": "string"
+      },
+      "PublicResourceLimitsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "compute_tier_code": {
+            "title": "Compute Tier Code",
+            "type": "string"
+          },
+          "cpu_cores": {
+            "minimum": 0.0,
+            "title": "Cpu Cores",
+            "type": "integer"
+          },
+          "gpu_count": {
+            "minimum": 0.0,
+            "title": "Gpu Count",
+            "type": "integer"
+          },
+          "gpu_vram_mb": {
+            "minimum": 0.0,
+            "title": "Gpu Vram Mb",
+            "type": "integer"
+          },
+          "network_policy": {
+            "title": "Network Policy",
+            "type": "string"
+          },
+          "ram_mb": {
+            "minimum": 0.0,
+            "title": "Ram Mb",
+            "type": "integer"
+          },
+          "runtime_class_code": {
+            "title": "Runtime Class Code",
+            "type": "string"
+          },
+          "runtime_seconds": {
+            "minimum": 0.0,
+            "title": "Runtime Seconds",
+            "type": "integer"
+          },
+          "storage_mb": {
+            "minimum": 0.0,
+            "title": "Storage Mb",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "compute_tier_code",
+          "runtime_class_code",
+          "cpu_cores",
+          "ram_mb",
+          "gpu_count",
+          "gpu_vram_mb",
+          "storage_mb",
+          "runtime_seconds",
+          "network_policy"
+        ],
+        "title": "PublicResourceLimitsResponse",
+        "type": "object"
+      },
+      "PublicResponseSchemaResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "absolute_tolerance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Absolute Tolerance"
+          },
+          "choices": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Choices"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "public_tests": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Tests"
+          },
+          "signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature"
+          },
+          "starter_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starter Code"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "PublicResponseSchemaResponse",
+        "type": "object"
       },
       "PublicVocabularyRecord": {
         "additionalProperties": false,
@@ -2555,6 +2936,58 @@
           }
         },
         "summary": "List Problems",
+        "tags": [
+          "public-problems"
+        ]
+      }
+    },
+    "/api/v1/problems/{slug}": {
+      "get": {
+        "operationId": "get_problem_api_v1_problems__slug__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProblemDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Problem",
         "tags": [
           "public-problems"
         ]

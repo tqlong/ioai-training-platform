@@ -261,6 +261,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/problems/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Problem */
+        get: operations["get_problem_api_v1_problems__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/problems/{slug}/recommendation": {
         parameters: {
             query?: never;
@@ -547,12 +564,80 @@ export interface components {
             /** Slug */
             slug?: string | null;
         };
+        /** PublicContentBlockResponse */
+        PublicContentBlockResponse: {
+            content: components["schemas"]["PublicLocalizedTextResponse"];
+            /** Kind */
+            kind: string;
+            /** Order */
+            order: number;
+            /** Reveal Order */
+            reveal_order?: number | null;
+        };
         /** PublicLocalizedTextResponse */
         PublicLocalizedTextResponse: {
             /** En */
             en: string;
             /** Vi */
             vi: string;
+        };
+        /** PublicPrerequisiteResponse */
+        PublicPrerequisiteResponse: {
+            /** Minimum Evidence */
+            minimum_evidence?: string | null;
+            /** Relationship */
+            relationship: string;
+            /** Target Code */
+            target_code?: string | null;
+            /** Target Id */
+            target_id?: string | null;
+            /** Target Type */
+            target_type: string;
+        };
+        /** PublicProblemDetailResponse */
+        PublicProblemDetailResponse: {
+            /** Blocks */
+            blocks: components["schemas"]["PublicContentBlockResponse"][];
+            /** Difficulty Code */
+            difficulty_code: string;
+            /** Expected Minutes */
+            expected_minutes: number;
+            /** Feedback Available */
+            feedback_available: boolean;
+            /** Modality Codes */
+            modality_codes: string[];
+            objective: components["schemas"]["PublicLocalizedTextResponse"];
+            /** Permanent Url */
+            permanent_url: string;
+            /** Prerequisite Codes */
+            prerequisite_codes: string[];
+            /** Prerequisites */
+            prerequisites: components["schemas"]["PublicPrerequisiteResponse"][];
+            /** Primary Competency Code */
+            primary_competency_code: string;
+            /** Public Short Id */
+            public_short_id: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /** Recommendation Url */
+            recommendation_url: string;
+            resources: components["schemas"]["PublicResourceLimitsResponse"];
+            response_schema: components["schemas"]["PublicResponseSchemaResponse"];
+            /** Secondary Competency Codes */
+            secondary_competency_codes: string[];
+            /** Slug */
+            slug: string;
+            /** Stage Code */
+            stage_code: string;
+            summary: components["schemas"]["PublicLocalizedTextResponse"];
+            /** Task Type Code */
+            task_type_code: string;
+            title: components["schemas"]["PublicLocalizedTextResponse"];
+            /** Topic Codes */
+            topic_codes: string[];
         };
         /** PublicProblemListItemResponse */
         PublicProblemListItemResponse: {
@@ -624,6 +709,50 @@ export interface components {
          * @enum {string}
          */
         PublicProblemSort: "EDITORIAL" | "NEWEST" | "EXPECTED_TIME" | "TITLE";
+        /** PublicResourceLimitsResponse */
+        PublicResourceLimitsResponse: {
+            /** Compute Tier Code */
+            compute_tier_code: string;
+            /** Cpu Cores */
+            cpu_cores: number;
+            /** Gpu Count */
+            gpu_count: number;
+            /** Gpu Vram Mb */
+            gpu_vram_mb: number;
+            /** Network Policy */
+            network_policy: string;
+            /** Ram Mb */
+            ram_mb: number;
+            /** Runtime Class Code */
+            runtime_class_code: string;
+            /** Runtime Seconds */
+            runtime_seconds: number;
+            /** Storage Mb */
+            storage_mb: number;
+        };
+        /** PublicResponseSchemaResponse */
+        PublicResponseSchemaResponse: {
+            /** Absolute Tolerance */
+            absolute_tolerance?: string | null;
+            /** Choices */
+            choices?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Language */
+            language?: string | null;
+            /** Public Tests */
+            public_tests?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Signature */
+            signature?: string | null;
+            /** Starter Code */
+            starter_code?: string | null;
+            /** Type */
+            type: string;
+            /** Unit */
+            unit?: string | null;
+        };
         /** PublicVocabularyRecord */
         PublicVocabularyRecord: {
             /** Aliases */
@@ -1506,6 +1635,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_problem_api_v1_problems__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicProblemDetailResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

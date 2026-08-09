@@ -237,6 +237,10 @@ class _DefaultPublicProblemService:
             use_case = ListPublishedProblems(SqlAlchemyPublishedProblemReader(session))
             return use_case(query)
 
+    def get(self, slug: str):
+        with self._session_factory() as session:
+            return GetPublishedProblem(SqlAlchemyPublishedProblemReader(session))(slug)
+
     def recommend(self, context: RecommendationContext):
         with self._session_factory() as session:
             reader = SqlAlchemyPublishedProblemReader(session)

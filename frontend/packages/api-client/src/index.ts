@@ -20,6 +20,7 @@ export type StartRevisionRequest = components['schemas']['StartRevisionRequest']
 export type ArchiveProblemRequest = components['schemas']['ArchiveProblemRequest'];
 export type ArchiveProblemResult = components['schemas']['ArchiveProblemResponse'];
 export type PublicProblemList = components['schemas']['PublicProblemListResponse'];
+export type PublicProblemDetail = components['schemas']['PublicProblemDetailResponse'];
 export type PublicProblemRecommendation = components['schemas']['PublicProblemRecommendationResponse'];
 export type EditorialAction = 'submit-review' | 'request-changes' | 'approve';
 
@@ -81,6 +82,7 @@ export type ApiClient = {
     query: PublicVocabularyQuery,
   ) => Promise<PublicVocabularyResponse>;
   listPublicProblems: (query?: PublicProblemQuery) => Promise<PublicProblemList>;
+  getPublicProblem: (slug: string) => Promise<PublicProblemDetail>;
   getPublicRecommendation: (
     slug: string,
     query: PublicRecommendationQuery,
@@ -170,6 +172,13 @@ export const createApiClient = ({
       return requestJson<PublicProblemList>(
         fetchFn,
         `${normalizedBaseUrl}/problems${suffix}`,
+        { cache: 'no-store' },
+      );
+    },
+    async getPublicProblem(slug) {
+      return requestJson<PublicProblemDetail>(
+        fetchFn,
+        `${normalizedBaseUrl}/problems/${encodeURIComponent(slug)}`,
         { cache: 'no-store' },
       );
     },

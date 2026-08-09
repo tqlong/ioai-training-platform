@@ -3,6 +3,21 @@ import { describe, expect, it, vi } from 'vitest';
 import { createApiClient } from '../src';
 
 describe('generated vocabulary client', () => {
+  it('gets one typed published problem detail by stable slug', async () => {
+    const fetchFn = vi.fn(async () => Response.json({ slug: 'metrics-basics' }));
+    const client = createApiClient({
+      baseUrl: 'http://localhost:8000/api/v1',
+      fetchFn,
+    });
+
+    const result = await client.getPublicProblem('metrics basics');
+
+    expect(result.slug).toBe('metrics-basics');
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/problems/metrics%20basics',
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
   it('lists published problems with canonical discovery parameters', async () => {
     const fetchFn = vi.fn(async () => Response.json({
       items: [], total: 0, page: 2, page_size: 10,

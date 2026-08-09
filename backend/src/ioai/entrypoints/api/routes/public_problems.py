@@ -25,15 +25,22 @@ from ioai.domain.vocabulary.values import (
 
 from ..contracts.errors import ErrorResponse
 from ..contracts.public_problems import (
+    PublicContentBlockResponse,
     PublicLocalizedTextResponse,
+    PublicPrerequisiteResponse,
+    PublicProblemDetailResponse,
     PublicProblemListItemResponse,
     PublicProblemListResponse,
     PublicProblemRecommendationResponse,
+    PublicResourceLimitsResponse,
+    PublicResponseSchemaResponse,
 )
 
 
 class PublicProblemService(Protocol):
     def list(self, query: PublicProblemQuery) -> PublicProblemProjectionPage: ...
+
+    def get(self, slug: str) -> PublicProblemProjection: ...
 
     def recommend(
         self, context: RecommendationContext
@@ -188,6 +195,20 @@ def public_problem_router(
             return Response(status_code=status.HTTP_204_NO_CONTENT)
         return _recommendation_response(recommendation)
 
+    @router.get(
+        "/{slug}",
+        response_model=PublicProblemDetailResponse,
+        responses={404: {"model": ErrorResponse}},
+    )
+    def get_problem(slug: str) -> PublicProblemDetailResponse:
+        try:
+            return _detail_response(service.get(slug))
+        except PublishedProblemNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "PUBLIC_NOT_FOUND", "message": "Problem not found."},
+            ) from error
+
     return router
 
 
@@ -215,6 +236,90 @@ def _list_item(item: PublicProblemProjection) -> PublicProblemListItemResponse:
     )
 
 
+def _detail_response(item: PublicProblemProjection) -> PublicProblemDetailResponse:
+    metadata = item.metadata
+    content = item.content
+    resources = metadata.get("resources")
+    resources_map = resources if isinstance(resources, dict) else {}
+    prerequisites = metadata.get("prerequisites")
+    prerequisite_items = prerequisites if isinstance(prerequisites, list) else []
+    blocks = content.get("blocks")
+    block_items = blocks if isinstance(blocks, list) else []
+    objectives = content.get("objectives")
+    objective = objectives[0] if isinstance(objectives, list) and objectives else None
+    response_schema = dict(item.response_schema)
+    return PublicProblemDetailResponse(
+        slug=item.slug,
+        public_short_id=item.slug,
+        permanent_url=f"/problems/{item.slug}",
+        title=_localized(content.get("title")),
+        summary=_localized(content.get("summary")),
+        objective=_localized(objective),
+        blocks=[_content_block(value) for value in block_items],
+        stage_code=_identity_code(metadata.get("stage")),
+        difficulty_code=_identity_code(metadata.get("difficulty")),
+        primary_competency_code=_identity_code(metadata.get("primary_competency")),
+        secondary_competency_codes=list(
+            _identity_codes(metadata.get("secondary_competencies"))
+        ),
+        topic_codes=list(_identity_codes(metadata.get("topics"))),
+        prerequisite_codes=[
+            value.target_code
+            for value in map(_prerequisite, prerequisite_items)
+            if value.target_code is not None
+        ],
+        prerequisites=[_prerequisite(value) for value in prerequisite_items],
+        modality_codes=list(_identity_codes(metadata.get("modalities"))),
+        task_type_code=_identity_code(metadata.get("task_type")),
+        expected_minutes=_positive_int(metadata.get("expected_minutes")),
+        resources=PublicResourceLimitsResponse(
+            compute_tier_code=_identity_code(resources_map.get("compute_tier")),
+            runtime_class_code=_identity_code(resources_map.get("runtime_class")),
+            cpu_cores=_non_negative_int(resources_map.get("cpu_cores")),
+            ram_mb=_non_negative_int(resources_map.get("ram_mb")),
+            gpu_count=_non_negative_int(resources_map.get("gpu_count")),
+            gpu_vram_mb=_non_negative_int(resources_map.get("gpu_vram_mb")),
+            storage_mb=_non_negative_int(resources_map.get("storage_mb")),
+            runtime_seconds=_non_negative_int(resources_map.get("runtime_seconds")),
+            network_policy=str(resources_map.get("network_policy", "DENIED")),
+        ),
+        response_schema=PublicResponseSchemaResponse.model_validate(response_schema),
+        feedback_available=True,
+        recommendation_url=f"/api/v1/problems/{item.slug}/recommendation",
+        published_at=item.published_at,
+    )
+
+
+def _content_block(value: object) -> PublicContentBlockResponse:
+    if not isinstance(value, dict):
+        raise ValueError("published content block is malformed")
+    return PublicContentBlockResponse(
+        kind=str(value.get("kind", "")),
+        content=_localized(value.get("content")),
+        order=_positive_int(value.get("order")),
+        reveal_order=(
+            _positive_int(value.get("reveal_order"))
+            if value.get("reveal_order") is not None
+            else None
+        ),
+    )
+
+
+def _prerequisite(value: object) -> PublicPrerequisiteResponse:
+    if not isinstance(value, dict):
+        raise ValueError("published prerequisite is malformed")
+    target_identity = value.get("target_identity")
+    return PublicPrerequisiteResponse(
+        relationship=str(value.get("relationship", "")),
+        target_type=str(value.get("target_type", "")),
+        target_code=_identity_code(target_identity) if target_identity else None,
+        target_id=str(value["target_id"]) if value.get("target_id") else None,
+        minimum_evidence=(
+            str(value["minimum_evidence"]) if value.get("minimum_evidence") else None
+        ),
+    )
+
+
 def _localized(value: object) -> PublicLocalizedTextResponse:
     if not isinstance(value, dict):
         raise ValueError("published localized content is malformed")
@@ -238,6 +343,12 @@ def _identity_codes(value: object) -> tuple[str, ...]:
 def _positive_int(value: object) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or value < 1:
         raise ValueError("published expected minutes is malformed")
+    return value
+
+
+def _non_negative_int(value: object) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise ValueError("published resource limit is malformed")
     return value
 
 

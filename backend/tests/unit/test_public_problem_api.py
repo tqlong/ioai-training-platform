@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
 
+from ioai.application.problems.errors import PublishedProblemNotFoundError
 from ioai.application.problems.public_queries import (
     PublicProblemProjection,
     PublicProblemProjectionPage,
@@ -20,6 +21,7 @@ class FakePublicProblemService:
         self.query: PublicProblemQuery | None = None
         self.recommendation_context: RecommendationContext | None = None
         self.has_recommendation = True
+        self.has_detail = True
 
     def list(self, query: PublicProblemQuery) -> PublicProblemProjectionPage:
         self.query = query
@@ -72,6 +74,56 @@ class FakePublicProblemService:
             ),
         )
 
+    def get(self, slug: str) -> PublicProblemProjection:
+        if not self.has_detail:
+            raise PublishedProblemNotFoundError("private or missing")
+        item = self.list(PublicProblemQuery()).items[0]
+        return PublicProblemProjection(
+            slug=slug,
+            content={
+                **item.content,
+                "summary": {"en": "Read a matrix.", "vi": "Đọc ma trận."},
+                "blocks": [
+                    {
+                        "kind": "STATEMENT",
+                        "content": {"en": "Find precision.", "vi": "Tìm precision."},
+                        "order": 1,
+                        "reveal_order": None,
+                    }
+                ],
+            },
+            metadata={
+                **item.metadata,
+                "secondary_competencies": [],
+                "prerequisites": [
+                    {
+                        "relationship": "RECOMMENDED",
+                        "target_type": "TOPIC",
+                        "target_identity": ["TOPIC", "MATH_RATIOS"],
+                        "target_id": None,
+                        "minimum_evidence": "INTRODUCED",
+                    }
+                ],
+                "modalities": [["DATA_MODALITY", "NONE"]],
+                "resources": {
+                    "compute_tier": ["COMPUTE_TIER", "NONE"],
+                    "runtime_class": ["RUNTIME_CLASS", "NONE"],
+                    "cpu_cores": 0,
+                    "ram_mb": 0,
+                    "gpu_count": 0,
+                    "gpu_vram_mb": 0,
+                    "storage_mb": 0,
+                    "runtime_seconds": 0,
+                    "network_policy": "DENIED",
+                },
+            },
+            response_schema={
+                "type": "QUIZ_SINGLE",
+                "choices": [{"id": "a", "content": {"en": "0.5", "vi": "0,5"}}],
+            },
+            published_at=item.published_at,
+        )
+
 
 def test_public_problem_list_returns_typed_safe_page() -> None:
     service = FakePublicProblemService()
@@ -121,6 +173,60 @@ def test_public_problem_list_returns_typed_safe_page() -> None:
         },
     }
     assert service.query is not None and service.query.page == 2
+
+
+def test_public_problem_detail_returns_explicit_safe_projection() -> None:
+    client = TestClient(create_app(public_problem_service=FakePublicProblemService()))
+
+    response = client.get("/api/v1/problems/metrics-basics")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["slug"] == "metrics-basics"
+    assert body["permanent_url"] == "/problems/metrics-basics"
+    assert body["title"] == {"en": "Metrics", "vi": "Độ đo"}
+    assert body["objective"]["en"] == "Calculate metrics"
+    assert body["blocks"][0]["kind"] == "STATEMENT"
+    assert body["prerequisites"] == [
+        {
+            "relationship": "RECOMMENDED",
+            "target_type": "TOPIC",
+            "target_code": "MATH_RATIOS",
+            "target_id": None,
+            "minimum_evidence": "INTRODUCED",
+        }
+    ]
+    assert body["response_schema"]["type"] == "QUIZ_SINGLE"
+    assert body["resources"]["network_policy"] == "DENIED"
+    assert body["feedback_available"] is True
+    assert body["recommendation_url"].endswith("/recommendation")
+    serialized = response.text
+    for forbidden in (
+        "revision_id",
+        "editorial_status",
+        "correct_choice_id",
+        "hidden_tests",
+        "scoring",
+        "object_key",
+        "internal_notes",
+    ):
+        assert forbidden not in serialized
+
+
+def test_public_problem_detail_uses_same_safe_not_found_for_non_public_content() -> (
+    None
+):
+    service = FakePublicProblemService()
+    service.has_detail = False
+    client = TestClient(create_app(public_problem_service=service))
+
+    response = client.get("/api/v1/problems/draft-or-missing")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == {
+        "code": "PUBLIC_NOT_FOUND",
+        "message": "Problem not found.",
+    }
 
 
 def test_public_problem_list_rejects_unknown_and_unavailable_canonical_values() -> None:

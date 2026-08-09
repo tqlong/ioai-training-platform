@@ -1006,7 +1006,7 @@ observe the required red step before implementation.
   Verify keyboard, touch-target, focus, screen-reader, non-color status, and
   360/768/1024/1440 px behavior. Suggested commit:
   `feat(learn): make the library responsive and resilient`.
-- [ ] **R0-08010 — Complete the public problem-detail projection from
+- [x] **R0-08010 — Complete the public problem-detail projection from
   `AC-R0-011-15`, `AC-R0-011-16`, `AC-R0-012-01`, and `AC-R0-012-02`.** Extend
   the published reader and `GET /api/v1/problems/{slug}` DTO with stable public
   identity, language-policy-selected content blocks, paired stage/difficulty,
