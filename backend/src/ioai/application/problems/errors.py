@@ -35,3 +35,7 @@ class SuccessorRevisionError(ProblemApplicationError):
 
 class IdempotencyConflictError(ProblemApplicationError):
     """An idempotency key was reused for different command intent."""
+
+
+class SlugConflictError(ProblemApplicationError):
+    """A stable public slug belongs to a different problem."""

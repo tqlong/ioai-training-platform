@@ -3,11 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from types import TracebackType
-from typing import Protocol, Self
+from typing import TYPE_CHECKING, Protocol, Self
 
 from ioai.domain.problems.identity import ProblemId, RevisionId
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import EditorialStatus, EditorialTransition
+
+if TYPE_CHECKING:
+    from .publication import PublishedSnapshot
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,12 +68,36 @@ class EditorialRepository(Protocol):
     ) -> ProblemRevision: ...
 
 
+class PublicationRepository(Protocol):
+    def replay(
+        self,
+        revision_id: RevisionId,
+        *,
+        idempotency_key: str,
+        request_digest: str,
+    ) -> PublishedSnapshot | None: ...
+
+    def publish(
+        self,
+        *,
+        snapshot: PublishedSnapshot,
+        transition: EditorialTransition,
+        expected_version: int,
+        transition_id: str,
+        idempotency_key: str,
+        request_digest: str,
+    ) -> PublishedSnapshot: ...
+
+
 class DraftUnitOfWork(Protocol):
     @property
     def drafts(self) -> DraftRepository: ...
 
     @property
     def editorial(self) -> EditorialRepository: ...
+
+    @property
+    def publication(self) -> PublicationRepository: ...
 
     def __enter__(self) -> Self: ...
 

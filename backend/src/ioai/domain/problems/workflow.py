@@ -71,6 +71,51 @@ def transition_for_review(
         raise InvalidEditorialTransitionError(
             f"editorial transition {source.value} -> {target.value} is not allowed"
         )
+    return _transition(
+        revision_id=revision_id,
+        source=source,
+        target=target,
+        note=note,
+        actor=actor,
+        occurred_at=occurred_at,
+        operation_id=operation_id,
+    )
+
+
+def transition_for_publication(
+    *,
+    revision_id: RevisionId,
+    source: EditorialStatus,
+    note: str,
+    actor: ActorContext,
+    occurred_at: datetime,
+    operation_id: str,
+) -> EditorialTransition:
+    if source is not EditorialStatus.APPROVED:
+        raise InvalidEditorialTransitionError(
+            f"editorial transition {source.value} -> PUBLISHED is not allowed"
+        )
+    return _transition(
+        revision_id=revision_id,
+        source=source,
+        target=EditorialStatus.PUBLISHED,
+        note=note,
+        actor=actor,
+        occurred_at=occurred_at,
+        operation_id=operation_id,
+    )
+
+
+def _transition(
+    *,
+    revision_id: RevisionId,
+    source: EditorialStatus,
+    target: EditorialStatus,
+    note: str,
+    actor: ActorContext,
+    occurred_at: datetime,
+    operation_id: str,
+) -> EditorialTransition:
     normalized_note = note.strip()
     if not normalized_note or len(normalized_note) > MAX_TRANSITION_NOTE_LENGTH:
         raise InvalidTransitionNoteError(

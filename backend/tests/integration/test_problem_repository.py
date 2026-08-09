@@ -13,14 +13,17 @@ from sqlalchemy.orm import sessionmaker
 
 from ioai.adapters.database.problem_model import (
     EditorialTransitionModel,
+    IdempotencyRecordModel,
     ProblemModel,
     ProblemRevisionModel,
+    PublishedSnapshotModel,
 )
 from ioai.adapters.database.problem_repository import (
     SqlAlchemyDraftUnitOfWork,
 )
 from ioai.application.problems.editorial import StartSuccessorDraft
 from ioai.application.problems.errors import RevisionConflictError
+from ioai.application.problems.publication import PublishedSnapshot
 from ioai.domain.problems.assessment import (
     Choice,
     QuizSingleResponse,
@@ -50,6 +53,7 @@ from ioai.domain.problems.revision import ProblemRevision
 from ioai.domain.problems.workflow import (
     ActorContext,
     EditorialStatus,
+    transition_for_publication,
     transition_for_review,
 )
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
@@ -270,6 +274,125 @@ def test_changes_requested_successor_is_idempotent_and_preserves_source(
         ("revision-01", "CHANGES_REQUESTED"),
         ("revision-02", "DRAFT"),
     ]
+
+
+def test_publication_switches_snapshot_status_history_and_idempotency_atomically(
+    session_factory,
+) -> None:
+    approved = replace(
+        empty_revision(slug="stable-public-url"),
+        status=EditorialStatus.APPROVED,
+    )
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        work.drafts.create(approved, NOW)
+    snapshot = PublishedSnapshot(
+        snapshot_id="snapshot-01",
+        problem_id=approved.problem_id,
+        revision_id=approved.revision_id,
+        slug=StableSlug("stable-public-url"),
+        public_payload={"content": {"title": {"en": "Public"}}},
+        published_at=NOW,
+    )
+    transition = transition_for_publication(
+        revision_id=approved.revision_id,
+        source=EditorialStatus.APPROVED,
+        note="Publish approved content.",
+        actor=ActorContext("local-reviewer"),
+        occurred_at=NOW,
+        operation_id="publication-operation-01",
+    )
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        result = work.publication.publish(
+            snapshot=snapshot,
+            transition=transition,
+            expected_version=1,
+            transition_id="transition-publication-01",
+            idempotency_key="publish-01",
+            request_digest="digest-01",
+        )
+
+    assert result == snapshot
+    with session_factory() as session:
+        problem = session.get(ProblemModel, "problem-01")
+        revision_row = session.get(ProblemRevisionModel, "revision-01")
+        assert problem is not None
+        assert revision_row is not None
+        assert problem.current_published_snapshot_id == "snapshot-01"
+        assert revision_row.editorial_status == "PUBLISHED"
+        assert revision_row.lock_version == 2
+        assert (
+            session.scalar(select(func.count()).select_from(PublishedSnapshotModel))
+            == 1
+        )
+        assert (
+            session.scalar(select(func.count()).select_from(EditorialTransitionModel))
+            == 1
+        )
+        assert (
+            session.scalar(select(func.count()).select_from(IdempotencyRecordModel))
+            == 1
+        )
+
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        replay = work.publication.replay(
+            approved.revision_id,
+            idempotency_key="publish-01",
+            request_digest="digest-01",
+        )
+    assert replay == snapshot
+
+
+def test_publication_rolls_back_every_visible_effect_on_failure(
+    session_factory,
+) -> None:
+    approved = replace(
+        empty_revision(slug="rollback-publication"),
+        status=EditorialStatus.APPROVED,
+    )
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        work.drafts.create(approved, NOW)
+    snapshot = PublishedSnapshot(
+        "snapshot-rollback",
+        approved.problem_id,
+        approved.revision_id,
+        StableSlug("rollback-publication"),
+        {},
+        NOW,
+    )
+    transition = transition_for_publication(
+        revision_id=approved.revision_id,
+        source=EditorialStatus.APPROVED,
+        note="Publish then fail.",
+        actor=ActorContext("local-reviewer"),
+        occurred_at=NOW,
+        operation_id="publication-rollback",
+    )
+
+    with pytest.raises(RuntimeError, match="injected"):
+        with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+            work.publication.publish(
+                snapshot=snapshot,
+                transition=transition,
+                expected_version=1,
+                transition_id="transition-rollback",
+                idempotency_key="publish-rollback",
+                request_digest="digest-rollback",
+            )
+            raise RuntimeError("injected publication failure")
+
+    with session_factory() as session:
+        problem = session.get(ProblemModel, "problem-01")
+        revision_row = session.get(ProblemRevisionModel, "revision-01")
+        assert problem is not None and problem.current_published_snapshot_id is None
+        assert revision_row is not None and revision_row.editorial_status == "APPROVED"
+        assert (
+            session.scalar(select(func.count()).select_from(PublishedSnapshotModel))
+            == 0
+        )
+        assert (
+            session.scalar(select(func.count()).select_from(EditorialTransitionModel))
+            == 0
+        )
 
 
 def test_create_persists_normalized_curriculum_response_and_scoring(

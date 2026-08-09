@@ -12,6 +12,7 @@ from ioai.application.problems.errors import (
     DraftNotFoundError,
     IdempotencyConflictError,
     RevisionConflictError,
+    SlugConflictError,
     SuccessorRevisionError,
 )
 from ioai.application.problems.payload import (
@@ -22,7 +23,9 @@ from ioai.application.problems.ports import (
     DraftRepository,
     DraftSummary,
     EditorialRepository,
+    PublicationRepository,
 )
+from ioai.application.problems.publication import PublishedSnapshot
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import (
@@ -37,6 +40,7 @@ from .problem_model import (
     PrerequisiteReferenceModel,
     ProblemModel,
     ProblemRevisionModel,
+    PublishedSnapshotModel,
     ResponseConfigurationModel,
     RevisionCompetencyModel,
     RevisionTopicModel,
@@ -323,12 +327,125 @@ class SqlAlchemyEditorialRepository:
         return successor
 
 
+class SqlAlchemyPublicationRepository:
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def replay(
+        self,
+        revision_id: RevisionId,
+        *,
+        idempotency_key: str,
+        request_digest: str,
+    ) -> PublishedSnapshot | None:
+        record = self._session.scalar(
+            select(IdempotencyRecordModel).where(
+                IdempotencyRecordModel.operation_type == "PUBLISH",
+                IdempotencyRecordModel.target_id == revision_id.value,
+                IdempotencyRecordModel.idempotency_key == idempotency_key,
+            )
+        )
+        if record is None:
+            return None
+        if record.request_digest != request_digest:
+            raise IdempotencyConflictError(
+                "publication key was reused for different intent"
+            )
+        row = self._session.get(PublishedSnapshotModel, record.result_reference)
+        if row is None:
+            raise RuntimeError("publication idempotency result is missing")
+        return _snapshot_domain(row)
+
+    def publish(
+        self,
+        *,
+        snapshot: PublishedSnapshot,
+        transition: EditorialTransition,
+        expected_version: int,
+        transition_id: str,
+        idempotency_key: str,
+        request_digest: str,
+    ) -> PublishedSnapshot:
+        revision = self._session.scalar(
+            select(ProblemRevisionModel)
+            .where(ProblemRevisionModel.revision_id == transition.revision_id.value)
+            .with_for_update()
+        )
+        if revision is None:
+            raise DraftNotFoundError(transition.revision_id)
+        replay = self.replay(
+            transition.revision_id,
+            idempotency_key=idempotency_key,
+            request_digest=request_digest,
+        )
+        if replay is not None:
+            return replay
+        if (
+            revision.lock_version != expected_version
+            or revision.editorial_status != EditorialStatus.APPROVED.value
+        ):
+            raise RevisionConflictError(transition.revision_id, revision.lock_version)
+        problem = self._session.scalar(
+            select(ProblemModel)
+            .where(ProblemModel.problem_id == snapshot.problem_id.value)
+            .with_for_update()
+        )
+        if problem is None:
+            raise DraftNotFoundError(transition.revision_id)
+        slug_owner = self._session.scalar(
+            select(ProblemModel).where(
+                ProblemModel.slug == snapshot.slug.value,
+                ProblemModel.problem_id != snapshot.problem_id.value,
+            )
+        )
+        if slug_owner is not None:
+            raise SlugConflictError("the stable slug belongs to another problem")
+        row = PublishedSnapshotModel(
+            snapshot_id=snapshot.snapshot_id,
+            problem_id=snapshot.problem_id.value,
+            revision_id=snapshot.revision_id.value,
+            slug=snapshot.slug.value,
+            public_payload=snapshot.public_payload,
+            published_at=snapshot.published_at,
+        )
+        self._session.add(row)
+        self._session.flush([row])
+        self._session.add(
+            EditorialTransitionModel(
+                transition_id=transition_id,
+                revision_id=transition.revision_id.value,
+                source_status=transition.source.value,
+                target_status=transition.target.value,
+                note=transition.note,
+                actor_context=transition.actor.label,
+                occurred_at=transition.occurred_at,
+                operation_id=transition.operation_id,
+            )
+        )
+        revision.editorial_status = EditorialStatus.PUBLISHED.value
+        revision.lock_version = expected_version + 1
+        revision.updated_at = transition.occurred_at
+        problem.current_published_snapshot_id = snapshot.snapshot_id
+        self._session.add(
+            IdempotencyRecordModel(
+                operation_type="PUBLISH",
+                target_id=transition.revision_id.value,
+                idempotency_key=idempotency_key,
+                request_digest=request_digest,
+                result_reference=snapshot.snapshot_id,
+                created_at=transition.occurred_at,
+            )
+        )
+        return snapshot
+
+
 class SqlAlchemyDraftUnitOfWork:
     def __init__(self, session_factory: sessionmaker[Session]) -> None:
         self._session_factory = session_factory
         self._session: Session | None = None
         self._drafts: SqlAlchemyDraftRepository | None = None
         self._editorial: SqlAlchemyEditorialRepository | None = None
+        self._publication: SqlAlchemyPublicationRepository | None = None
 
     @property
     def drafts(self) -> DraftRepository:
@@ -342,10 +459,17 @@ class SqlAlchemyDraftUnitOfWork:
             raise RuntimeError("unit of work must be entered before repository access")
         return self._editorial
 
+    @property
+    def publication(self) -> PublicationRepository:
+        if self._publication is None:
+            raise RuntimeError("unit of work must be entered before repository access")
+        return self._publication
+
     def __enter__(self) -> Self:
         self._session = self._session_factory()
         self._drafts = SqlAlchemyDraftRepository(self._session)
         self._editorial = SqlAlchemyEditorialRepository(self._session)
+        self._publication = SqlAlchemyPublicationRepository(self._session)
         return self
 
     def __exit__(
@@ -366,6 +490,7 @@ class SqlAlchemyDraftUnitOfWork:
             self._session = None
             self._drafts = None
             self._editorial = None
+            self._publication = None
 
 
 def _revision_model(
@@ -403,6 +528,17 @@ def _revision_domain(
         metadata=metadata,
         response=response,
         scoring=scoring,
+    )
+
+
+def _snapshot_domain(row: PublishedSnapshotModel) -> PublishedSnapshot:
+    return PublishedSnapshot(
+        snapshot_id=row.snapshot_id,
+        problem_id=ProblemId(row.problem_id),
+        revision_id=RevisionId(row.revision_id),
+        slug=StableSlug(row.slug),
+        public_payload=row.public_payload,
+        published_at=row.published_at,
     )
 
 

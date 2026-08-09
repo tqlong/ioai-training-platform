@@ -819,7 +819,7 @@ same transaction as its state change.
   public-problem and continue links before publication, and prove that preview
   state does not enter a public route, cache, or build. Suggested commit:
   `feat(studio): render isolated learner preview`.
-- [ ] **R0-07007 — Implement atomic publication from `AC-R0-014-05` through
+- [x] **R0-07007 — Implement atomic publication from `AC-R0-014-05` through
   `AC-R0-014-08`, analysis sections 8.3 and 9.3, and design sections 4,
   7.4, and 10.1-10.3.** Add a publish use case that locks the problem and
   approved revision, verifies expected version and approval, reruns complete
