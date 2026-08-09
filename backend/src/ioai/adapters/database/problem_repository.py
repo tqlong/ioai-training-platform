@@ -5,23 +5,31 @@ from datetime import datetime
 from types import TracebackType
 from typing import Self
 
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
 from ioai.application.problems.errors import (
     DraftNotFoundError,
+    IdempotencyConflictError,
     RevisionConflictError,
+    SuccessorRevisionError,
 )
 from ioai.application.problems.payload import (
     decode_revision_payload,
     encode_revision_payload,
 )
-from ioai.application.problems.ports import DraftRepository, DraftSummary
+from ioai.application.problems.ports import (
+    DraftRepository,
+    DraftSummary,
+    EditorialRepository,
+)
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
-from ioai.domain.problems.workflow import EditorialStatus
+from ioai.domain.problems.workflow import EditorialStatus, EditorialTransition
 
 from .problem_model import (
+    EditorialTransitionModel,
+    IdempotencyRecordModel,
     PrerequisiteReferenceModel,
     ProblemModel,
     ProblemRevisionModel,
@@ -160,11 +168,141 @@ class SqlAlchemyDraftRepository:
         }
 
 
+class SqlAlchemyEditorialRepository:
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def transition(
+        self,
+        transition: EditorialTransition,
+        *,
+        expected_version: int,
+        transition_id: str,
+    ) -> ProblemRevision:
+        statement = (
+            update(ProblemRevisionModel)
+            .where(
+                ProblemRevisionModel.revision_id == transition.revision_id.value,
+                ProblemRevisionModel.lock_version == expected_version,
+                ProblemRevisionModel.editorial_status == transition.source.value,
+            )
+            .values(
+                lock_version=expected_version + 1,
+                editorial_status=transition.target.value,
+                validation_summary=None,
+                updated_at=transition.occurred_at,
+            )
+            .returning(ProblemRevisionModel.problem_id)
+        )
+        problem_id = self._session.execute(statement).scalar_one_or_none()
+        if problem_id is None:
+            current = self._session.get(
+                ProblemRevisionModel, transition.revision_id.value
+            )
+            if current is None:
+                raise DraftNotFoundError(transition.revision_id)
+            raise RevisionConflictError(transition.revision_id, current.lock_version)
+        self._session.add(
+            EditorialTransitionModel(
+                transition_id=transition_id,
+                revision_id=transition.revision_id.value,
+                source_status=transition.source.value,
+                target_status=transition.target.value,
+                note=transition.note,
+                actor_context=transition.actor.label,
+                occurred_at=transition.occurred_at,
+                operation_id=transition.operation_id,
+            )
+        )
+        problem = self._session.get(ProblemModel, problem_id)
+        row = self._session.get(ProblemRevisionModel, transition.revision_id.value)
+        if problem is None or row is None:
+            raise DraftNotFoundError(transition.revision_id)
+        return _revision_domain(problem, row)
+
+    def create_successor(
+        self,
+        source: ProblemRevision,
+        successor: ProblemRevision,
+        *,
+        operation_id: str,
+        request_digest: str,
+        created_at: datetime,
+    ) -> ProblemRevision:
+        existing_operation = self._session.scalar(
+            select(IdempotencyRecordModel).where(
+                IdempotencyRecordModel.operation_type == "CREATE_SUCCESSOR",
+                IdempotencyRecordModel.target_id == source.revision_id.value,
+                IdempotencyRecordModel.idempotency_key == operation_id,
+            )
+        )
+        if existing_operation is not None:
+            if existing_operation.request_digest != request_digest:
+                raise IdempotencyConflictError(
+                    "successor operation key was reused for different intent"
+                )
+            existing = self._session.get(
+                ProblemRevisionModel, existing_operation.result_reference
+            )
+            problem = self._session.get(ProblemModel, source.problem_id.value)
+            if existing is None or problem is None:
+                raise DraftNotFoundError(
+                    RevisionId(existing_operation.result_reference)
+                )
+            return _revision_domain(problem, existing)
+
+        persisted_source = self._session.get(
+            ProblemRevisionModel, source.revision_id.value
+        )
+        if (
+            persisted_source is None
+            or persisted_source.editorial_status
+            != EditorialStatus.CHANGES_REQUESTED.value
+            or persisted_source.lock_version != source.version
+        ):
+            if persisted_source is None:
+                raise DraftNotFoundError(source.revision_id)
+            raise RevisionConflictError(
+                source.revision_id, persisted_source.lock_version
+            )
+        existing_draft = self._session.scalar(
+            select(ProblemRevisionModel).where(
+                ProblemRevisionModel.problem_id == source.problem_id.value,
+                ProblemRevisionModel.editorial_status == EditorialStatus.DRAFT.value,
+            )
+        )
+        if existing_draft is not None:
+            raise SuccessorRevisionError(
+                "this problem already has an editable draft revision"
+            )
+        next_number = self._session.scalar(
+            select(func.max(ProblemRevisionModel.revision_number)).where(
+                ProblemRevisionModel.problem_id == source.problem_id.value
+            )
+        )
+        row = _revision_model(successor, created_at, created_at)
+        row.revision_number = (next_number or 0) + 1
+        self._session.add(row)
+        _replace_associations(self._session, successor)
+        self._session.add(
+            IdempotencyRecordModel(
+                operation_type="CREATE_SUCCESSOR",
+                target_id=source.revision_id.value,
+                idempotency_key=operation_id,
+                request_digest=request_digest,
+                result_reference=successor.revision_id.value,
+                created_at=created_at,
+            )
+        )
+        return successor
+
+
 class SqlAlchemyDraftUnitOfWork:
     def __init__(self, session_factory: sessionmaker[Session]) -> None:
         self._session_factory = session_factory
         self._session: Session | None = None
         self._drafts: SqlAlchemyDraftRepository | None = None
+        self._editorial: SqlAlchemyEditorialRepository | None = None
 
     @property
     def drafts(self) -> DraftRepository:
@@ -172,9 +310,16 @@ class SqlAlchemyDraftUnitOfWork:
             raise RuntimeError("unit of work must be entered before repository access")
         return self._drafts
 
+    @property
+    def editorial(self) -> EditorialRepository:
+        if self._editorial is None:
+            raise RuntimeError("unit of work must be entered before repository access")
+        return self._editorial
+
     def __enter__(self) -> Self:
         self._session = self._session_factory()
         self._drafts = SqlAlchemyDraftRepository(self._session)
+        self._editorial = SqlAlchemyEditorialRepository(self._session)
         return self
 
     def __exit__(
@@ -194,6 +339,7 @@ class SqlAlchemyDraftUnitOfWork:
             self._session.close()
             self._session = None
             self._drafts = None
+            self._editorial = None
 
 
 def _revision_model(

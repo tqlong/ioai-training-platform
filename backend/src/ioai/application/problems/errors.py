@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ioai.domain.problems.identity import RevisionId
+from ioai.domain.problems.revision import ValidationReport
 
 
 class ProblemApplicationError(RuntimeError):
@@ -20,3 +21,17 @@ class RevisionConflictError(ProblemApplicationError):
         super().__init__(
             f"revision {revision_id.value} has current version {current_version}"
         )
+
+
+class DraftValidationError(ProblemApplicationError):
+    def __init__(self, report: ValidationReport) -> None:
+        self.report = report
+        super().__init__("draft has publication-blocking validation errors")
+
+
+class SuccessorRevisionError(ProblemApplicationError):
+    """A new editable revision cannot be created from the requested source."""
+
+
+class IdempotencyConflictError(ProblemApplicationError):
+    """An idempotency key was reused for different command intent."""

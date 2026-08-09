@@ -774,7 +774,7 @@ same transaction as its state change.
   useful revision/status indexes, and deterministic upgrade/downgrade tests
   against PostgreSQL. Suggested commit:
   `feat(database): persist editorial publication records`.
-- [ ] **R0-07003 — Implement transactional review commands from
+- [x] **R0-07003 — Implement transactional review commands from
   `AC-R0-014-01` through `AC-R0-014-04` and `AC-R0-014-16`, analysis
   sections 8.1-8.2 and 9.3, and design sections 4 and 10.1.** Add application
   use cases and narrow ports for submit-for-review, request-changes, and

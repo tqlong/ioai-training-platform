@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import replace
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -10,10 +11,15 @@ from alembic.config import Config
 from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.orm import sessionmaker
 
-from ioai.adapters.database.problem_model import ProblemModel, ProblemRevisionModel
+from ioai.adapters.database.problem_model import (
+    EditorialTransitionModel,
+    ProblemModel,
+    ProblemRevisionModel,
+)
 from ioai.adapters.database.problem_repository import (
     SqlAlchemyDraftUnitOfWork,
 )
+from ioai.application.problems.editorial import StartSuccessorDraft
 from ioai.application.problems.errors import RevisionConflictError
 from ioai.domain.problems.assessment import (
     Choice,
@@ -41,7 +47,11 @@ from ioai.domain.problems.metadata import (
     ResourceLimits,
 )
 from ioai.domain.problems.revision import ProblemRevision
-from ioai.domain.problems.workflow import EditorialStatus
+from ioai.domain.problems.workflow import (
+    ActorContext,
+    EditorialStatus,
+    transition_for_review,
+)
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 from ioai.domain.vocabulary.values import VocabularyIdentity, VocabularyType
 
@@ -158,6 +168,105 @@ def test_compare_and_increment_save_rejects_stale_write(session_factory) -> None
     assert conflict.value.current_version == 2
     with SqlAlchemyDraftUnitOfWork(session_factory) as work:
         assert work.drafts.get(RevisionId("revision-01")) == saved
+
+
+def test_editorial_transition_updates_version_and_history_atomically(
+    session_factory,
+) -> None:
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        work.drafts.create(empty_revision(), NOW)
+
+    transition = transition_for_review(
+        revision_id=RevisionId("revision-01"),
+        source=EditorialStatus.DRAFT,
+        target=EditorialStatus.IN_REVIEW,
+        note="Ready for review.",
+        actor=ActorContext("local-author"),
+        occurred_at=NOW,
+        operation_id="submit-01",
+    )
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        reviewed = work.editorial.transition(
+            transition,
+            expected_version=1,
+            transition_id="transition-01",
+        )
+
+    assert reviewed.status is EditorialStatus.IN_REVIEW
+    assert reviewed.version == 2
+    with session_factory() as session:
+        history = session.scalars(select(EditorialTransitionModel)).all()
+        assert len(history) == 1
+        assert history[0].note == "Ready for review."
+
+    with pytest.raises(RevisionConflictError):
+        with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+            work.editorial.transition(
+                transition,
+                expected_version=1,
+                transition_id="transition-stale",
+            )
+
+
+def test_editorial_unit_of_work_rolls_back_state_and_history(session_factory) -> None:
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        work.drafts.create(empty_revision(), NOW)
+    transition = transition_for_review(
+        revision_id=RevisionId("revision-01"),
+        source=EditorialStatus.DRAFT,
+        target=EditorialStatus.IN_REVIEW,
+        note="Ready for review.",
+        actor=ActorContext("local-author"),
+        occurred_at=NOW,
+        operation_id="submit-rollback",
+    )
+
+    with pytest.raises(RuntimeError, match="rollback"):
+        with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+            work.editorial.transition(
+                transition,
+                expected_version=1,
+                transition_id="transition-rollback",
+            )
+            raise RuntimeError("rollback")
+
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        assert (
+            work.drafts.get(RevisionId("revision-01")).status is EditorialStatus.DRAFT
+        )
+    with session_factory() as session:
+        assert (
+            session.scalar(select(func.count()).select_from(EditorialTransitionModel))
+            == 0
+        )
+
+
+def test_changes_requested_successor_is_idempotent_and_preserves_source(
+    session_factory,
+) -> None:
+    source = replace(empty_revision(), status=EditorialStatus.CHANGES_REQUESTED)
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        work.drafts.create(source, NOW)
+    generated = iter(("revision-02", "revision-03"))
+    start = StartSuccessorDraft(
+        unit_of_work_factory=lambda: SqlAlchemyDraftUnitOfWork(session_factory),
+        id_generator=lambda: next(generated),
+        clock=lambda: NOW,
+    )
+
+    first = start(source.revision_id, operation_id="revise-01")
+    replay = start(source.revision_id, operation_id="revise-01")
+
+    assert first.revision_id == RevisionId("revision-02")
+    assert replay.revision_id == first.revision_id
+    with session_factory() as session:
+        revisions = session.scalars(
+            select(ProblemRevisionModel).order_by(ProblemRevisionModel.revision_number)
+        ).all()
+    assert [(row.revision_id, row.editorial_status) for row in revisions] == [
+        ("revision-01", "CHANGES_REQUESTED"),
+        ("revision-02", "DRAFT"),
+    ]
 
 
 def test_create_persists_normalized_curriculum_response_and_scoring(
