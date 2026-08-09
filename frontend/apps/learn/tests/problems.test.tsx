@@ -2,8 +2,8 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import {
   ProblemDiscovery,
-  parseProblemSearchParams,
 } from '../src/components/problem-discovery';
+import { parseProblemSearchParams } from '../src/problem-search-params';
 
 
 const stages = [

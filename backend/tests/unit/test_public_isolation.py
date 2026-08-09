@@ -4,7 +4,16 @@ import json
 
 from fastapi.testclient import TestClient
 
+from ioai.application.problems.errors import PublishedProblemNotFoundError
 from ioai.entrypoints.api.factory import create_app
+
+
+class NoPublishedProblemsService:
+    def get(self, slug: str):
+        raise PublishedProblemNotFoundError(slug)
+
+    def recommend(self, context):
+        return None
 
 
 def test_non_author_openapi_operations_cannot_reference_author_schemas() -> None:
@@ -31,7 +40,7 @@ def test_non_author_openapi_operations_cannot_reference_author_schemas() -> None
 
 
 def test_guessed_public_revision_preview_and_search_paths_reveal_nothing() -> None:
-    client = TestClient(create_app())
+    client = TestClient(create_app(public_problem_service=NoPublishedProblemsService()))
     candidates = (
         ("/api/v1/problems/revision-secret", 404),
         ("/api/v1/problems?preview=revision-secret", 422),

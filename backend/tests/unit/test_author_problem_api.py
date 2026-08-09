@@ -6,7 +6,10 @@ from datetime import UTC, datetime
 from fastapi.testclient import TestClient
 
 from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
-from ioai.application.problems.errors import RevisionConflictError
+from ioai.application.problems.errors import (
+    PublishedProblemNotFoundError,
+    RevisionConflictError,
+)
 from ioai.application.problems.publication import ArchivedProblem, PublishedSnapshot
 from ioai.domain.problems.errors import InvalidProblemContentError
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
@@ -23,6 +26,11 @@ from ioai.entrypoints.api.contracts.problems import (
 )
 from ioai.entrypoints.api.factory import create_app
 from ioai.entrypoints.api.routes.problems import _safe_response_schema
+
+
+class NoPublishedProblemsService:
+    def get(self, slug: str):
+        raise PublishedProblemNotFoundError(slug)
 
 
 class FakeAuthorProblemService:
@@ -285,7 +293,12 @@ def test_author_validation_rejects_stale_revision_version() -> None:
 
 
 def test_preview_is_author_only_and_marks_learner_projection() -> None:
-    client = TestClient(create_app(author_problem_service=FakeAuthorProblemService()))
+    client = TestClient(
+        create_app(
+            author_problem_service=FakeAuthorProblemService(),
+            public_problem_service=NoPublishedProblemsService(),
+        )
+    )
     preview = client.post(
         "/api/v1/author/revisions/revision-1/preview",
         json={"expected_version": 1},

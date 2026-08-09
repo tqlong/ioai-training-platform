@@ -8,6 +8,9 @@
   synchronizes canonical vocabulary, and recreates API, Learn, and Studio while
   preserving the database volume.
 - `bash scripts/dev_stop.sh` stops all services.
+- `bash scripts/phase8_redeploy.sh` performs the Phase 8 deployment-only path:
+  recreate PostgreSQL without deleting its volume, apply migrations, synchronize
+  vocabulary, recreate API/Learn/Studio, and check health. It does not run tests.
 
 ## Migration and seed
 
@@ -44,6 +47,13 @@
   Chromium workflow.
 - `bash scripts/test_editorial_e2e.sh` runs the editorial publication browser
   workflow against an already healthy local stack.
+- `bash scripts/phase8_test.sh` runs the Phase 8 non-deployment quality gates.
+  With `PHASE8_E2E=1`, it additionally runs the learner browser baseline against
+  an already deployed stack; it never redeploys services. Stop Learn and Studio
+  first for its production builds because the mounted development servers and
+  host build otherwise compete for the same `.next` directories.
+- `bash scripts/test_learner_e2e.sh` runs only the learner browse, solve,
+  feedback, progress, and continue workflow against an already healthy stack.
 - `bash scripts/db_backup_restore.sh backup` creates a PostgreSQL dump.
 - `bash scripts/db_backup_restore.sh restore <file>` restores from backup.
 - `bash scripts/db_backup_restore.sh reset` recreates stack data by removing local volumes.

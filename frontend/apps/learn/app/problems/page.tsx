@@ -2,11 +2,10 @@ import type { PublicVocabularyRecord } from '@ioai/api-client';
 
 import { learnApi } from '../../src/api';
 import {
-  parseProblemSearchParams,
   ProblemDiscovery,
   type ProblemVocabulary,
-  type RawSearchParams,
 } from '../../src/components/problem-discovery';
+import { parseProblemSearchParams, type RawSearchParams } from '../../src/problem-search-params';
 
 
 type ProblemsPageProps = {

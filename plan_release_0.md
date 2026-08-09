@@ -1084,7 +1084,7 @@ observe the required red step before implementation.
   approved local continuation data, and record the bounded pilot transition
   measure without adding accounts, tracking identity, or advanced analytics.
   Suggested commit: `feat(learn): complete the learner continuation loop`.
-- [ ] **R0-08018 — Verify and baseline the complete learner workflow.** Add the
+- [x] **R0-08018 — Verify and baseline the complete learner workflow.** Add the
   critical Playwright path for browse -> select stage -> search/filter -> open a
   permanent URL -> answer each supported response family at the smallest useful
   boundary -> submit -> receive result or pending feedback -> restore local
