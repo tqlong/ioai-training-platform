@@ -23,6 +23,8 @@ export type PublicProblemList = components['schemas']['PublicProblemListResponse
 export type PublicProblemDetail = components['schemas']['PublicProblemDetailResponse'];
 export type PublicSubmissionRequest = components['schemas']['PublicSubmissionRequest'];
 export type PublicSubmissionResult = components['schemas']['PublicSubmissionResponse'];
+export type PublicFeedbackRequest = components['schemas']['PublicFeedbackRequest'];
+export type PublicFeedbackReceipt = components['schemas']['PublicFeedbackReceipt'];
 export type PublicProblemRecommendation = components['schemas']['PublicProblemRecommendationResponse'];
 export type EditorialAction = 'submit-review' | 'request-changes' | 'approve';
 
@@ -86,6 +88,7 @@ export type ApiClient = {
   listPublicProblems: (query?: PublicProblemQuery) => Promise<PublicProblemList>;
   getPublicProblem: (slug: string) => Promise<PublicProblemDetail>;
   submitPublicProblem: (slug: string, request: PublicSubmissionRequest) => Promise<PublicSubmissionResult>;
+  submitPublicFeedback: (slug: string, request: PublicFeedbackRequest) => Promise<PublicFeedbackReceipt>;
   getPublicRecommendation: (
     slug: string,
     query: PublicRecommendationQuery,
@@ -189,6 +192,13 @@ export const createApiClient = ({
       return requestJson<PublicSubmissionResult>(
         fetchFn,
         `${normalizedBaseUrl}/problems/${encodeURIComponent(slug)}/submissions`,
+        { method: 'POST', body: JSON.stringify(request) },
+      );
+    },
+    async submitPublicFeedback(slug, request) {
+      return requestJson<PublicFeedbackReceipt>(
+        fetchFn,
+        `${normalizedBaseUrl}/problems/${encodeURIComponent(slug)}/feedback`,
         { method: 'POST', body: JSON.stringify(request) },
       );
     },

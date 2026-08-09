@@ -10,6 +10,10 @@ from ioai.adapters.database.problem_repository import (
     SqlAlchemyLearnerRecordRepository,
 )
 from ioai.application.problems.assessment import AssessSubmission, SubmissionCommand
+from ioai.application.problems.feedback import (
+    RecordProblemFeedback,
+    SubmitFeedbackCommand,
+)
 from ioai.application.problems.learner_records import (
     FeedbackCategory,
     LearnerAttempt,
@@ -89,6 +93,32 @@ def test_assessment_unit_of_work_resolves_current_snapshot_and_commits_once(
 
     assert use_case(command).result["score"] == "1.0"
     assert use_case(command).attempt_id == "attempt-assessed"
+
+
+def test_feedback_use_case_commits_and_replays_one_public_snapshot_record(
+    migrated_database,
+) -> None:
+    seed_published_problem(migrated_database)
+
+    class Allow:
+        def allow(self, token: str) -> bool:
+            return bool(token)
+
+    use_case = RecordProblemFeedback(
+        lambda: SqlAlchemyAssessmentUnitOfWork(sessionmaker(migrated_database)),
+        lambda: "feedback-use-case",
+        lambda: NOW,
+        Allow(),
+    )
+    command = SubmitFeedbackCommand(
+        "learner-problem",
+        "feedback-command-key",
+        FeedbackCategory.CONTENT_ISSUE,
+        "The prompt is ambiguous.",
+        "anonymous-token",
+    )
+    assert use_case(command).feedback_id == "feedback-use-case"
+    assert use_case(command).feedback_id == "feedback-use-case"
 
 
 def test_records_attempt_and_replays_same_submission(migrated_database) -> None:

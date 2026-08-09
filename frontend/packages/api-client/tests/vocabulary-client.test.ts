@@ -3,6 +3,18 @@ import { describe, expect, it, vi } from 'vitest';
 import { createApiClient } from '../src';
 
 describe('generated vocabulary client', () => {
+  it('sends bounded anonymous feedback with its retry key', async () => {
+    const fetchFn = vi.fn(async () => Response.json({ receipt_id: 'feedback-1', message: 'Recorded.' }, { status: 201 }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    const result = await client.submitPublicFeedback('metrics', {
+      feedback_key: 'feedback-key', category: 'TYPO', message: 'A typo.',
+    });
+    expect(result.receipt_id).toBe('feedback-1');
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/problems/metrics/feedback',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
   it('submits a discriminated learner answer with its retry key', async () => {
     const fetchFn = vi.fn(async () => Response.json({ attempt_id: 'attempt-1', outcome: 'ACCEPTED_RESULT', score: '1.0', passed: true, components: [], message: 'Assessed.' }));
     const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });

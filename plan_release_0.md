@@ -1066,7 +1066,7 @@ observe the required red step before implementation.
   keep browsing/submission usable with a clear temporary-progress notice when
   storage is unavailable or cleared. Suggested commit:
   `feat(learn): restore device-local learner progress`.
-- [ ] **R0-08016 — Implement bounded anonymous problem feedback from
+- [x] **R0-08016 — Implement bounded anonymous problem feedback from
   `AC-R0-012-12` through `AC-R0-012-14`.** Add application validation, public-
   snapshot existence checks, idempotency and no-auth abuse controls, repository
   transaction behavior, and `POST /api/v1/problems/{slug}/feedback` with

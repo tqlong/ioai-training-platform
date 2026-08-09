@@ -39,6 +39,7 @@ class FakeReader:
 class FakeRecords:
     def __init__(self):
         self.attempts = []
+        self.feedback = []
 
     def replay_attempt(self, snapshot_id, submission_key):
         return next(
@@ -53,6 +54,19 @@ class FakeRecords:
 
     def add_attempt(self, attempt):
         self.attempts.append(attempt)
+
+    def replay_feedback(self, snapshot_id, feedback_key):
+        return next(
+            (
+                item
+                for item in self.feedback
+                if item.snapshot_id == snapshot_id and item.feedback_key == feedback_key
+            ),
+            None,
+        )
+
+    def add_feedback(self, item):
+        self.feedback.append(item)
 
 
 class FakeWork:

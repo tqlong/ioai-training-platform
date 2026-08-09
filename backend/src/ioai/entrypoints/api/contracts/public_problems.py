@@ -68,6 +68,21 @@ class PublicSubmissionResponse(BaseModel):
     message: str
 
 
+class PublicFeedbackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    feedback_key: str = Field(min_length=1, max_length=200)
+    category: Literal[
+        "CONTENT_ISSUE", "TYPO", "SCORING_ISSUE", "ACCESSIBILITY", "OTHER"
+    ]
+    message: str = Field(min_length=1, max_length=2000)
+
+
+class PublicFeedbackReceipt(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    receipt_id: str
+    message: str
+
+
 class PublicLocalizedTextResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

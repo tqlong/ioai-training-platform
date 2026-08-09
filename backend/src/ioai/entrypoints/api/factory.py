@@ -40,6 +40,11 @@ from ...application.problems.editorial import (
     StartSuccessorDraft,
     SubmitForReview,
 )
+from ...application.problems.feedback import (
+    FixedWindowFeedbackThrottle,
+    RecordProblemFeedback,
+    SubmitFeedbackCommand,
+)
 from ...application.problems.payload import decode_revision_payload
 from ...application.problems.public_queries import (
     GetPublishedProblem,
@@ -233,6 +238,7 @@ def create_app(
 class _DefaultPublicProblemService:
     def __init__(self, session_factory) -> None:
         self._session_factory = session_factory
+        self._feedback_throttle = FixedWindowFeedbackThrottle(lambda: datetime.now(UTC))
 
     def list(self, query: PublicProblemQuery):
         with self._session_factory() as session:
@@ -248,6 +254,14 @@ class _DefaultPublicProblemService:
             lambda: SqlAlchemyAssessmentUnitOfWork(self._session_factory),
             lambda: str(uuid4()),
             lambda: datetime.now(UTC),
+        )(command)
+
+    def feedback(self, command: SubmitFeedbackCommand):
+        return RecordProblemFeedback(
+            lambda: SqlAlchemyAssessmentUnitOfWork(self._session_factory),
+            lambda: str(uuid4()),
+            lambda: datetime.now(UTC),
+            self._feedback_throttle,
         )(command)
 
     def recommend(self, context: RecommendationContext):

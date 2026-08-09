@@ -4,7 +4,13 @@ from fastapi.testclient import TestClient
 
 from ioai.application.problems.assessment import SubmissionCommand
 from ioai.application.problems.errors import PublishedProblemNotFoundError
-from ioai.application.problems.learner_records import LearnerAttempt, LearnerOutcome
+from ioai.application.problems.feedback import SubmitFeedbackCommand
+from ioai.application.problems.learner_records import (
+    FeedbackCategory,
+    LearnerAttempt,
+    LearnerOutcome,
+    ProblemFeedback,
+)
 from ioai.application.problems.public_queries import (
     PublicProblemProjection,
     PublicProblemProjectionPage,
@@ -25,6 +31,7 @@ class FakePublicProblemService:
         self.has_recommendation = True
         self.has_detail = True
         self.submission: SubmissionCommand | None = None
+        self.feedback_command: SubmitFeedbackCommand | None = None
 
     def list(self, query: PublicProblemQuery) -> PublicProblemProjectionPage:
         self.query = query
@@ -141,6 +148,18 @@ class FakePublicProblemService:
                 "components": [{"method": "EXACT_MATCH", "score": "1.0"}],
             },
             submitted_at=datetime(2026, 8, 9, tzinfo=UTC),
+        )
+
+    def feedback(self, command: SubmitFeedbackCommand) -> ProblemFeedback:
+        self.feedback_command = command
+        return ProblemFeedback(
+            "feedback-public",
+            "snapshot-private",
+            command.feedback_key,
+            "b" * 64,
+            command.category,
+            command.message,
+            datetime(2026, 8, 9, tzinfo=UTC),
         )
 
 
@@ -288,6 +307,23 @@ def test_public_submission_rejects_malformed_discriminated_response() -> None:
         },
     )
     assert response.status_code == 422
+
+
+def test_public_feedback_accepts_canonical_bounded_report_with_safe_receipt() -> None:
+    service = FakePublicProblemService()
+    client = TestClient(create_app(public_problem_service=service))
+    response = client.post(
+        "/api/v1/problems/metrics-basics/feedback",
+        json={"feedback_key": "feedback-key", "category": "TYPO", "message": "A typo."},
+    )
+    assert response.status_code == 201
+    assert response.json() == {
+        "receipt_id": "feedback-public",
+        "message": "Thank you. Your feedback was recorded.",
+    }
+    assert service.feedback_command is not None
+    assert service.feedback_command.category is FeedbackCategory.TYPO
+    assert len(service.feedback_command.abuse_token) == 64
 
 
 def test_public_problem_list_rejects_unknown_and_unavailable_canonical_values() -> None:

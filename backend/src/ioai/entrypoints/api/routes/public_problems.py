@@ -9,7 +9,16 @@ from ioai.application.problems.errors import (
     IdempotencyConflictError,
     PublishedProblemNotFoundError,
 )
-from ioai.application.problems.learner_records import LearnerAttempt, LearnerOutcome
+from ioai.application.problems.feedback import (
+    SubmitFeedbackCommand,
+    anonymous_abuse_token,
+)
+from ioai.application.problems.learner_records import (
+    FeedbackCategory,
+    LearnerAttempt,
+    LearnerOutcome,
+    ProblemFeedback,
+)
 from ioai.application.problems.public_queries import (
     PublicProblemProjection,
     PublicProblemProjectionPage,
@@ -31,6 +40,8 @@ from ioai.domain.vocabulary.values import (
 from ..contracts.errors import ErrorResponse
 from ..contracts.public_problems import (
     PublicContentBlockResponse,
+    PublicFeedbackReceipt,
+    PublicFeedbackRequest,
     PublicLocalizedTextResponse,
     PublicPrerequisiteResponse,
     PublicProblemDetailResponse,
@@ -50,6 +61,8 @@ class PublicProblemService(Protocol):
     def get(self, slug: str) -> PublicProblemProjection: ...
 
     def assess(self, command: SubmissionCommand) -> LearnerAttempt: ...
+
+    def feedback(self, command: SubmitFeedbackCommand) -> ProblemFeedback: ...
 
     def recommend(
         self, context: RecommendationContext
@@ -270,6 +283,79 @@ def public_problem_router(
                 },
             ) from error
         return _submission_response(attempt)
+
+    @router.post(
+        "/{slug}/feedback",
+        response_model=PublicFeedbackReceipt,
+        status_code=status.HTTP_201_CREATED,
+        responses={
+            404: {"model": ErrorResponse},
+            409: {"model": ErrorResponse},
+            422: {"model": ErrorResponse},
+            429: {"model": ErrorResponse},
+            503: {"model": ErrorResponse},
+        },
+    )
+    def submit_feedback(
+        slug: str, payload: PublicFeedbackRequest, request: Request
+    ) -> PublicFeedbackReceipt:
+        scope = (
+            f"{request.client.host if request.client else 'unknown'}|"
+            f"{request.headers.get('user-agent', '')[:160]}"
+        )
+        try:
+            feedback = service.feedback(
+                SubmitFeedbackCommand(
+                    slug,
+                    payload.feedback_key,
+                    FeedbackCategory(payload.category),
+                    payload.message,
+                    anonymous_abuse_token(scope),
+                )
+            )
+        except PublishedProblemNotFoundError as error:
+            raise HTTPException(
+                status_code=404,
+                detail={"code": "PUBLIC_NOT_FOUND", "message": "Problem not found."},
+            ) from error
+        except IdempotencyConflictError as error:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "code": "FEEDBACK_KEY_CONFLICT",
+                    "message": (
+                        "This feedback key was already used for a different report."
+                    ),
+                },
+            ) from error
+        except PermissionError as error:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "code": "FEEDBACK_RATE_LIMITED",
+                    "message": "Too many feedback reports. Please try again later.",
+                },
+            ) from error
+        except ValueError as error:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "INVALID_FEEDBACK", "message": str(error)},
+            ) from error
+        except RuntimeError as error:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "FEEDBACK_UNAVAILABLE",
+                    "message": (
+                        "Feedback is temporarily unavailable. Retry with the same "
+                        "feedback key."
+                    ),
+                },
+            ) from error
+        return PublicFeedbackReceipt(
+            receipt_id=feedback.feedback_id,
+            message="Thank you. Your feedback was recorded.",
+        )
 
     return router
 
