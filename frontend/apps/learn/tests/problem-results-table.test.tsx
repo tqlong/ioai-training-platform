@@ -44,7 +44,7 @@ describe('dense learner results table', () => {
     expect(within(row).getByText('Not started')).toBeInTheDocument();
     expect(within(row).getByLabelText('No learning evidence')).toHaveTextContent('—');
     expect(within(row).getByText('AI Foundations · Easy')).toBeInTheDocument();
-    expect(within(row).getByText('Evaluate models')).toBeInTheDocument();
+    expect(within(row).getAllByText('Evaluate models')).toHaveLength(2);
     expect(within(row).getByText('10 min')).toBeInTheDocument();
     expect(within(row).getByText('None')).toBeInTheDocument();
     expect(within(row).getByRole('button', { name: 'Show 1 more topic' })).toHaveTextContent('+1');
@@ -53,5 +53,37 @@ describe('dense learner results table', () => {
       '/problems/confusion-basics?return_to=%2Fproblems%3Fstage%3DAI_1_FOUNDATIONS%26q%3Dmetrics',
     );
     expect(row).toHaveAttribute('tabindex', '0');
+  });
+
+  it('provides compact mobile cards and intermediate row details without dropping metadata', () => {
+    render(
+      <ProblemResultsTable
+        items={items}
+        labels={labels}
+        returnUrl="/problems?stage=AI_1_FOUNDATIONS"
+        progress={{
+          'confusion-basics': { status: 'ATTEMPTED', evidence: 'PRACTICED' },
+        }}
+      />,
+    );
+
+    const cards = screen.getByRole('list', { name: 'Published problem cards' });
+    const card = within(cards).getByRole('listitem');
+    expect(card).toHaveClass('problem-card');
+    expect(within(card).getByText('Attempted')).toBeInTheDocument();
+    expect(within(card).getByText('AI Foundations · Easy')).toBeInTheDocument();
+    expect(within(card).getByText('Confusion matrix')).toBeInTheDocument();
+    expect(within(card).getByText('Single answer')).toBeInTheDocument();
+    expect(within(card).getByText('10 min')).toBeInTheDocument();
+    expect(within(card).getByRole('link', { name: 'Confusion matrix basics' })).toHaveAttribute(
+      'href',
+      '/problems/confusion-basics?return_to=%2Fproblems%3Fstage%3DAI_1_FOUNDATIONS',
+    );
+
+    const row = within(screen.getByRole('table', { name: 'Published problems' }))
+      .getAllByRole('row')[1]!;
+    expect(within(row).getByRole('button', { name: 'Show competency and evidence' }))
+      .toBeInTheDocument();
+    expect(within(row).getAllByText('Practiced')).toHaveLength(2);
   });
 });

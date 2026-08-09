@@ -996,7 +996,7 @@ observe the required red step before implementation.
   accessible row/title navigation that ignores nested controls, and meaningful
   truncation at desktop and intermediate widths. Suggested commit:
   `feat(learn): build the learner problem table`.
-- [ ] **R0-08009 — Add responsive library cards, filter sheet, and resilient
+- [x] **R0-08009 — Add responsive library cards, filter sheet, and resilient
   states from `AC-R0-011-03` and `AC-R0-011-11` through `AC-R0-011-14`.** Below
   768 px replace the table with cards that retain title, status, paired
   stage/difficulty, primary topic, type, and time; at 1024-1279 px relocate the

@@ -37,15 +37,16 @@ export function ProblemResultsTable({
   progress = {},
 }: ProblemResultsTableProps) {
   return (
+    <>
     <div className="problem-table-wrap">
       <table className="problem-table" aria-label="Published problems">
         <thead>
           <tr>
             <th scope="col">Status</th>
-            <th scope="col">Evidence</th>
+            <th className="intermediate-secondary" scope="col">Evidence</th>
             <th scope="col">Problem</th>
             <th scope="col">Stage · Difficulty</th>
-            <th scope="col">Primary competency</th>
+            <th className="intermediate-secondary" scope="col">Primary competency</th>
             <th scope="col">Topics</th>
             <th scope="col">Type</th>
             <th scope="col">Time</th>
@@ -71,7 +72,7 @@ export function ProblemResultsTable({
                     {STATUS_LABELS[itemProgress.status]}
                   </span>
                 </td>
-                <td>
+                <td className="intermediate-secondary">
                   {itemProgress.evidence ? (
                     <span className="evidence">{EVIDENCE_LABELS[itemProgress.evidence]}</span>
                   ) : (
@@ -84,7 +85,7 @@ export function ProblemResultsTable({
                   <span>{item.objective.en}</span>
                 </td>
                 <td>{label(labels, item.stage_code)} · {label(labels, item.difficulty_code)}</td>
-                <td>{label(labels, item.primary_competency_code)}</td>
+                <td className="intermediate-secondary">{label(labels, item.primary_competency_code)}</td>
                 <td>
                   <div className="topic-list">
                     {item.topic_codes.map((code) => (
@@ -102,13 +103,46 @@ export function ProblemResultsTable({
                 </td>
                 <td>{label(labels, item.task_type_code)}</td>
                 <td>{item.expected_minutes} min</td>
-                <td>{label(labels, item.compute_tier_code)}</td>
+                <td>
+                  {label(labels, item.compute_tier_code)}
+                  <details className="intermediate-details">
+                    <summary role="button" aria-label="Show competency and evidence">Details</summary>
+                    <span><strong>Competency:</strong> {label(labels, item.primary_competency_code)}</span>
+                    <span><strong>Evidence:</strong> {itemProgress.evidence
+                      ? EVIDENCE_LABELS[itemProgress.evidence]
+                      : 'No learning evidence'}</span>
+                  </details>
+                </td>
               </tr>
             );
           })}
         </tbody>
       </table>
     </div>
+    <ul className="problem-cards" aria-label="Published problem cards">
+      {items.map((item) => {
+        const href = problemHref(item.slug, returnUrl);
+        const itemProgress = progress[item.slug] ?? { status: 'NOT_STARTED' };
+        return (
+          <li className="problem-card" key={item.slug}>
+            <div className="problem-card-heading">
+              <a href={href}>{item.title.en}</a>
+              <span className={`status status-${itemProgress.status.toLowerCase()}`}>
+                <span aria-hidden="true">{statusIcon(itemProgress.status)}</span>
+                {STATUS_LABELS[itemProgress.status]}
+              </span>
+            </div>
+            <p>{label(labels, item.stage_code)} · {label(labels, item.difficulty_code)}</p>
+            <dl>
+              <div><dt>Primary topic</dt><dd>{label(labels, item.topic_codes[0] ?? '')}</dd></div>
+              <div><dt>Type</dt><dd>{label(labels, item.task_type_code)}</dd></div>
+              <div><dt>Time</dt><dd>{item.expected_minutes} min</dd></div>
+            </dl>
+          </li>
+        );
+      })}
+    </ul>
+    </>
   );
 }
 

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import {
   ProblemDiscovery,
@@ -83,12 +83,38 @@ describe('IOAI Learn URL-owned discovery', () => {
     expect(screen.getByRole('combobox', { name: 'Topic' })).toHaveValue('MATH_BAYES');
     expect(screen.getByRole('checkbox', { name: 'Include subtopics' })).toBeChecked();
     expect(screen.getByText('3 problems')).toBeInTheDocument();
+    const openFilters = screen.getByRole('button', { name: 'Open filters' });
+    fireEvent.click(openFilters);
+    expect(screen.getByRole('searchbox', { name: 'Search problems' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Show 3 problems' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close filters' }));
+    expect(openFilters).toHaveFocus();
     expect(screen.getByRole('link', { name: 'Remove topic: Bayes theorem' })).toHaveAttribute(
       'href', expect.not.stringContaining('topic='),
     );
     expect(screen.getByRole('link', { name: 'Clear filters' })).toHaveAttribute('href', '/problems');
     expect(screen.getByRole('list', { name: 'Topic family shortcuts' }).children).toHaveLength(8);
-    expect(screen.getByText('Metrics basics')).toBeInTheDocument();
+    expect(screen.getAllByText('Metrics basics')).toHaveLength(2);
     expect(document.body.textContent).not.toContain('Draft preview');
+  });
+
+  it('identifies active filters when no results remain and offers a clear action', () => {
+    const query = parseProblemSearchParams({
+      stage: 'AI_1_FOUNDATIONS', q: 'missing', difficulty: 'EASY',
+    }, vocabulary);
+    render(
+      <ProblemDiscovery
+        vocabulary={vocabulary}
+        query={query}
+        resultCount={0}
+        items={[]}
+      />,
+    );
+
+    const empty = screen.getByRole('status', { name: 'No matching problems' });
+    expect(empty).toHaveTextContent('search: missing');
+    expect(empty).toHaveTextContent('Easy');
+    expect(within(empty).getByRole('link', { name: 'Clear filters' }))
+      .toHaveAttribute('href', '/problems');
   });
 });

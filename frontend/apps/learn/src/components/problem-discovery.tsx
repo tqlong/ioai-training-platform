@@ -1,4 +1,7 @@
+ 'use client';
+
 import type { PublicProblemList, PublicProblemQuery } from '@ioai/api-client';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   LearningGuidance,
@@ -119,6 +122,12 @@ export function ProblemDiscovery({
   items,
   starter,
 }: ProblemDiscoveryProps) {
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const openFiltersButton = useRef<HTMLButtonElement>(null);
+  const firstFilter = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (filtersOpen) firstFilter.current?.focus();
+  }, [filtersOpen]);
   const queryParams = toSearchParams(query);
   const families = vocabulary.topics.filter((item) => item.parentCode === null);
   const activeFilters = activeFilterEntries(query, vocabulary);
@@ -172,11 +181,37 @@ export function ProblemDiscovery({
         />
       ) : null}
 
-      <form className="filter-bar" role="search" action="/problems" method="get">
+      <button
+        className="open-filters"
+        type="button"
+        ref={openFiltersButton}
+        aria-expanded={filtersOpen}
+        aria-controls="problem-filters"
+        onClick={() => setFiltersOpen(true)}
+      >Open filters</button>
+      <form
+        id="problem-filters"
+        className={filtersOpen ? 'filter-bar filter-sheet-open' : 'filter-bar'}
+        role="search"
+        action="/problems"
+        method="get"
+      >
+        <div className="filter-sheet-heading">
+          <strong>Filter problems</strong>
+          <button
+            type="button"
+            aria-label="Close filters"
+            onClick={() => {
+              setFiltersOpen(false);
+              openFiltersButton.current?.focus();
+            }}
+          >Close</button>
+        </div>
         <input type="hidden" name="stage" value={query.stage} />
         <label className="search-field">
           <span>Search problems</span>
           <input
+            ref={firstFilter}
             type="search"
             name="q"
             defaultValue={query.search}
@@ -269,7 +304,7 @@ export function ProblemDiscovery({
           />
           <span>Include subtopics</span>
         </label>
-        <button className="apply-filters" type="submit">Apply filters</button>
+        <button className="apply-filters" type="submit">Show {resultCount} problems</button>
         <a className="clear-filters" href="/problems">Clear filters</a>
       </form>
 
@@ -302,7 +337,13 @@ export function ProblemDiscovery({
             returnUrl={queryParams.size ? `/problems?${queryParams}` : '/problems'}
           />
         ) : (
-          <p>No published problems match these filters.</p>
+          <div className="empty-results" role="status" aria-label="No matching problems">
+            <h2>No published problems match</h2>
+            <p>Active filters: {activeFilters.length
+              ? activeFilters.map(([key, value]) => `${filterName(key)}: ${value}`).join('; ')
+              : 'none'}.</p>
+            <a className="apply-filters" href="/problems">Clear filters</a>
+          </div>
         )}
       </div>
     </section>
