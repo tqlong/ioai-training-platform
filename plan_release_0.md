@@ -9,7 +9,7 @@
   `R0-03xxx` plan-step form: `R0-03001` through `R0-03999`, ordered numerically.
   Each step remains one meaningful commit. Later detailed phases use the same
   pattern with their phase prefix; Phase 7 uses `R0-07001` through
-  `R0-07999`. Plan-step IDs are
+  `R0-07999`, and Phase 8 uses `R0-08001` through `R0-08999`. Plan-step IDs are
   distinct from the requirement/story IDs in `requirement_release_0.md`.
 - Check an item only after its acceptance conditions are met and relevant
   quality gates pass. Include the checkbox update in that step's commit.
@@ -911,49 +911,192 @@ same transaction as its state change.
 
 ## Phase 8 — Learner problem library and solving loop
 
-- [ ] **R0-080 — Implement public problem-list API.** Add published-only
-  pagination, editorial-path default ordering, title/objective/topic search,
-  stage/difficulty/topic/type/competency/time/compute filters, stable query
-  semantics, and integration tests. Suggested commit:
-  `feat(learn): expose published problem library`.
-- [ ] **R0-081 — Build stage selection and recommendation card.** Implement
-  enabled/coming-next stages, editorial default recommendation, local-history
-  continuation, “Why this?” explanation, and component tests. Suggested commit:
-  `feat(learn): add stage and recommendation controls`.
-- [ ] **R0-082 — Build search and hierarchical filters.** Implement URL-backed
-  search, compact filters, top-level topic-family shortcuts, searchable tree,
-  aliases, active-filter tokens, include-descendants behavior, clear action, and
-  tests. Suggested commit: `feat(learn): add problem discovery filters`.
-- [ ] **R0-083 — Build the desktop problem table.** Implement all required
-  columns, paired stage/difficulty, separate status/evidence, two-topic limit,
-  sticky header, row navigation, accessible focus, sorting, and tests. Suggested
-  commit: `feat(learn): build problem table`.
-- [ ] **R0-084 — Build responsive problem cards and states.** Implement the
-  specified breakpoints, mobile filter sheet, compact cards, loading skeleton,
-  no-history/no-results/error states, and tests at 360, 768, 1024, and 1440 px.
-  Suggested commit: `feat(learn): add responsive library states`.
-- [ ] **R0-085 — Build the learning-path sidebar.** Add local weekly goal,
-  current path, prerequisite review, recent completions, and suggested topics
-  without implying mastery or unsupported personalization. Suggested commit:
-  `feat(learn): add learning path sidebar`.
-- [ ] **R0-086 — Implement public problem-detail API and page.** Return a safe
-  published projection and render title, paired stage/difficulty, objective,
-  prerequisites, statement, examples/data, response area, hints, explanation
-  rules, taxonomy details, and stable metadata. Suggested commit:
-  `feat(learn): build public problem page`.
-- [ ] **R0-087 — Implement lightweight submission and scoring.** Add the accepted
-  Release 0 submission contracts, domain scoring policies, safe feedback,
-  attempt recording where required, and unit/integration/component tests. Never
-  expose hidden answers or tests. Suggested commit:
-  `feat(scoring): add release 0 submissions`.
-- [ ] **R0-088 — Implement anonymous local progress.** Persist only approved
-  device-local task status, evidence display data, timing/hint counters, and
-  recent activity; degrade gracefully when storage is unavailable. Suggested
-  commit: `feat(learn): persist anonymous progress`.
-- [ ] **R0-089 — Implement feedback and continue-next loop.** Add the per-problem
-  feedback API/UI, abuse-resistant validation appropriate to the no-auth pilot,
-  success/error states, and next-problem transition measurement. Suggested
-  commit: `feat(learn): complete feedback and continuation loop`.
+Phase input and traceability rule: implement `R0-011` and `R0-012` from
+`requirement_release_0.md` using analysis sections 4, 6, 9, and 10, design
+sections 3-6, 8-12, and 15, and `ui_release_0.md` sections 5, 8-10. Preserve the
+five approved response types, the `NONE`/`BROWSER`/`CPU_LIGHT` policy, stable
+public slugs, URL-owned discovery state, browser-owned anonymous progress, and
+published-snapshot-only reads, submissions, feedback, and recommendations.
+Build on the Phase 7 snapshot projection and generated-client foundations;
+replace the learner fixture shell rather than creating a parallel public data
+path. Each step must trace its tests to the cited acceptance criteria and
+observe the required red step before implementation.
+
+- [ ] **R0-08001 — Baseline learner gaps against the current implementation.**
+  Inventory the existing published snapshot reader/repository, public DTO and
+  OpenAPI/client coverage, learner fixture shell, and PostgreSQL schema against
+  `AC-R0-011-01` through `AC-R0-012-17`. Update the implementation/test
+  traceability matrix with the owner step for every criterion, explicitly
+  recording which Phase 7 isolation guarantees are reused and which learner
+  contracts remain absent. Do not change product behavior in this step.
+  Suggested commit: `docs(learn): baseline learner implementation gaps`.
+- [ ] **R0-08002 — Add learner-attempt and problem-feedback persistence from
+  `AC-R0-012-06` through `AC-R0-012-08` and `AC-R0-012-12` through
+  `AC-R0-012-14`.** Add a descriptive Alembic migration, explicit SQLAlchemy 2
+  mappings, constraints, indexes, bounded/idempotent record shapes, and
+  repository adapters tied only to immutable published snapshots. Prove clean
+  upgrade, safe representative downgrade, transaction rollback, duplicate-key
+  behavior, and the impossibility of draft-revision references with PostgreSQL
+  integration tests. Suggested commit:
+  `feat(learn): persist attempts and problem feedback`.
+- [ ] **R0-08003 — Implement the published problem-list query from
+  `AC-R0-011-01`, `AC-R0-011-02`, and `AC-R0-011-07` through
+  `AC-R0-011-11`.** Extend the application port and PostgreSQL published reader
+  with bilingual title/objective/approved-label-and-alias search; canonical
+  stage, competency, topic, difficulty, task-type, time, and compute filters;
+  explicit descendant expansion; stable editorial-order/difficulty, newest,
+  expected-time, and title sorts; result count; and deterministic pagination.
+  Treat task status and evidence as validated client overlays, not server-side
+  identity. Prove mixed-revision isolation and page-boundary behavior in unit
+  and PostgreSQL integration tests. Suggested commit:
+  `feat(learn): query the published problem library`.
+- [ ] **R0-08004 — Expose the typed public list contract from `R0-011` and
+  design sections 6 and 8.** Add `GET /api/v1/problems` with bounded query
+  parameters, stable pagination metadata, active canonical filters, public-safe
+  list DTOs, no more than two serialized topics plus a remainder count, safe
+  error codes, and request IDs. Regenerate deterministic OpenAPI and the shared
+  TypeScript client, and add API/contract tests that reject unknown or
+  unavailable values and exclude draft, workflow, answer, test, object-key, and
+  internal-ID fields. Suggested commit:
+  `feat(api): expose the learner problem library`.
+- [ ] **R0-08005 — Implement published recommendation policy and contract from
+  `AC-R0-012-15` through `AC-R0-012-17`.** Add the application policy, narrow
+  ports, PostgreSQL candidate query, and
+  `GET /api/v1/problems/{slug}/recommendation` contract. Select the editorially
+  first eligible published problem for no history; otherwise consider the
+  selected stage, bounded client history, typed prerequisites, path order, and
+  current-problem exclusion without inferring mastery. Return one permanent URL
+  and plain-language reason, or a safe empty outcome; regenerate and verify the
+  client. Suggested commit: `feat(learn): recommend the next public problem`.
+- [ ] **R0-08006 — Replace the fixture library with URL-owned discovery from
+  `AC-R0-011-04` through `AC-R0-011-11`.** Connect `/problems` only through the
+  generated public client; implement canonical stage selection with enabled
+  pilot stages and explained disabled “Coming next” stages, compact search and
+  filters, eight top-level topic-family shortcuts, a searchable
+  family/intermediate/leaf picker, explicit “Include subtopics,” removable
+  tokens, clear action, sorting, pagination, and shareable query state. Preserve
+  filter and list-position context across navigation, and cover parsing,
+  back/forward navigation, aliases, invalid URL values, focus return, and empty
+  results with accessible component tests. Suggested commit:
+  `feat(learn): add URL-backed library discovery`.
+- [ ] **R0-08007 — Build the recommendation and learning-path guidance from
+  `AC-R0-012-09`, `AC-R0-012-10`, `AC-R0-012-15`, and `AC-R0-012-16`.** Render
+  one stage-scoped “Recommended start” or continuation card with an accessible
+  “Why this?” disclosure. Add the supportive weekly goal, current path,
+  prerequisites to review, last three completions, and two suggested topics
+  using bounded device-local context and public data only. Do not display zeros
+  as failure or imply personalization, mastery, or server-saved progress.
+  Suggested commit: `feat(learn): add learning path guidance`.
+- [ ] **R0-08008 — Build the dense learner results table from
+  `AC-R0-011-01`, `AC-R0-011-02`, `AC-R0-011-12`, and `AC-R0-011-14`.** Render
+  task status and learning evidence as separate text-backed indicators; title,
+  permanent short ID and objective; paired stage/difficulty; primary
+  competency; two topics plus an accessible `+N` disclosure; task type; exact
+  minutes; and compute tier. Add sticky headings, subtle row treatment,
+  accessible row/title navigation that ignores nested controls, and meaningful
+  truncation at desktop and intermediate widths. Suggested commit:
+  `feat(learn): build the learner problem table`.
+- [ ] **R0-08009 — Add responsive library cards, filter sheet, and resilient
+  states from `AC-R0-011-03` and `AC-R0-011-11` through `AC-R0-011-14`.** Below
+  768 px replace the table with cards that retain title, status, paired
+  stage/difficulty, primary topic, type, and time; at 1024-1279 px relocate the
+  sidebar and disclose hidden competency/evidence; and use the full-height
+  mobile filter sheet with “Show N problems.” Add dimension-preserving loading,
+  no-history, clearable no-results, and safe retry/feedback error states.
+  Verify keyboard, touch-target, focus, screen-reader, non-color status, and
+  360/768/1024/1440 px behavior. Suggested commit:
+  `feat(learn): make the library responsive and resilient`.
+- [ ] **R0-08010 — Complete the public problem-detail projection from
+  `AC-R0-011-15`, `AC-R0-011-16`, `AC-R0-012-01`, and `AC-R0-012-02`.** Extend
+  the published reader and `GET /api/v1/problems/{slug}` DTO with stable public
+  identity, language-policy-selected content blocks, paired stage/difficulty,
+  observable objective, typed prerequisites, examples/provided information,
+  constraints, safe response schema, allowed resources, hint/explanation
+  policy, taxonomy summary, feedback affordance, and recommendation context.
+  Return the same safe not-found contract for missing, draft-only, unapproved,
+  or archived-only content; regenerate the client and prove revisions keep the
+  permanent URL while only the current snapshot changes. Suggested commit:
+  `feat(api): complete the public problem detail`.
+- [ ] **R0-08011 — Build the permanent learner problem page from
+  `AC-R0-011-15` and `AC-R0-012-01` through `AC-R0-012-03`.** Add
+  `/problems/[slug]` using only generated public types and render the published
+  reading order, metadata hierarchy, prerequisites, examples, constraints,
+  hints/explanation affordances, response area, feedback entry point, and next
+  recommendation. Support direct/bookmarked entry, retain the stage/list return
+  context, and provide loading, safe not-found, retry, and unavailable-content
+  states without importing Studio preview or author code. Suggested commit:
+  `feat(learn): build the permanent problem page`.
+- [ ] **R0-08012 — Implement accessible discriminated response forms from
+  `AC-R0-012-03` and `AC-R0-012-05`.** Build typed forms for exactly
+  `QUIZ_SINGLE`, `QUIZ_MULTIPLE`, `NUMERIC_ANSWER`, `SHORT_ANSWER`, and
+  `CODE_FUNCTION`, including required inputs, numeric unit/tolerance guidance,
+  bounded text, and published language/signature/starter-code/limit context.
+  Keep incomplete or malformed answers editable, map server validation to
+  visible field guidance, and never request GPU, distributed, hosted-notebook,
+  or other deferred execution. Suggested commit:
+  `feat(learn): add release 0 response forms`.
+- [ ] **R0-08013 — Implement snapshot-bound assessment use cases from
+  `AC-R0-012-05` through `AC-R0-012-08`.** Add type-specific boundary
+  validation and lightweight scoring for the approved exact, decimal-safe
+  weighted, unit-test/partial-test, and human-rubric paths already allowed by
+  the published configuration. Resolve one immutable current snapshot, enforce
+  `NONE`/`BROWSER`/`CPU_LIGHT` limits, record one bounded logical attempt under
+  idempotent retry, and return `ACCEPTED_RESULT` or `PENDING_ASSESSMENT` without
+  prematurely granting completion/evidence or exposing answers, hidden tests,
+  unpublished explanations, provider errors, or draft identifiers. Suggested
+  commit: `feat(scoring): assess release 0 submissions`.
+- [ ] **R0-08014 — Expose and connect learner submissions from
+  `AC-R0-012-05` through `AC-R0-012-08`.** Add the discriminated, bounded
+  `POST /api/v1/problems/{slug}/submissions` contract with a client submission
+  key, stable validation/rate/dependency errors, request ID, and safe result or
+  pending DTO; regenerate the client. Connect the response forms with guarded
+  pending/retry behavior and render outcome, score/rubric summary, actionable
+  component feedback, pending assessment, and allowed next action accessibly.
+  Cover malformed, duplicate, delayed, stale-publication, and dependency
+  failures across unit, API, integration, and component tests. Suggested commit:
+  `feat(learn): submit answers and show assessment feedback`.
+- [ ] **R0-08015 — Implement the versioned anonymous progress adapter from
+  `AC-R0-012-09` through `AC-R0-012-11`.** Store only stable public identity,
+  `NOT_STARTED`/`ATTEMPTED`/`COMPLETED`, separate available learning evidence,
+  bounded recent history, approved timing/hint counters, and weekly/path context.
+  Validate and bound every read, migrate supported schema versions, discard or
+  quarantine corrupt entries safely, and expose an unavailable-storage state;
+  never store responses, answers, draft data, editorial state, credentials, or
+  identity claims. Overlay progress on library/detail/recommendation views and
+  keep browsing/submission usable with a clear temporary-progress notice when
+  storage is unavailable or cleared. Suggested commit:
+  `feat(learn): restore device-local learner progress`.
+- [ ] **R0-08016 — Implement bounded anonymous problem feedback from
+  `AC-R0-012-12` through `AC-R0-012-14`.** Add application validation, public-
+  snapshot existence checks, idempotency and no-auth abuse controls, repository
+  transaction behavior, and `POST /api/v1/problems/{slug}/feedback` with
+  canonical categories, bounded messages, safe receipts, and stable validation
+  and rate-limit errors. Regenerate the client and prove invalid, oversized,
+  repeated, unpublished-target, and storage-failure requests create no partial
+  or unbounded records and reveal no moderation data. Suggested commit:
+  `feat(feedback): accept anonymous problem reports`.
+- [ ] **R0-08017 — Complete the feedback and continue-next UI from
+  `AC-R0-012-12` through `AC-R0-012-17`.** Put an accessible feedback mechanism
+  on every public problem, with visible category/message labels, bounded input,
+  keyboard-safe dialog focus/return, and clear success, validation, retry, and
+  rate-limit states. After completion present exactly one eligible next problem;
+  open its permanent URL while preserving selected-stage context, update only
+  approved local continuation data, and record the bounded pilot transition
+  measure without adding accounts, tracking identity, or advanced analytics.
+  Suggested commit: `feat(learn): complete the learner continuation loop`.
+- [ ] **R0-08018 — Verify and baseline the complete learner workflow.** Add the
+  critical Playwright path for browse -> select stage -> search/filter -> open a
+  permanent URL -> answer each supported response family at the smallest useful
+  boundary -> submit -> receive result or pending feedback -> restore local
+  progress -> send problem feedback -> continue. Cover direct URLs, back/list
+  position, corrupt/disabled storage, no results, public dependency failure,
+  anonymous abuse response, and mixed draft/published isolation at desktop and
+  mobile widths. Update requirement-to-implementation/test traceability and
+  learner/operator documentation; run affected formatting, lint, type,
+  PostgreSQL migration/integration, unit/component, OpenAPI/client drift,
+  Playwright, accessibility/responsive, and production-build gates, recording
+  every exact skip or failure. Suggested commit:
+  `feat(learn): baseline the learner solving loop`.
 
 ## Phase 9 — Integration and system verification
 
