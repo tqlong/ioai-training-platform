@@ -461,7 +461,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   differences. Make backend runtime data and deterministic fixtures consume the
   artifact rather than hand-maintained vocabulary constants. Suggested commit:
   `build(vocabulary): generate and verify canonical artifact`.
-- [ ] **R0-05006 — Implement the central Release 0 availability policy from
+- [x] **R0-05006 — Implement the central Release 0 availability policy from
   R0-012, R0-013, R0-016, `AC-R0-012-04`, `AC-R0-013-14`, analysis section
   5.4, and design section 5.3.** Test first, then return typed allow/deny
   decisions with stable reason codes and safe messages for the five approved
