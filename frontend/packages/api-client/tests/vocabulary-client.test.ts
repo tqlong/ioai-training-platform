@@ -69,4 +69,9 @@ describe('generated vocabulary client', () => {
       expect.objectContaining({ method: 'POST', body: JSON.stringify({ vocabulary_type: 'TOPIC', note: 'Add graph cuts' }) }),
     );
   });
+
+  it('surfaces FastAPI detail errors with their stable machine code', async () => {
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn: async () => Response.json({ detail: { code: 'REVISION_CONFLICT', message: 'A newer draft version exists.', current_version: 3 } }, { status: 409 }) });
+    await expect(client.saveAuthorDraft('revision-1', { problem_id: 'problem-1', expected_version: 2 })).rejects.toMatchObject({ code: 'REVISION_CONFLICT', status: 409 });
+  });
 });

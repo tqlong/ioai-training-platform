@@ -700,7 +700,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   canonical but unavailable stages, task types, compute tiers, scoring methods,
   or resource combinations. Suggested commit:
   `feat(studio): edit problem resource policy`.
-- [ ] **R0-06017 — Implement Studio autosave, local recovery, and conflict
+- [x] **R0-06017 — Implement Studio autosave, local recovery, and conflict
   resolution from `AC-R0-013-15` through `AC-R0-013-18`, analysis section 7.2,
   and design section 13.3.** Coalesce idle changes, show revision-bound
   `Saving...`, `Saved`, and `Save failed` states, and keep a schema-versioned

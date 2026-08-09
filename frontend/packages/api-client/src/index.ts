@@ -152,18 +152,17 @@ const requestJson = async <Result>(
 };
 
 const toApiError = (payload: unknown, status: number): ApiError => {
+  const candidate = typeof payload === 'object' && payload !== null && 'detail' in payload
+    ? payload.detail
+    : typeof payload === 'object' && payload !== null && 'error' in payload
+      ? payload.error
+      : null;
   if (
-    typeof payload === 'object' &&
-    payload !== null &&
-    'error' in payload &&
-    typeof payload.error === 'object' &&
-    payload.error !== null &&
-    'code' in payload.error &&
-    'message' in payload.error &&
-    typeof payload.error.code === 'string' &&
-    typeof payload.error.message === 'string'
+    typeof candidate === 'object' && candidate !== null &&
+    'code' in candidate && 'message' in candidate &&
+    typeof candidate.code === 'string' && typeof candidate.message === 'string'
   ) {
-    return new ApiError(payload.error.code, payload.error.message, status);
+    return new ApiError(candidate.code, candidate.message, status);
   }
   return new ApiError('invalid_response', 'The API returned an invalid error response.', status);
 };

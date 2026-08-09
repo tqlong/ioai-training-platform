@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
-import type { AuthorDraft, SaveDraftRequest } from '@ioai/api-client';
+import { ApiError, type AuthorDraft, type SaveDraftRequest } from '@ioai/api-client';
 
 import { studioApi } from '../api';
 import {
@@ -36,9 +36,13 @@ type SaveFunction = (
 export function DraftEditor({
   initialDraft,
   saveDraft = studioApi.saveAuthorDraft,
+  reloadDraft = studioApi.getAuthorDraft,
+  autosaveDelay = 1200,
 }: {
   initialDraft: AuthorDraft;
   saveDraft?: SaveFunction;
+  reloadDraft?: (problemId: string) => Promise<AuthorDraft>;
+  autosaveDelay?: number;
 }) {
   const [draft, setDraft] = useState(initialDraft);
   const [slug, setSlug] = useState(initialDraft.slug ?? '');
@@ -62,6 +66,9 @@ export function DraftEditor({
   ));
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+  const [conflict, setConflict] = useState(false);
+  const [recoveryAvailable, setRecoveryAvailable] = useState(false);
+  const recoveryKey = `ioai:studio:recovery:${initialDraft.revision_id}`;
 
   const isDirty = dirtyFields.size > 0;
   useEffect(() => {
@@ -85,6 +92,18 @@ export function DraftEditor({
     scoring: assessment.scoring,
   }), [assessment, content, curriculum, draft, resources, slug]);
 
+  const recovery = useMemo(() => ({
+    schemaVersion: 1 as const, problemId: draft.problem_id, revisionId: draft.revision_id,
+    serverVersion: draft.version, slug, content, curriculum, assessment, resources,
+  }), [assessment, content, curriculum, draft, resources, slug]);
+
+  useEffect(() => {
+    const stored = safeReadRecovery(recoveryKey);
+    if (stored && stored.problemId === initialDraft.problem_id && stored.revisionId === initialDraft.revision_id) {
+      setRecoveryAvailable(true);
+    }
+  }, [initialDraft.problem_id, initialDraft.revision_id, recoveryKey]);
+
   const save = async () => {
     setSaveState('saving');
     try {
@@ -92,9 +111,37 @@ export function DraftEditor({
       setDraft(saved);
       setDirtyFields(new Set());
       setSaveState('saved');
-    } catch {
+      safeRemoveRecovery(recoveryKey);
+    } catch (error) {
+      safeWriteRecovery(recoveryKey, recovery);
       setSaveState('failed');
+      if (error instanceof ApiError && error.code === 'REVISION_CONFLICT') setConflict(true);
     }
+  };
+
+  useEffect(() => {
+    if (!isDirty || saveState !== 'idle' || conflict || recoveryAvailable) return;
+    const timer = window.setTimeout(() => { void save(); }, autosaveDelay);
+    return () => window.clearTimeout(timer);
+  }, [autosaveDelay, conflict, isDirty, recoveryAvailable, request, saveState]);
+
+  const restoreRecovery = () => {
+    const stored = safeReadRecovery(recoveryKey);
+    if (!stored) { setRecoveryAvailable(false); return; }
+    setSlug(stored.slug); setContent(stored.content); setCurriculum(stored.curriculum);
+    setAssessment(stored.assessment); setResources(stored.resources);
+    setDirtyFields(new Set(['recovered'])); setSaveState('idle'); setRecoveryAvailable(false);
+  };
+  const useServer = async () => {
+    const current = await reloadDraft(draft.problem_id);
+    safeRemoveRecovery(recoveryKey);
+    setDraft(current); setSlug(current.slug ?? ''); setDirtyFields(new Set());
+    setConflict(false); setRecoveryAvailable(false); setSaveState('saved');
+  };
+  const keepLocal = async () => {
+    const current = await reloadDraft(draft.problem_id);
+    setDraft(current); setConflict(false); setDirtyFields(new Set(['conflict-resolution']));
+    setSaveState('idle');
   };
 
   return (
@@ -184,6 +231,8 @@ export function DraftEditor({
           <Link href={`/author/problems/${draft.problem_id}/preview`}>Preview as learner</Link>
         </div>
       </form>
+      {recoveryAvailable && <dialog aria-labelledby="recovery-title" open><h2 id="recovery-title">Recover unsaved draft</h2><p>A local recovery copy exists for this revision. Review its target before choosing.</p><button onClick={restoreRecovery} type="button">Restore local copy</button><button onClick={() => { safeRemoveRecovery(recoveryKey); setRecoveryAvailable(false); }} type="button">Discard local copy</button></dialog>}
+      {conflict && <dialog aria-labelledby="conflict-title" open><h2 id="conflict-title">Resolve draft conflict</h2><p>The server has a newer revision. Your local recovery copy for version {draft.version} has been retained.</p><button onClick={() => { void keepLocal(); }} type="button">Keep local changes and retry</button><button onClick={() => { void useServer(); }} type="button">Use server version</button><button onClick={() => setConflict(false)} type="button">Review differences before resolving</button></dialog>}
     </section>
   );
 }
@@ -232,6 +281,26 @@ const curriculumMetadata = (value: CurriculumDraft, resources: ResourceDraft): R
       network_policy: resources.network_policy,
     },
   };
+};
+
+type RecoveryRecord = {
+  schemaVersion: 1; problemId: string; revisionId: string; serverVersion: number;
+  slug: string; content: ContentDraft; curriculum: CurriculumDraft;
+  assessment: AssessmentDraft; resources: ResourceDraft;
+};
+
+const safeReadRecovery = (key: string): RecoveryRecord | null => {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(key) ?? 'null');
+    if (typeof parsed !== 'object' || parsed === null || !('schemaVersion' in parsed) || parsed.schemaVersion !== 1) return null;
+    return parsed as RecoveryRecord;
+  } catch { return null; }
+};
+const safeWriteRecovery = (key: string, value: RecoveryRecord) => {
+  try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* Recovery is best effort; the editor remains usable. */ }
+};
+const safeRemoveRecovery = (key: string) => {
+  try { window.localStorage.removeItem(key); } catch { /* Storage may be unavailable. */ }
 };
 
 const isResourceMetadata = (value: unknown): value is Record<string, unknown> => (
