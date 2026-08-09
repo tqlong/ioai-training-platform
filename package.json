@@ -8,7 +8,7 @@
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
-    "test:e2e": "pnpm -r run test:e2e",
+    "test:e2e": "playwright test",
     "build": "pnpm -r run build",
     "generate:contracts": "bash scripts/generate_contracts.sh",
     "check:contracts": "bash scripts/openapi_drift_check.sh",
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "1.55.0",
     "@types/node": "^22.20.1",
     "@types/react-dom": "^18.3.7",
     "eslint": "^9.39.5",

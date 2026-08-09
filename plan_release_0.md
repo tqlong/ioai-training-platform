@@ -887,7 +887,7 @@ same transaction as its state change.
   reveal unpublished content, editorial notes, answer keys, hidden tests,
   stack traces, object keys, or internal IDs. Suggested commit:
   `test(publication): prove public draft isolation`.
-- [ ] **R0-07013 — Verify the editorial publication browser workflow from
+- [x] **R0-07013 — Verify the editorial publication browser workflow from
   `R0-014`, `AC-R0-013-19` through `AC-R0-013-21`, and
   `ui_release_0.md` sections 6.8-6.10 and 10.** Add the critical Playwright
   path for author validate -> unsaved learner preview -> submit -> request

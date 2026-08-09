@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { AuthorDraft, PreviewDraftRequest, PreviewResponse } from '@ioai/api-client';
 
@@ -30,8 +30,11 @@ export function LearnerPreview({
   const [viewport, setViewport] = useState<Viewport>('desktop');
   const [preview, setPreview] = useState<PreviewResponse | null>(null);
   const [failed, setFailed] = useState(false);
+  const requested = useRef(false);
 
   useEffect(() => {
+    if (requested.current) return;
+    requested.current = true;
     const key = `ioai:studio:preview:${initialDraft.revision_id}`;
     let request: PreviewDraftRequest = { expected_version: initialDraft.version };
     try {
