@@ -7,8 +7,9 @@
 - Checklist item IDs use the legacy `R0-<three digits>` form for existing
   Phase 0–2 requirement/story traceability. Phase 3 uses the expandable
   `R0-03xxx` plan-step form: `R0-03001` through `R0-03999`, ordered numerically.
-  Each step remains one meaningful commit. Future phases may use the same
-  pattern with their phase prefix, such as `R0-04xx`. Plan-step IDs are
+  Each step remains one meaningful commit. Later detailed phases use the same
+  pattern with their phase prefix; Phase 7 uses `R0-07001` through
+  `R0-07999`. Plan-step IDs are
   distinct from the requirement/story IDs in `requirement_release_0.md`.
 - Check an item only after its acceptance conditions are met and relevant
   quality gates pass. Include the checkbox update in that step's commit.
@@ -742,31 +743,171 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
 
 ## Phase 7 — Editorial review and publication
 
-- [ ] **R0-070 — Implement editorial transitions.** Test valid and invalid state
-  changes, notes, timestamps, and concurrency; add submit-for-review, request-
-  changes, and approve endpoints plus generated client updates. Suggested
-  commit: `feat(editorial): add review workflow`.
-- [ ] **R0-071 — Build the Studio review experience.** Add validation checklist,
-  editorial notes/history, state-sensitive primary actions, confirmation and
-  error behavior, and accessible tests. Suggested commit:
-  `feat(studio): build editorial review controls`.
-- [ ] **R0-072 — Implement learner-format draft preview.** Render unsaved editor
-  state in the learner layout with desktop/mobile widths, disabled public links,
-  missing-translation warnings for authors, and the persistent non-public
-  banner. Suggested commit: `feat(studio): add draft learner preview`.
-- [ ] **R0-073 — Implement atomic publication.** Validate and approve a revision,
-  create an immutable public snapshot, preserve the permanent slug, write the
-  audit transition, and prove rollback on failure. Suggested commit:
-  `feat(publication): publish approved revisions`.
-- [ ] **R0-074 — Implement revision and archive behavior.** Editing a published
-  problem creates a new draft without changing the live snapshot; archival
-  removes it from discovery according to requirements without reusing its URL.
-  Suggested commit: `feat(publication): revise and archive problems`.
-- [ ] **R0-075 — Prove public/draft isolation at the boundary.** Add adversarial
-  repository and API integration tests showing public list/detail/search never
-  reveal drafts, pending revisions, hidden answers/tests, editorial notes, or
-  internal object metadata. Suggested commit:
-  `test(publication): verify public data isolation`.
+Phase input and traceability rule: implement `R0-014` and
+`AC-R0-014-01` through `AC-R0-014-16` using analysis sections 8-10, design
+sections 4, 7-11, and 13, and `ui_release_0.md` sections 6.8-6.10 and 7-9.
+Build on the Phase 6 revision validation and isolated preview projection; do
+not duplicate those contracts or implement the Phase 8 learner library and
+solving UI early. Every accepted transition must use the persisted current
+state and version, require a bounded human-entered note, use the injected
+clock and available local actor context, and append immutable history in the
+same transaction as its state change.
+
+- [ ] **R0-07001 — Define the editorial transition policy from
+  `AC-R0-014-01` through `AC-R0-014-04`, `AC-R0-014-13`, and
+  `AC-R0-014-16`, analysis sections 8.1-8.2, and design sections 3.2 and
+  7.4.** Add framework-free commands and history values for exactly
+  `DRAFT -> IN_REVIEW`, `IN_REVIEW -> CHANGES_REQUESTED`, and
+  `IN_REVIEW -> APPROVED`; require non-blank bounded notes; distinguish actor
+  context from authentication; and reject every other source/target pair
+  without changing state or creating history. Cover timestamps with an
+  injected clock and keep editorial status separate from validation,
+  publication state, learner task status, and learning evidence. Suggested
+  commit: `feat(editorial): define review transition policy`.
+- [ ] **R0-07002 — Add editorial, snapshot, and idempotency persistence from
+  `AC-R0-014-05`, `AC-R0-014-08`, and `AC-R0-014-13`, analysis sections
+  8.2-8.3, and design sections 9-10.** Add an Alembic migration and explicit
+  SQLAlchemy mappings for append-only editorial transitions, immutable
+  published snapshots, the problem's current-public pointer or equivalent
+  single-current constraint, and operation-scoped idempotency records. Enforce
+  foreign keys, unique stable slugs/current snapshots and idempotency scopes,
+  useful revision/status indexes, and deterministic upgrade/downgrade tests
+  against PostgreSQL. Suggested commit:
+  `feat(database): persist editorial publication records`.
+- [ ] **R0-07003 — Implement transactional review commands from
+  `AC-R0-014-01` through `AC-R0-014-04` and `AC-R0-014-16`, analysis
+  sections 8.1-8.2 and 9.3, and design sections 4 and 10.1.** Add application
+  use cases and narrow ports for submit-for-review, request-changes, and
+  approval. Lock or compare-and-increment the persisted revision, rerun the
+  required validation and Release 0 availability checks for submit and
+  approval, append history atomically, and return stable errors for blockers,
+  missing notes, stale versions, and invalid transitions. Prove rollback and
+  concurrent/stale-command behavior with unit and PostgreSQL integration
+  tests. When changes are requested, provide the defined successor-revision
+  operation: copy the reviewed content into a new editable `DRAFT` rather than
+  adding an unapproved `CHANGES_REQUESTED -> IN_REVIEW` shortcut or mutating
+  immutable history; retrying the operation must not create duplicate
+  revisions. Suggested commit: `feat(editorial): execute review commands`.
+- [ ] **R0-07004 — Expose editorial history and review commands from
+  `AC-R0-014-01` through `AC-R0-014-04`, `AC-R0-014-13`, and
+  `AC-R0-014-16`, design sections 7.1, 7.4-7.5, and 8.** Add author-only
+  history reads and the submit-review, request-changes, and approve FastAPI
+  commands under `/api/v1/author`; require revision ID, expected version,
+  note, and bounded operation identity as designed; map workflow, validation,
+  and conflict failures to safe stable contracts. Regenerate OpenAPI and the
+  TypeScript client, and add compatibility tests that keep history and draft
+  fields out of public schemas. Suggested commit:
+  `feat(api): expose editorial review workflow`.
+- [ ] **R0-07005 — Build the Studio review workspace from `AC-R0-014-01`
+  through `AC-R0-014-04`, `AC-R0-014-13`, `ui_release_0.md` sections 6.8,
+  7, and 9, and design sections 13.4-13.5.** Extend the Review & publish
+  section with the existing grouped validation checklist, immutable note/time/
+  source/target history, and status-specific Submit for review, Request
+  changes, and Approve actions. Require a visible note before commands, refresh
+  version/status after success, preserve author input after recoverable errors,
+  link blockers back to fields, and represent status with text as well as
+  color. Add accessible component tests for keyboard use, focus placement,
+  loading, validation, conflict, and safe error states. Suggested commit:
+  `feat(studio): build editorial review workspace`.
+- [ ] **R0-07006 — Complete responsive learner-format draft preview from
+  `AC-R0-013-20` through `AC-R0-013-21`, `ui_release_0.md` section 6.9,
+  and design sections 7.3, 11.2, and 13.4.** Consume the Phase 6 author-only
+  preview contract from the saved revision or explicit unsaved editor state and
+  render the learner problem-page structure at selectable desktop and mobile
+  widths. Keep the striped `Draft preview - not public` banner persistent,
+  display pending-translation and other warnings only to authors, disable all
+  public-problem and continue links before publication, and prove that preview
+  state does not enter a public route, cache, or build. Suggested commit:
+  `feat(studio): render isolated learner preview`.
+- [ ] **R0-07007 — Implement atomic publication from `AC-R0-014-05` through
+  `AC-R0-014-08`, analysis sections 8.3 and 9.3, and design sections 4,
+  7.4, and 10.1-10.3.** Add a publish use case that locks the problem and
+  approved revision, verifies expected version and approval, reruns complete
+  validation and current Release 0 policy, claims the unique stable slug,
+  creates an immutable learner-safe snapshot, appends the `PUBLISHED` history
+  transition, and switches the current-public pointer in one transaction.
+  Scope the idempotency key to revision and request digest: identical retries
+  return the original result, while key reuse with different intent conflicts.
+  Prove invalid-state, stale-policy, slug-conflict, retry, concurrency, and
+  injected-failure rollback behavior against PostgreSQL. Suggested commit:
+  `feat(publication): publish revisions atomically`.
+- [ ] **R0-07008 — Expose publication confirmation and permanent URL from
+  `AC-R0-014-05` through `AC-R0-014-08`, `ui_release_0.md` sections 6.8 and
+  8, and design sections 7.1 and 13.5.** Add the author publish endpoint with
+  expected version, required note, and idempotency key; return the stable public
+  slug/URL and safe replay result; then regenerate OpenAPI and the client.
+  In Studio, show Publish only for an approved, currently eligible revision and
+  require a keyboard-safe confirmation dialog that clearly distinguishes the
+  permanent public URL from Preview, traps focus, closes with Escape when safe,
+  returns focus to its trigger, prevents duplicate submission, and renders
+  blockers without implying that Save or Approve published content. Suggested
+  commit: `feat(studio): confirm approved publication`.
+- [ ] **R0-07009 — Create draft revisions of published problems from
+  `AC-R0-014-09` through `AC-R0-014-10`, analysis sections 8.1 and 8.4, and
+  design sections 7.2 and 10.2.** Complete the shared successor-revision
+  command for published and changes-requested sources, copying content into a
+  new independently identified `DRAFT` with the next revision number and
+  optimistic version. For a published source, retain the stable problem slug
+  and leave the current immutable snapshot untouched; for requested changes,
+  preserve the reviewed revision and its decision history. Make retries safe,
+  reject competing duplicate-current drafts according to the documented
+  revision rule, expose the command through the author API/client, and update
+  Edit on published or changes-requested Studio rows to enter the new draft.
+  Suggested commit:
+  `feat(authoring): revise published problems safely`.
+- [ ] **R0-07010 — Implement explicit archive and republication behavior from
+  `AC-R0-014-14` through `AC-R0-014-16`, analysis sections 8.1 and 8.4, and
+  design sections 7.4 and 10.1.** Add a versioned archive command that requires
+  a note, atomically appends immutable `PUBLISHED -> ARCHIVED` history and
+  removes current public eligibility without deleting or reusing the slug or
+  historical snapshot. Add the author API/client and a destructive-action
+  confirmation in Studio. Prove that an archived problem is absent at its
+  public URL and from public eligibility, and that only a new revision passing
+  the normal review and publish flow can become current without mutating or
+  silently reactivating archived history. Suggested commit:
+  `feat(publication): archive and republish problems`.
+- [ ] **R0-07011 — Establish published-only repository projections from
+  `AC-R0-014-09` through `AC-R0-014-12`, analysis section 9, and design
+  sections 9.3 and 11.1-11.3.** Add narrowly named current-snapshot list and
+  stable-slug detail ports whose queries begin from current published
+  eligibility before applying filters, sorting, or pagination. Return dedicated
+  learner-safe projections that omit revision IDs, draft validation/history,
+  notes, hidden answers/tests, internal scoring configuration, object metadata,
+  and unavailable translations. Keep full Phase 8 search/filter/detail HTTP
+  behavior out of this step; provide the safe persistence/application boundary
+  it must consume. Suggested commit:
+  `feat(publication): enforce published snapshot projections`.
+- [ ] **R0-07012 — Prove cross-layer public/draft isolation from
+  `AC-R0-014-10` through `AC-R0-014-12`, `AC-R0-015-13`, analysis sections
+  9.2-9.4, and design sections 8.3 and 11.** Add adversarial repository, API,
+  OpenAPI, generated-client, and Next.js build tests covering mixed published,
+  draft, in-review, approved, superseded, and archived records. Demonstrate
+  that list/detail/search inputs, direct slug lookup, recommendation data
+  sources, preview identifiers, caches, errors, and serialized schemas cannot
+  reveal unpublished content, editorial notes, answer keys, hidden tests,
+  stack traces, object keys, or internal IDs. Suggested commit:
+  `test(publication): prove public draft isolation`.
+- [ ] **R0-07013 — Verify the editorial publication browser workflow from
+  `R0-014`, `AC-R0-013-19` through `AC-R0-013-21`, and
+  `ui_release_0.md` sections 6.8-6.10 and 10.** Add the critical Playwright
+  path for author validate -> unsaved learner preview -> submit -> request
+  changes -> revise -> resubmit -> approve -> confirm publish -> verify the
+  permanent public URL, plus revision and archive coverage at the smallest
+  useful browser boundary. Exercise desktop and mobile preview widths,
+  deterministic focus, required notes, visible status text, validation
+  blockers, and the rule that the prior public snapshot remains unchanged
+  throughout unpublished edits. Suggested commit:
+  `test(e2e): cover editorial publication workflow`.
+- [ ] **R0-07014 — Baseline Phase 7 against R0-014, analysis sections 8-10,
+  design sections 4 and 7-13, and `ui_release_0.md`.** Update requirement-to-
+  implementation/test traceability and operational documentation; verify
+  migration up/down safety, transaction rollback, idempotency, concurrency,
+  generated OpenAPI/client agreement, Studio accessibility/responsiveness,
+  public projection isolation, and the critical browser workflow. Run all
+  affected backend/frontend format, lint, type, unit, PostgreSQL integration,
+  migration, contract, component, Playwright, and production-build gates, and
+  record every exact skipped or failing gate rather than claiming completion.
+  Suggested commit: `feat(publication): baseline editorial workflow`.
 
 ## Phase 8 — Learner problem library and solving loop
 
