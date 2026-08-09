@@ -452,7 +452,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   labels or aliases within a parent branch. Preserve identical codes or labels
   across vocabulary types when the composite identities are distinct.
   Suggested commit: `feat(vocabulary): validate canonical invariants`.
-- [ ] **R0-05005 — Generate the runtime artifact and enforce source drift from
+- [x] **R0-05005 — Generate the runtime artifact and enforce source drift from
   R0-010, R0-015, `AC-R0-015-18` through `AC-R0-015-19`, analysis sections
   5.1 and 5.5, and design section 5.1.** Generate the stable checked-in artifact
   only after whole-source validation, with deterministic ordering and no

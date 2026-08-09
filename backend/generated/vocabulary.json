@@ -1,0 +1,3779 @@
+{
+  "schema_version": 1,
+  "source": "vocab.md",
+  "records": [
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "COMP_COMPUTE_MANAGEMENT",
+      "labels": {
+        "en": "Compute Management",
+        "vi": "Quản lý tài nguyên tính toán"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "COMP_PROBLEM_ANALYSIS",
+      "labels": {
+        "en": "Problem Analysis",
+        "vi": "Phân tích bài toán"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "COMP_SOLUTION_DEFENSE",
+      "labels": {
+        "en": "Solution Defense",
+        "vi": "Bảo vệ lời giải"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "COMP_SUBMISSION_STRATEGY",
+      "labels": {
+        "en": "Submission Strategy",
+        "vi": "Chiến lược nộp bài"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "COMP_TEAM_COLLABORATION",
+      "labels": {
+        "en": "Team Collaboration",
+        "vi": "Hợp tác nhóm"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "COMP_TIME_MANAGEMENT",
+      "labels": {
+        "en": "Time Management",
+        "vi": "Quản lý thời gian"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DATA_CLEANING",
+      "labels": {
+        "en": "Data Cleaning",
+        "vi": "Làm sạch dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DATA_COLLECTION",
+      "labels": {
+        "en": "Data Collection",
+        "vi": "Thu thập dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DATA_DATASET_DESIGN",
+      "labels": {
+        "en": "Dataset Design",
+        "vi": "Thiết kế tập dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DATA_EXPLORATION",
+      "labels": {
+        "en": "Exploratory Data Analysis",
+        "vi": "Phân tích khám phá dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DATA_FEATURE_ENGINEERING",
+      "labels": {
+        "en": "Feature Engineering",
+        "vi": "Kỹ thuật đặc trưng"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DATA_VISUALIZATION",
+      "labels": {
+        "en": "Data Visualization",
+        "vi": "Trực quan hóa dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DL_CONVOLUTIONAL_NETWORKS",
+      "labels": {
+        "en": "Convolutional Networks",
+        "vi": "Mạng tích chập"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DL_NEURAL_NETWORKS",
+      "labels": {
+        "en": "Neural Network Foundations",
+        "vi": "Nền tảng mạng nơ-ron"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DL_REPRESENTATION_LEARNING",
+      "labels": {
+        "en": "Representation Learning",
+        "vi": "Học biểu diễn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DL_SEQUENCE_MODELS",
+      "labels": {
+        "en": "Sequence Models",
+        "vi": "Mô hình chuỗi"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DL_TRAINING_OPTIMIZATION",
+      "labels": {
+        "en": "Training and Optimization",
+        "vi": "Huấn luyện và tối ưu hóa"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DL_TRANSFORMERS",
+      "labels": {
+        "en": "Transformers",
+        "vi": "Mô hình Transformer"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DOMAIN_COMPUTER_VISION",
+      "labels": {
+        "en": "Computer Vision",
+        "vi": "Thị giác máy tính"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DOMAIN_MULTIMODAL",
+      "labels": {
+        "en": "Multimodal AI",
+        "vi": "AI đa phương thức"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DOMAIN_NLP",
+      "labels": {
+        "en": "Natural Language Processing",
+        "vi": "Xử lý ngôn ngữ tự nhiên"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DOMAIN_RECOMMENDATION",
+      "labels": {
+        "en": "Recommendation Systems",
+        "vi": "Hệ gợi ý"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DOMAIN_SPEECH_AUDIO",
+      "labels": {
+        "en": "Speech and Audio",
+        "vi": "Tiếng nói và âm thanh"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "DOMAIN_TIME_SERIES",
+      "labels": {
+        "en": "Time Series",
+        "vi": "Chuỗi thời gian"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EVAL_DATA_LEAKAGE",
+      "labels": {
+        "en": "Data Leakage",
+        "vi": "Rò rỉ dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EVAL_ERROR_ANALYSIS",
+      "labels": {
+        "en": "Error Analysis",
+        "vi": "Phân tích lỗi"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EVAL_FAIRNESS",
+      "labels": {
+        "en": "Fairness Evaluation",
+        "vi": "Đánh giá tính công bằng"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EVAL_METRICS",
+      "labels": {
+        "en": "Metrics",
+        "vi": "Độ đo đánh giá"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EVAL_ROBUSTNESS",
+      "labels": {
+        "en": "Robustness",
+        "vi": "Độ vững"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EVAL_STATISTICAL_SIGNIFICANCE",
+      "labels": {
+        "en": "Statistical Significance",
+        "vi": "Ý nghĩa thống kê"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EVAL_VALIDATION",
+      "labels": {
+        "en": "Validation Strategy",
+        "vi": "Chiến lược kiểm định"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EXP_ABLATION",
+      "labels": {
+        "en": "Ablation Studies",
+        "vi": "Nghiên cứu loại bỏ thành phần"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EXP_BASELINES",
+      "labels": {
+        "en": "Baseline Construction",
+        "vi": "Xây dựng đường cơ sở"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EXP_DESIGN",
+      "labels": {
+        "en": "Experiment Design",
+        "vi": "Thiết kế thí nghiệm"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EXP_HYPERPARAMETER_TUNING",
+      "labels": {
+        "en": "Hyperparameter Tuning",
+        "vi": "Điều chỉnh siêu tham số"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EXP_REPRODUCIBILITY",
+      "labels": {
+        "en": "Reproducibility",
+        "vi": "Khả năng tái lập"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "EXP_RESOURCE_OPTIMIZATION",
+      "labels": {
+        "en": "Resource Optimization",
+        "vi": "Tối ưu tài nguyên"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "MATH_CALCULUS",
+      "labels": {
+        "en": "Calculus",
+        "vi": "Giải tích"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "MATH_DISCRETE",
+      "labels": {
+        "en": "Discrete Mathematics",
+        "vi": "Toán rời rạc"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "MATH_LINEAR_ALGEBRA",
+      "labels": {
+        "en": "Linear Algebra",
+        "vi": "Đại số tuyến tính"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "MATH_OPTIMIZATION",
+      "labels": {
+        "en": "Optimization",
+        "vi": "Tối ưu hóa"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "MATH_PROBABILITY",
+      "labels": {
+        "en": "Probability",
+        "vi": "Xác suất"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "MATH_STATISTICS",
+      "labels": {
+        "en": "Statistics",
+        "vi": "Thống kê"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "ML_CLASSIFICATION",
+      "labels": {
+        "en": "Classification",
+        "vi": "Phân loại"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "ML_CLUSTERING",
+      "labels": {
+        "en": "Clustering",
+        "vi": "Phân cụm"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "ML_DIMENSIONALITY_REDUCTION",
+      "labels": {
+        "en": "Dimensionality Reduction",
+        "vi": "Giảm chiều dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "ML_ENSEMBLES",
+      "labels": {
+        "en": "Ensemble Methods",
+        "vi": "Phương pháp tổ hợp"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "ML_PROBLEM_FORMULATION",
+      "labels": {
+        "en": "ML Problem Formulation",
+        "vi": "Xây dựng bài toán học máy"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "ML_REGRESSION",
+      "labels": {
+        "en": "Regression",
+        "vi": "Hồi quy"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "PROG_ALGORITHMIC_THINKING",
+      "labels": {
+        "en": "Algorithmic Thinking",
+        "vi": "Tư duy thuật toán"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "PROG_DATA_STRUCTURES",
+      "labels": {
+        "en": "Data Structures",
+        "vi": "Cấu trúc dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "PROG_DEBUGGING",
+      "labels": {
+        "en": "Debugging",
+        "vi": "Gỡ lỗi"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "PROG_NUMERICAL_COMPUTING",
+      "labels": {
+        "en": "Numerical Computing",
+        "vi": "Tính toán số"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "PROG_PYTHON",
+      "labels": {
+        "en": "Python Fundamentals",
+        "vi": "Nền tảng Python"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "PROG_SOFTWARE_ENGINEERING",
+      "labels": {
+        "en": "Software Engineering",
+        "vi": "Kỹ nghệ phần mềm"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RAI_ENVIRONMENTAL_IMPACT",
+      "labels": {
+        "en": "Environmental Impact",
+        "vi": "Tác động môi trường"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RAI_EXPLAINABILITY",
+      "labels": {
+        "en": "Explainability",
+        "vi": "Khả năng giải thích"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RAI_FAIRNESS_BIAS",
+      "labels": {
+        "en": "Fairness and Bias",
+        "vi": "Công bằng và thiên lệch"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RAI_LICENSING",
+      "labels": {
+        "en": "Data and Model Licensing",
+        "vi": "Cấp phép dữ liệu và mô hình"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RAI_PRIVACY",
+      "labels": {
+        "en": "Privacy",
+        "vi": "Quyền riêng tư"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RAI_SAFETY",
+      "labels": {
+        "en": "Safety",
+        "vi": "An toàn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RESEARCH_ARGUMENTATION",
+      "labels": {
+        "en": "Scientific Argumentation",
+        "vi": "Lập luận khoa học"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RESEARCH_LITERATURE_READING",
+      "labels": {
+        "en": "Literature Reading",
+        "vi": "Đọc tài liệu khoa học"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RESEARCH_PRESENTATION",
+      "labels": {
+        "en": "Visualization and Presentation",
+        "vi": "Trực quan hóa và trình bày"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RESEARCH_RESULT_INTERPRETATION",
+      "labels": {
+        "en": "Result Interpretation",
+        "vi": "Diễn giải kết quả"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPETENCY",
+      "code": "RESEARCH_TECHNICAL_WRITING",
+      "labels": {
+        "en": "Technical Writing",
+        "vi": "Viết kỹ thuật"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "BROWSER",
+      "labels": {
+        "en": "Browser",
+        "vi": "Trình duyệt"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "CPU_HIGH",
+      "labels": {
+        "en": "High CPU",
+        "vi": "CPU cao"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "CPU_LIGHT",
+      "labels": {
+        "en": "Light CPU",
+        "vi": "CPU nhẹ"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "CPU_STANDARD",
+      "labels": {
+        "en": "Standard CPU",
+        "vi": "CPU tiêu chuẩn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "DISTRIBUTED",
+      "labels": {
+        "en": "Distributed",
+        "vi": "Phân tán"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "GPU_HIGH",
+      "labels": {
+        "en": "High GPU",
+        "vi": "GPU cao"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "GPU_LIGHT",
+      "labels": {
+        "en": "Light GPU",
+        "vi": "GPU nhẹ"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "GPU_STANDARD",
+      "labels": {
+        "en": "Standard GPU",
+        "vi": "GPU tiêu chuẩn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "COMPUTE_TIER",
+      "code": "NONE",
+      "labels": {
+        "en": "None",
+        "vi": "Không cần tính toán"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "AUDIO",
+      "labels": {
+        "en": "Audio or Speech",
+        "vi": "Âm thanh hoặc tiếng nói"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "CODE",
+      "labels": {
+        "en": "Source Code",
+        "vi": "Mã nguồn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "GEOSPATIAL",
+      "labels": {
+        "en": "Geospatial Data",
+        "vi": "Dữ liệu không gian địa lý"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "GRAPH",
+      "labels": {
+        "en": "Graph or Network",
+        "vi": "Đồ thị hoặc mạng lưới"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "IMAGE",
+      "labels": {
+        "en": "Image",
+        "vi": "Hình ảnh"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "MULTIMODAL",
+      "labels": {
+        "en": "Multimodal Data",
+        "vi": "Dữ liệu đa phương thức"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "NONE",
+      "labels": {
+        "en": "No Dataset",
+        "vi": "Không sử dụng tập dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "SENSOR",
+      "labels": {
+        "en": "Sensor Data",
+        "vi": "Dữ liệu cảm biến"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "TABULAR",
+      "labels": {
+        "en": "Tabular Data",
+        "vi": "Dữ liệu dạng bảng"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "TEXT",
+      "labels": {
+        "en": "Text",
+        "vi": "Văn bản"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "TIME_SERIES",
+      "labels": {
+        "en": "Time-series Data",
+        "vi": "Dữ liệu chuỗi thời gian"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_MODALITY",
+      "code": "VIDEO",
+      "labels": {
+        "en": "Video",
+        "vi": "Video"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_ORIGIN",
+      "code": "MIXED",
+      "labels": {
+        "en": "Mixed-origin Data",
+        "vi": "Dữ liệu hỗn hợp nhiều nguồn gốc"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_ORIGIN",
+      "code": "REAL_PUBLIC",
+      "labels": {
+        "en": "Real, Public Data",
+        "vi": "Dữ liệu thực, công khai"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_ORIGIN",
+      "code": "REAL_RESTRICTED",
+      "labels": {
+        "en": "Real, Restricted Data",
+        "vi": "Dữ liệu thực, hạn chế truy cập"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DATA_ORIGIN",
+      "code": "SYNTHETIC",
+      "labels": {
+        "en": "Synthetic or Simulated Data",
+        "vi": "Dữ liệu tổng hợp hoặc mô phỏng"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DIFFICULTY",
+      "code": "CHALLENGE",
+      "labels": {
+        "en": "Challenge",
+        "vi": "Thử thách"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DIFFICULTY",
+      "code": "EASY",
+      "labels": {
+        "en": "Easy",
+        "vi": "Dễ"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DIFFICULTY",
+      "code": "HARD",
+      "labels": {
+        "en": "Hard",
+        "vi": "Khó"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DIFFICULTY",
+      "code": "INTRODUCTORY",
+      "labels": {
+        "en": "Introductory",
+        "vi": "Nhập môn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "DIFFICULTY",
+      "code": "MEDIUM",
+      "labels": {
+        "en": "Medium",
+        "vi": "Trung bình"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "EXPECTED_TIME_CATEGORY",
+      "code": "EXTENDED",
+      "labels": {
+        "en": "Extended",
+        "vi": "Mở rộng"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "EXPECTED_TIME_CATEGORY",
+      "code": "LONG",
+      "labels": {
+        "en": "Long",
+        "vi": "Dài"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "EXPECTED_TIME_CATEGORY",
+      "code": "MICRO",
+      "labels": {
+        "en": "Micro",
+        "vi": "Siêu ngắn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "EXPECTED_TIME_CATEGORY",
+      "code": "PROJECT",
+      "labels": {
+        "en": "Project",
+        "vi": "Dự án"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "EXPECTED_TIME_CATEGORY",
+      "code": "SHORT",
+      "labels": {
+        "en": "Short",
+        "vi": "Ngắn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "EXPECTED_TIME_CATEGORY",
+      "code": "STANDARD",
+      "labels": {
+        "en": "Standard",
+        "vi": "Tiêu chuẩn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "LEARNING_EVIDENCE",
+      "code": "APPLIED",
+      "labels": {
+        "en": "Applied",
+        "vi": "Vận dụng được"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "LEARNING_EVIDENCE",
+      "code": "INTRODUCED",
+      "labels": {
+        "en": "Introduced",
+        "vi": "Đã làm quen"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "LEARNING_EVIDENCE",
+      "code": "PRACTICED",
+      "labels": {
+        "en": "Practiced",
+        "vi": "Đã luyện tập"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "LEARNING_EVIDENCE",
+      "code": "PROFICIENT",
+      "labels": {
+        "en": "Proficient",
+        "vi": "Thành thạo"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PATHWAY_STAGE",
+      "code": "AI_1_FOUNDATIONS",
+      "labels": {
+        "en": "AI Foundations",
+        "vi": "Nền tảng AI"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PATHWAY_STAGE",
+      "code": "AI_2_COMPETITION_FOUNDATIONS",
+      "labels": {
+        "en": "Competition Foundations",
+        "vi": "Nền tảng thi đấu AI"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PATHWAY_STAGE",
+      "code": "AI_3_HIGHSCHOOL",
+      "labels": {
+        "en": "High-school Competition",
+        "vi": "AI thi đấu mức THPT"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PATHWAY_STAGE",
+      "code": "AI_4_STUDENT",
+      "labels": {
+        "en": "Collegiate Competition",
+        "vi": "AI thi đấu mức đại học"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PATHWAY_STAGE",
+      "code": "AI_OPEN",
+      "labels": {
+        "en": "Open / Cross-level",
+        "vi": "Mở / Liên cấp độ"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PREREQUISITE_RELATIONSHIP",
+      "code": "CO_REQUISITE",
+      "labels": {
+        "en": "May be learned concurrently",
+        "vi": "Học đồng thời"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PREREQUISITE_RELATIONSHIP",
+      "code": "RECOMMENDED",
+      "labels": {
+        "en": "Helpful but not mandatory",
+        "vi": "Khuyến nghị"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PREREQUISITE_RELATIONSHIP",
+      "code": "REQUIRED",
+      "labels": {
+        "en": "Required learning evidence must be met first",
+        "vi": "Bắt buộc"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PREREQUISITE_RELATIONSHIP",
+      "code": "UNLOCKED_BY",
+      "labels": {
+        "en": "Completion of the target unlocks this task",
+        "vi": "Được mở khóa bởi"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PREREQUISITE_TARGET_TYPE",
+      "code": "COMPETENCY",
+      "labels": {
+        "en": "Competency reference",
+        "vi": "Năng lực"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PREREQUISITE_TARGET_TYPE",
+      "code": "LEARNING_UNIT",
+      "labels": {
+        "en": "Course or learning-unit reference",
+        "vi": "Đơn vị học tập"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PREREQUISITE_TARGET_TYPE",
+      "code": "TASK",
+      "labels": {
+        "en": "Task reference",
+        "vi": "Bài tập"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "PREREQUISITE_TARGET_TYPE",
+      "code": "TOPIC",
+      "labels": {
+        "en": "Topic reference",
+        "vi": "Chủ đề"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "RUNTIME_CLASS",
+      "code": "EXTENDED",
+      "labels": {
+        "en": "Extended",
+        "vi": "Mở rộng"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "RUNTIME_CLASS",
+      "code": "INSTANT",
+      "labels": {
+        "en": "Instant",
+        "vi": "Tức thời"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "RUNTIME_CLASS",
+      "code": "LONG",
+      "labels": {
+        "en": "Long",
+        "vi": "Dài"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "RUNTIME_CLASS",
+      "code": "MEDIUM",
+      "labels": {
+        "en": "Medium",
+        "vi": "Trung bình"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "RUNTIME_CLASS",
+      "code": "SHORT",
+      "labels": {
+        "en": "Short",
+        "vi": "Ngắn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "EXACT_MATCH",
+      "labels": {
+        "en": "Exact Answer",
+        "vi": "Khớp đáp án chính xác"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "ORAL_EVALUATION",
+      "labels": {
+        "en": "Presentation or Defense",
+        "vi": "Đánh giá thuyết trình hoặc vấn đáp"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "OUTPUT_SCORE",
+      "labels": {
+        "en": "Generated-output Quality",
+        "vi": "Chất lượng đầu ra"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "PARTIAL_TESTS",
+      "labels": {
+        "en": "Weighted Test Groups",
+        "vi": "Nhóm kiểm thử có trọng số"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "PEER_REVIEW",
+      "labels": {
+        "en": "Peer Assessment",
+        "vi": "Đánh giá đồng cấp"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "PREDICTION_METRIC",
+      "labels": {
+        "en": "Metric Calculated from Hidden Labels",
+        "vi": "Độ đo dự đoán trên nhãn ẩn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "RANK_BASED",
+      "labels": {
+        "en": "Leaderboard-rank Score",
+        "vi": "Điểm theo thứ hạng"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "RUBRIC_AUTOMATED",
+      "labels": {
+        "en": "Automated Structured Rubric",
+        "vi": "Tiêu chí chấm tự động"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "RUBRIC_HUMAN",
+      "labels": {
+        "en": "Human-assessed Rubric",
+        "vi": "Tiêu chí do người chấm"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "THRESHOLD_PASS",
+      "labels": {
+        "en": "Pass after Reaching a Threshold",
+        "vi": "Đạt khi vượt ngưỡng"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "SCORING_METHOD",
+      "code": "UNIT_TESTS",
+      "labels": {
+        "en": "Public and Hidden Unit Tests",
+        "vi": "Kiểm thử đơn vị công khai và ẩn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_STATUS",
+      "code": "ATTEMPTED",
+      "labels": {
+        "en": "Attempted",
+        "vi": "Đã thử"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_STATUS",
+      "code": "COMPLETED",
+      "labels": {
+        "en": "Completed",
+        "vi": "Đã hoàn thành"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_STATUS",
+      "code": "NOT_STARTED",
+      "labels": {
+        "en": "Not started",
+        "vi": "Chưa bắt đầu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "CODE_COMPLETION",
+      "labels": {
+        "en": "Code Completion",
+        "vi": "Hoàn thiện mã nguồn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "CODE_DEBUGGING",
+      "labels": {
+        "en": "Debugging Task",
+        "vi": "Bài tập gỡ lỗi"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "CODE_FUNCTION",
+      "labels": {
+        "en": "Function Implementation",
+        "vi": "Cài đặt hàm"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "CODE_PROGRAM",
+      "labels": {
+        "en": "Complete Program",
+        "vi": "Chương trình hoàn chỉnh"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "DATA_ANALYSIS",
+      "labels": {
+        "en": "Data Analysis",
+        "vi": "Phân tích dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "ERROR_ANALYSIS",
+      "labels": {
+        "en": "Model Error Analysis",
+        "vi": "Phân tích lỗi mô hình"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "EXPERIMENT",
+      "labels": {
+        "en": "Controlled Experiment",
+        "vi": "Thí nghiệm có kiểm soát"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "MODEL_TRAINING",
+      "labels": {
+        "en": "Model-training Task",
+        "vi": "Bài tập huấn luyện mô hình"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "NUMERIC_ANSWER",
+      "labels": {
+        "en": "Numeric Answer",
+        "vi": "Câu trả lời dạng số"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "OPEN_PROJECT",
+      "labels": {
+        "en": "Open-ended Project",
+        "vi": "Dự án mở"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "ORAL_DEFENSE",
+      "labels": {
+        "en": "Presentation or Oral Defense",
+        "vi": "Thuyết trình hoặc bảo vệ vấn đáp"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "PREDICTION_CHALLENGE",
+      "labels": {
+        "en": "Prediction Challenge",
+        "vi": "Thử thách dự đoán"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "QUIZ_MULTIPLE",
+      "labels": {
+        "en": "Multiple-answer Quiz",
+        "vi": "Câu hỏi nhiều đáp án"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "QUIZ_SINGLE",
+      "labels": {
+        "en": "Single-answer Quiz",
+        "vi": "Câu hỏi một đáp án"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "REPRODUCTION",
+      "labels": {
+        "en": "Result Reproduction",
+        "vi": "Tái lập kết quả"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "SHORT_ANSWER",
+      "labels": {
+        "en": "Short Written Answer",
+        "vi": "Câu trả lời ngắn"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "SYSTEM_DESIGN",
+      "labels": {
+        "en": "AI System Design",
+        "vi": "Thiết kế hệ thống AI"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "TEAM_CHALLENGE",
+      "labels": {
+        "en": "Team Challenge",
+        "vi": "Thử thách đồng đội"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TASK_TYPE",
+      "code": "TECHNICAL_REPORT",
+      "labels": {
+        "en": "Technical Report",
+        "vi": "Báo cáo kỹ thuật"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "AUDIO_CLASSIFICATION",
+      "labels": {
+        "en": "Audio Classification",
+        "vi": "Phân loại âm thanh"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_AUDIO_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "AUDIO_SPEECH_RECOGNITION",
+      "labels": {
+        "en": "Speech Recognition",
+        "vi": "Nhận dạng tiếng nói"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_AUDIO_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_ALGORITHMS",
+      "labels": {
+        "en": "Algorithms",
+        "vi": "Thuật toán"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_ALGORITHMS_STRUCTURES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_ALGORITHMS_STRUCTURES",
+      "labels": {
+        "en": "Algorithms and Data Structures",
+        "vi": "Thuật toán và cấu trúc dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_PYTHON_COMPUTING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_DATA_STRUCTURES",
+      "labels": {
+        "en": "Data Structures",
+        "vi": "Cấu trúc dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_ALGORITHMS_STRUCTURES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_DEBUGGING",
+      "labels": {
+        "en": "Debugging",
+        "vi": "Gỡ lỗi"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_ENGINEERING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_ENGINEERING",
+      "labels": {
+        "en": "Computing Practice",
+        "vi": "Thực hành kỹ thuật tính toán"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_PYTHON_COMPUTING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_GIT",
+      "labels": {
+        "en": "Git",
+        "vi": "Git"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_ENGINEERING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_MEMORY_OPTIMIZATION",
+      "labels": {
+        "en": "Memory Optimization",
+        "vi": "Tối ưu bộ nhớ"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_PERFORMANCE",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_PERFORMANCE",
+      "labels": {
+        "en": "Computing Performance",
+        "vi": "Hiệu năng tính toán"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_PYTHON_COMPUTING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_REPRODUCIBLE_ENV",
+      "labels": {
+        "en": "Reproducible Environments",
+        "vi": "Môi trường có thể tái lập"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_ENGINEERING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_RUNTIME_OPTIMIZATION",
+      "labels": {
+        "en": "Runtime Optimization",
+        "vi": "Tối ưu thời gian chạy"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_PERFORMANCE",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_TESTING",
+      "labels": {
+        "en": "Testing",
+        "vi": "Kiểm thử"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_ENGINEERING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "COMPUTING_VECTORIZATION",
+      "labels": {
+        "en": "Vectorization",
+        "vi": "Vectơ hóa"
+      },
+      "aliases": [],
+      "parent_code": "COMPUTING_PERFORMANCE",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "CV_IMAGE_CLASSIFICATION",
+      "labels": {
+        "en": "Image Classification",
+        "vi": "Phân loại ảnh"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_COMPUTER_VISION_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "CV_IMAGE_GENERATION",
+      "labels": {
+        "en": "Image Generation",
+        "vi": "Sinh ảnh"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_COMPUTER_VISION_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "CV_IMAGE_SEGMENTATION",
+      "labels": {
+        "en": "Image Segmentation",
+        "vi": "Phân đoạn ảnh"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_COMPUTER_VISION_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "CV_OBJECT_DETECTION",
+      "labels": {
+        "en": "Object Detection",
+        "vi": "Phát hiện đối tượng"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_COMPUTER_VISION_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_ANNOTATION",
+      "labels": {
+        "en": "Annotation",
+        "vi": "Gán nhãn dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "DATA_DATASET_DESIGN_QUALITY",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_AUGMENTATION",
+      "labels": {
+        "en": "Data Augmentation",
+        "vi": "Tăng cường dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "DATA_FEATURES_AUGMENTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_CATEGORICAL_ENCODING",
+      "labels": {
+        "en": "Categorical Encoding",
+        "vi": "Mã hóa biến phân loại"
+      },
+      "aliases": [],
+      "parent_code": "DATA_CLEANING_PREPROCESSING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_CLASS_IMBALANCE",
+      "labels": {
+        "en": "Class Imbalance",
+        "vi": "Mất cân bằng lớp"
+      },
+      "aliases": [],
+      "parent_code": "DATA_DATASET_DESIGN_QUALITY",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_CLEANING_PREPROCESSING",
+      "labels": {
+        "en": "Data Cleaning and Preprocessing",
+        "vi": "Làm sạch và tiền xử lý dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_DATA",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_DATASET_DESIGN_QUALITY",
+      "labels": {
+        "en": "Dataset Design and Quality",
+        "vi": "Thiết kế và chất lượng tập dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_DATA",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_DATASET_SHIFT",
+      "labels": {
+        "en": "Dataset Shift",
+        "vi": "Dịch chuyển phân phối dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "DATA_DATASET_DESIGN_QUALITY",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_DUPLICATES",
+      "labels": {
+        "en": "Duplicate Records",
+        "vi": "Bản ghi trùng lặp"
+      },
+      "aliases": [],
+      "parent_code": "DATA_CLEANING_PREPROCESSING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_FEATURES_AUGMENTATION",
+      "labels": {
+        "en": "Features and Augmentation",
+        "vi": "Đặc trưng và tăng cường dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_DATA",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_FEATURE_EXTRACTION",
+      "labels": {
+        "en": "Feature Extraction",
+        "vi": "Trích xuất đặc trưng"
+      },
+      "aliases": [],
+      "parent_code": "DATA_FEATURES_AUGMENTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_FEATURE_SELECTION",
+      "labels": {
+        "en": "Feature Selection",
+        "vi": "Lựa chọn đặc trưng"
+      },
+      "aliases": [],
+      "parent_code": "DATA_FEATURES_AUGMENTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_INGESTION_REPRESENTATION",
+      "labels": {
+        "en": "Data Ingestion and Representation",
+        "vi": "Nạp và biểu diễn dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_DATA",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_LABEL_QUALITY",
+      "labels": {
+        "en": "Label Quality",
+        "vi": "Chất lượng nhãn"
+      },
+      "aliases": [],
+      "parent_code": "DATA_DATASET_DESIGN_QUALITY",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_LEAKAGE",
+      "labels": {
+        "en": "Data Leakage",
+        "vi": "Rò rỉ dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "DATA_DATASET_DESIGN_QUALITY",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_LOADING",
+      "labels": {
+        "en": "Data Loading",
+        "vi": "Nạp dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "DATA_INGESTION_REPRESENTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_MISSING_VALUES",
+      "labels": {
+        "en": "Missing Values",
+        "vi": "Giá trị thiếu"
+      },
+      "aliases": [],
+      "parent_code": "DATA_CLEANING_PREPROCESSING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_NORMALIZATION",
+      "labels": {
+        "en": "Normalization",
+        "vi": "Chuẩn hóa về miền giá trị"
+      },
+      "aliases": [],
+      "parent_code": "DATA_CLEANING_PREPROCESSING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_OUTLIERS",
+      "labels": {
+        "en": "Outliers",
+        "vi": "Giá trị ngoại lai"
+      },
+      "aliases": [],
+      "parent_code": "DATA_CLEANING_PREPROCESSING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_SAMPLING",
+      "labels": {
+        "en": "Sampling",
+        "vi": "Lấy mẫu"
+      },
+      "aliases": [],
+      "parent_code": "DATA_DATASET_DESIGN_QUALITY",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_SPLITTING",
+      "labels": {
+        "en": "Train-validation-test Split",
+        "vi": "Chia tập huấn luyện–kiểm định–kiểm thử"
+      },
+      "aliases": [],
+      "parent_code": "DATA_DATASET_DESIGN_QUALITY",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_STANDARDIZATION",
+      "labels": {
+        "en": "Standardization",
+        "vi": "Chuẩn hóa theo phân phối"
+      },
+      "aliases": [],
+      "parent_code": "DATA_CLEANING_PREPROCESSING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_TOKENIZATION",
+      "labels": {
+        "en": "Tokenization",
+        "vi": "Tách token"
+      },
+      "aliases": [],
+      "parent_code": "DATA_CLEANING_PREPROCESSING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DATA_TYPES",
+      "labels": {
+        "en": "Data Types",
+        "vi": "Kiểu dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "DATA_INGESTION_REPRESENTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_ACTIVATIONS",
+      "labels": {
+        "en": "Activation Functions",
+        "vi": "Hàm kích hoạt"
+      },
+      "aliases": [],
+      "parent_code": "DL_NETWORK_FOUNDATIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_ARCHITECTURES",
+      "labels": {
+        "en": "Neural Architectures",
+        "vi": "Kiến trúc mạng nơ-ron"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_DEEP_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_ATTENTION",
+      "labels": {
+        "en": "Attention",
+        "vi": "Cơ chế chú ý"
+      },
+      "aliases": [],
+      "parent_code": "DL_ARCHITECTURES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_BACKPROPAGATION",
+      "labels": {
+        "en": "Backpropagation",
+        "vi": "Lan truyền ngược"
+      },
+      "aliases": [],
+      "parent_code": "DL_NETWORK_FOUNDATIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_BATCH_NORMALIZATION",
+      "labels": {
+        "en": "Batch Normalization",
+        "vi": "Chuẩn hóa theo lô"
+      },
+      "aliases": [],
+      "parent_code": "DL_TRAINING_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_CNN",
+      "labels": {
+        "en": "Convolutional Neural Networks",
+        "vi": "Mạng nơ-ron tích chập"
+      },
+      "aliases": [],
+      "parent_code": "DL_ARCHITECTURES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_CONTRASTIVE_LEARNING",
+      "labels": {
+        "en": "Contrastive Learning",
+        "vi": "Học tương phản"
+      },
+      "aliases": [],
+      "parent_code": "DL_REPRESENTATION_ADAPTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_DROPOUT",
+      "labels": {
+        "en": "Dropout",
+        "vi": "Dropout"
+      },
+      "aliases": [],
+      "parent_code": "DL_TRAINING_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_EMBEDDINGS",
+      "labels": {
+        "en": "Embeddings",
+        "vi": "Biểu diễn nhúng"
+      },
+      "aliases": [],
+      "parent_code": "DL_REPRESENTATION_ADAPTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_FINE_TUNING",
+      "labels": {
+        "en": "Fine-tuning",
+        "vi": "Tinh chỉnh"
+      },
+      "aliases": [],
+      "parent_code": "DL_REPRESENTATION_ADAPTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_GRADIENT_DESCENT",
+      "labels": {
+        "en": "Gradient Descent",
+        "vi": "Hạ gradient"
+      },
+      "aliases": [],
+      "parent_code": "DL_TRAINING_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_LOSS_FUNCTIONS",
+      "labels": {
+        "en": "Loss Functions",
+        "vi": "Hàm mất mát"
+      },
+      "aliases": [],
+      "parent_code": "DL_NETWORK_FOUNDATIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_LR_SCHEDULING",
+      "labels": {
+        "en": "Learning-rate Scheduling",
+        "vi": "Lập lịch tốc độ học"
+      },
+      "aliases": [],
+      "parent_code": "DL_TRAINING_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_LSTM",
+      "labels": {
+        "en": "Long Short-term Memory Networks",
+        "vi": "Mạng bộ nhớ dài–ngắn hạn"
+      },
+      "aliases": [],
+      "parent_code": "DL_ARCHITECTURES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_MLP",
+      "labels": {
+        "en": "Multilayer Neural Networks",
+        "vi": "Mạng nơ-ron nhiều lớp"
+      },
+      "aliases": [],
+      "parent_code": "DL_NETWORK_FOUNDATIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_NETWORK_FOUNDATIONS",
+      "labels": {
+        "en": "Neural-network Foundations",
+        "vi": "Nền tảng mạng nơ-ron"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_DEEP_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_OPTIMIZERS",
+      "labels": {
+        "en": "Optimizers",
+        "vi": "Thuật toán tối ưu"
+      },
+      "aliases": [],
+      "parent_code": "DL_TRAINING_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_PERCEPTRONS",
+      "labels": {
+        "en": "Perceptrons",
+        "vi": "Perceptron"
+      },
+      "aliases": [],
+      "parent_code": "DL_NETWORK_FOUNDATIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_REPRESENTATION_ADAPTATION",
+      "labels": {
+        "en": "Representation and Adaptation",
+        "vi": "Biểu diễn và thích nghi"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_DEEP_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_RNN",
+      "labels": {
+        "en": "Recurrent Neural Networks",
+        "vi": "Mạng nơ-ron hồi quy"
+      },
+      "aliases": [],
+      "parent_code": "DL_ARCHITECTURES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_SELF_SUPERVISED",
+      "labels": {
+        "en": "Self-supervised Learning",
+        "vi": "Học tự giám sát"
+      },
+      "aliases": [],
+      "parent_code": "DL_REPRESENTATION_ADAPTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_TRAINING_METHODS",
+      "labels": {
+        "en": "Training Methods",
+        "vi": "Phương pháp huấn luyện"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_DEEP_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_TRANSFER_LEARNING",
+      "labels": {
+        "en": "Transfer Learning",
+        "vi": "Học chuyển giao"
+      },
+      "aliases": [],
+      "parent_code": "DL_REPRESENTATION_ADAPTATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_TRANSFORMERS",
+      "labels": {
+        "en": "Transformers",
+        "vi": "Mô hình Transformer"
+      },
+      "aliases": [],
+      "parent_code": "DL_ARCHITECTURES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DL_WEIGHT_INITIALIZATION",
+      "labels": {
+        "en": "Weight Initialization",
+        "vi": "Khởi tạo trọng số"
+      },
+      "aliases": [],
+      "parent_code": "DL_TRAINING_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DOMAIN_AUDIO_TOPICS",
+      "labels": {
+        "en": "Speech and Audio",
+        "vi": "Tiếng nói và âm thanh"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_AI_DOMAINS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DOMAIN_COMPUTER_VISION_TOPICS",
+      "labels": {
+        "en": "Computer Vision",
+        "vi": "Thị giác máy tính"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_AI_DOMAINS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DOMAIN_NLP_TOPICS",
+      "labels": {
+        "en": "Natural Language Processing",
+        "vi": "Xử lý ngôn ngữ tự nhiên"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_AI_DOMAINS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "DOMAIN_OTHER_AI_TOPICS",
+      "labels": {
+        "en": "Other AI Domains",
+        "vi": "Các lĩnh vực AI khác"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_AI_DOMAINS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_ANALYSIS_DECISIONS",
+      "labels": {
+        "en": "Evaluation Analysis and Decisions",
+        "vi": "Phân tích và quyết định đánh giá"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_EVALUATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_CLASSIFICATION_METRICS",
+      "labels": {
+        "en": "Classification Metrics",
+        "vi": "Độ đo phân loại"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_EVALUATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_CONFUSION_MATRIX",
+      "labels": {
+        "en": "Confusion Matrix",
+        "vi": "Ma trận nhầm lẫn"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_ANALYSIS_DECISIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_CROSS_VALIDATION",
+      "labels": {
+        "en": "Cross-validation",
+        "vi": "Kiểm định chéo"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_VALIDATION_STRATEGIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_DOMAIN_METRICS",
+      "labels": {
+        "en": "Domain-specific Metrics",
+        "vi": "Độ đo chuyên biệt theo lĩnh vực"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_EVALUATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_ERROR_ANALYSIS",
+      "labels": {
+        "en": "Error Analysis",
+        "vi": "Phân tích lỗi"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_ANALYSIS_DECISIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_GROUPED_VALIDATION",
+      "labels": {
+        "en": "Grouped Validation",
+        "vi": "Kiểm định theo nhóm"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_VALIDATION_STRATEGIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_LEADERBOARD_SPLIT",
+      "labels": {
+        "en": "Public-private Leaderboard Split",
+        "vi": "Chia bảng xếp hạng công khai–riêng tư"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_VALIDATION_STRATEGIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_REGRESSION_METRICS",
+      "labels": {
+        "en": "Regression Metrics",
+        "vi": "Độ đo hồi quy"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_EVALUATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_STATISTICAL_SIGNIFICANCE",
+      "labels": {
+        "en": "Statistical Significance",
+        "vi": "Ý nghĩa thống kê"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_ANALYSIS_DECISIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_STRATIFIED_VALIDATION",
+      "labels": {
+        "en": "Stratified Validation",
+        "vi": "Kiểm định phân tầng"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_VALIDATION_STRATEGIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_THRESHOLD_SELECTION",
+      "labels": {
+        "en": "Threshold Selection",
+        "vi": "Lựa chọn ngưỡng"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_ANALYSIS_DECISIONS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_TIME_SERIES_VALIDATION",
+      "labels": {
+        "en": "Time-series Validation",
+        "vi": "Kiểm định chuỗi thời gian"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_VALIDATION_STRATEGIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "EVAL_VALIDATION_STRATEGIES",
+      "labels": {
+        "en": "Validation Strategies",
+        "vi": "Chiến lược kiểm định"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_EVALUATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "GRAPH_LEARNING",
+      "labels": {
+        "en": "Graph Learning",
+        "vi": "Học trên đồ thị"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_OTHER_AI_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "LIB_MATPLOTLIB",
+      "labels": {
+        "en": "Matplotlib",
+        "vi": "Matplotlib"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LIBRARIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "LIB_NUMPY",
+      "labels": {
+        "en": "NumPy",
+        "vi": "NumPy"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LIBRARIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "LIB_PANDAS",
+      "labels": {
+        "en": "pandas",
+        "vi": "pandas"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LIBRARIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "LIB_PYTORCH",
+      "labels": {
+        "en": "PyTorch",
+        "vi": "PyTorch"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LIBRARIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "LIB_SCIKIT_LEARN",
+      "labels": {
+        "en": "scikit-learn",
+        "vi": "scikit-learn"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LIBRARIES",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_BAYES_THEOREM",
+      "labels": {
+        "en": "Bayes' Theorem",
+        "vi": "Định lý Bayes"
+      },
+      "aliases": [],
+      "parent_code": "MATH_PROBABILITY_STATISTICS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_CALCULUS_TOPICS",
+      "labels": {
+        "en": "Calculus",
+        "vi": "Giải tích"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MATHEMATICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_CHAIN_RULE",
+      "labels": {
+        "en": "Chain Rule",
+        "vi": "Quy tắc dây chuyền"
+      },
+      "aliases": [],
+      "parent_code": "MATH_CALCULUS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_CONDITIONAL_PROBABILITY",
+      "labels": {
+        "en": "Conditional Probability",
+        "vi": "Xác suất có điều kiện"
+      },
+      "aliases": [],
+      "parent_code": "MATH_PROBABILITY_STATISTICS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_CONFIDENCE_INTERVALS",
+      "labels": {
+        "en": "Confidence Intervals",
+        "vi": "Khoảng tin cậy"
+      },
+      "aliases": [],
+      "parent_code": "MATH_PROBABILITY_STATISTICS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_CONVEXITY",
+      "labels": {
+        "en": "Convexity",
+        "vi": "Tính lồi"
+      },
+      "aliases": [],
+      "parent_code": "MATH_OPTIMIZATION_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_DERIVATIVES",
+      "labels": {
+        "en": "Derivatives",
+        "vi": "Đạo hàm"
+      },
+      "aliases": [],
+      "parent_code": "MATH_CALCULUS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_EIGENVALUES_EIGENVECTORS",
+      "labels": {
+        "en": "Eigenvalues and Eigenvectors",
+        "vi": "Trị riêng và vectơ riêng"
+      },
+      "aliases": [],
+      "parent_code": "MATH_LINEAR_ALGEBRA_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_EXPECTATION_VARIANCE",
+      "labels": {
+        "en": "Expectation and Variance",
+        "vi": "Kỳ vọng và phương sai"
+      },
+      "aliases": [],
+      "parent_code": "MATH_PROBABILITY_STATISTICS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_GRADIENTS",
+      "labels": {
+        "en": "Gradients",
+        "vi": "Gradient"
+      },
+      "aliases": [],
+      "parent_code": "MATH_CALCULUS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_HYPOTHESIS_TESTING",
+      "labels": {
+        "en": "Hypothesis Testing",
+        "vi": "Kiểm định giả thuyết"
+      },
+      "aliases": [],
+      "parent_code": "MATH_PROBABILITY_STATISTICS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_INFORMATION_THEORY",
+      "labels": {
+        "en": "Information Theory",
+        "vi": "Lý thuyết thông tin"
+      },
+      "aliases": [],
+      "parent_code": "MATH_PROBABILITY_STATISTICS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_LINEAR_ALGEBRA_TOPICS",
+      "labels": {
+        "en": "Linear Algebra",
+        "vi": "Đại số tuyến tính"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MATHEMATICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_MATRIX_MULTIPLICATION",
+      "labels": {
+        "en": "Matrix Multiplication",
+        "vi": "Phép nhân ma trận"
+      },
+      "aliases": [],
+      "parent_code": "MATH_LINEAR_ALGEBRA_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_OPTIMIZATION_TOPICS",
+      "labels": {
+        "en": "Optimization",
+        "vi": "Tối ưu hóa"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MATHEMATICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_PARTIAL_DERIVATIVES",
+      "labels": {
+        "en": "Partial Derivatives",
+        "vi": "Đạo hàm riêng"
+      },
+      "aliases": [],
+      "parent_code": "MATH_CALCULUS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_PROBABILITY_DISTRIBUTIONS",
+      "labels": {
+        "en": "Probability Distributions",
+        "vi": "Phân phối xác suất"
+      },
+      "aliases": [],
+      "parent_code": "MATH_PROBABILITY_STATISTICS_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_PROBABILITY_STATISTICS_TOPICS",
+      "labels": {
+        "en": "Probability and Statistics",
+        "vi": "Xác suất và thống kê"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MATHEMATICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MATH_VECTORS_MATRICES",
+      "labels": {
+        "en": "Vectors and Matrices",
+        "vi": "Vectơ và ma trận"
+      },
+      "aliases": [],
+      "parent_code": "MATH_LINEAR_ALGEBRA_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_ACCURACY",
+      "labels": {
+        "en": "Accuracy",
+        "vi": "Độ chính xác"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_CLASSIFICATION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_BLEU",
+      "labels": {
+        "en": "BLEU",
+        "vi": "Điểm BLEU"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_DOMAIN_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_F1",
+      "labels": {
+        "en": "F1-score",
+        "vi": "Điểm F1"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_CLASSIFICATION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_IOU",
+      "labels": {
+        "en": "Intersection over Union",
+        "vi": "Tỷ lệ giao trên hợp"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_DOMAIN_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_LOG_LOSS",
+      "labels": {
+        "en": "Log Loss",
+        "vi": "Mất mát logarit"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_CLASSIFICATION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_MAE",
+      "labels": {
+        "en": "Mean Absolute Error",
+        "vi": "Sai số tuyệt đối trung bình"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_REGRESSION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_MAP",
+      "labels": {
+        "en": "Mean Average Precision",
+        "vi": "Độ chuẩn xác trung bình bình quân"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_DOMAIN_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_MSE",
+      "labels": {
+        "en": "Mean Squared Error",
+        "vi": "Sai số bình phương trung bình"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_REGRESSION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_PERPLEXITY",
+      "labels": {
+        "en": "Perplexity",
+        "vi": "Độ hỗn loạn"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_DOMAIN_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_PRECISION",
+      "labels": {
+        "en": "Precision",
+        "vi": "Độ chuẩn xác"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_CLASSIFICATION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_PR_AUC",
+      "labels": {
+        "en": "PR-AUC",
+        "vi": "Diện tích dưới đường cong precision–recall"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_CLASSIFICATION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_R2",
+      "labels": {
+        "en": "R-squared",
+        "vi": "Hệ số xác định R bình phương"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_REGRESSION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_RECALL",
+      "labels": {
+        "en": "Recall",
+        "vi": "Độ phủ"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_CLASSIFICATION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_RMSE",
+      "labels": {
+        "en": "Root Mean Squared Error",
+        "vi": "Căn sai số bình phương trung bình"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_REGRESSION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_ROC_AUC",
+      "labels": {
+        "en": "ROC-AUC",
+        "vi": "Diện tích dưới đường cong ROC"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_CLASSIFICATION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_ROUGE",
+      "labels": {
+        "en": "ROUGE",
+        "vi": "Điểm ROUGE"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_DOMAIN_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "METRIC_SPECIFICITY",
+      "labels": {
+        "en": "Specificity",
+        "vi": "Độ đặc hiệu"
+      },
+      "aliases": [],
+      "parent_code": "EVAL_CLASSIFICATION_METRICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_BAGGING",
+      "labels": {
+        "en": "Bagging",
+        "vi": "Bagging"
+      },
+      "aliases": [],
+      "parent_code": "ML_TREE_ENSEMBLE_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_BOOSTING",
+      "labels": {
+        "en": "Boosting",
+        "vi": "Boosting"
+      },
+      "aliases": [],
+      "parent_code": "ML_TREE_ENSEMBLE_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_CALIBRATION",
+      "labels": {
+        "en": "Calibration",
+        "vi": "Hiệu chỉnh xác suất"
+      },
+      "aliases": [],
+      "parent_code": "ML_MODEL_OPTIMIZATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_CLASSIFICATION_METHODS",
+      "labels": {
+        "en": "Classification Methods",
+        "vi": "Các phương pháp phân loại"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MACHINE_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_DECISION_TREES",
+      "labels": {
+        "en": "Decision Trees",
+        "vi": "Cây quyết định"
+      },
+      "aliases": [],
+      "parent_code": "ML_TREE_ENSEMBLE_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_ENSEMBLE_LEARNING",
+      "labels": {
+        "en": "Ensemble Learning",
+        "vi": "Học tổ hợp"
+      },
+      "aliases": [],
+      "parent_code": "ML_TREE_ENSEMBLE_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_GRADIENT_BOOSTING",
+      "labels": {
+        "en": "Gradient Boosting",
+        "vi": "Tăng cường gradient"
+      },
+      "aliases": [],
+      "parent_code": "ML_TREE_ENSEMBLE_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_HYPERPARAMETER_OPTIMIZATION",
+      "labels": {
+        "en": "Hyperparameter Optimization",
+        "vi": "Tối ưu siêu tham số"
+      },
+      "aliases": [],
+      "parent_code": "ML_MODEL_OPTIMIZATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_KMEANS",
+      "labels": {
+        "en": "k-means",
+        "vi": "Phân cụm k-means"
+      },
+      "aliases": [],
+      "parent_code": "ML_UNSUPERVISED_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_KNN",
+      "labels": {
+        "en": "k-nearest Neighbours",
+        "vi": "k láng giềng gần nhất"
+      },
+      "aliases": [],
+      "parent_code": "ML_CLASSIFICATION_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_LINEAR_REGRESSION",
+      "labels": {
+        "en": "Linear Regression",
+        "vi": "Hồi quy tuyến tính"
+      },
+      "aliases": [],
+      "parent_code": "ML_REGRESSION_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_LOGISTIC_REGRESSION",
+      "labels": {
+        "en": "Logistic Regression",
+        "vi": "Hồi quy logistic"
+      },
+      "aliases": [],
+      "parent_code": "ML_CLASSIFICATION_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_MODEL_OPTIMIZATION",
+      "labels": {
+        "en": "Model Optimization",
+        "vi": "Tối ưu hóa mô hình"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MACHINE_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_NAIVE_BAYES",
+      "labels": {
+        "en": "Naive Bayes",
+        "vi": "Bayes ngây thơ"
+      },
+      "aliases": [],
+      "parent_code": "ML_CLASSIFICATION_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_PCA",
+      "labels": {
+        "en": "Principal Component Analysis",
+        "vi": "Phân tích thành phần chính"
+      },
+      "aliases": [],
+      "parent_code": "ML_UNSUPERVISED_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_RANDOM_FORESTS",
+      "labels": {
+        "en": "Random Forests",
+        "vi": "Rừng ngẫu nhiên"
+      },
+      "aliases": [],
+      "parent_code": "ML_TREE_ENSEMBLE_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_REGRESSION_METHODS",
+      "labels": {
+        "en": "Regression Methods",
+        "vi": "Các phương pháp hồi quy"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MACHINE_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_REGULARIZATION",
+      "labels": {
+        "en": "Regularization",
+        "vi": "Chính quy hóa"
+      },
+      "aliases": [],
+      "parent_code": "ML_MODEL_OPTIMIZATION",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_SVM",
+      "labels": {
+        "en": "Support Vector Machines",
+        "vi": "Máy vectơ hỗ trợ"
+      },
+      "aliases": [],
+      "parent_code": "ML_CLASSIFICATION_METHODS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_TREE_ENSEMBLE_METHODS",
+      "labels": {
+        "en": "Tree and Ensemble Methods",
+        "vi": "Phương pháp cây và tổ hợp"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MACHINE_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "ML_UNSUPERVISED_METHODS",
+      "labels": {
+        "en": "Unsupervised Methods",
+        "vi": "Phương pháp học không giám sát"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_MACHINE_LEARNING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "MULTIMODAL_LEARNING",
+      "labels": {
+        "en": "Multimodal Learning",
+        "vi": "Học đa phương thức"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_OTHER_AI_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "NLP_INFORMATION_RETRIEVAL",
+      "labels": {
+        "en": "Information Retrieval",
+        "vi": "Truy hồi thông tin"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_NLP_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "NLP_LANGUAGE_MODELING",
+      "labels": {
+        "en": "Language Modelling",
+        "vi": "Mô hình hóa ngôn ngữ"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_NLP_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "NLP_MACHINE_TRANSLATION",
+      "labels": {
+        "en": "Machine Translation",
+        "vi": "Dịch máy"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_NLP_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "NLP_NER",
+      "labels": {
+        "en": "Named Entity Recognition",
+        "vi": "Nhận dạng thực thể có tên"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_NLP_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "NLP_QUESTION_ANSWERING",
+      "labels": {
+        "en": "Question Answering",
+        "vi": "Hỏi đáp"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_NLP_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "NLP_TEXT_CLASSIFICATION",
+      "labels": {
+        "en": "Text Classification",
+        "vi": "Phân loại văn bản"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_NLP_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "PYTHON_COLLECTIONS",
+      "labels": {
+        "en": "Collections",
+        "vi": "Kiểu dữ liệu tập hợp"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LANGUAGE",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "PYTHON_FUNCTIONS",
+      "labels": {
+        "en": "Functions",
+        "vi": "Hàm"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LANGUAGE",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "PYTHON_LANGUAGE",
+      "labels": {
+        "en": "Python Language",
+        "vi": "Ngôn ngữ Python"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_PYTHON_COMPUTING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "PYTHON_LIBRARIES",
+      "labels": {
+        "en": "Python Libraries",
+        "vi": "Thư viện Python"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_PYTHON_COMPUTING",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "PYTHON_OOP",
+      "labels": {
+        "en": "Object-oriented Programming",
+        "vi": "Lập trình hướng đối tượng"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LANGUAGE",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "PYTHON_SYNTAX",
+      "labels": {
+        "en": "Python Syntax",
+        "vi": "Cú pháp Python"
+      },
+      "aliases": [],
+      "parent_code": "PYTHON_LANGUAGE",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_ADVERSARIAL_ROBUSTNESS",
+      "labels": {
+        "en": "Adversarial Robustness",
+        "vi": "Độ vững trước tấn công đối nghịch"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_BIAS",
+      "labels": {
+        "en": "Bias",
+        "vi": "Thiên lệch"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_COPYRIGHT",
+      "labels": {
+        "en": "Copyright",
+        "vi": "Bản quyền"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_DATASET_DOCUMENTATION",
+      "labels": {
+        "en": "Dataset Documentation",
+        "vi": "Tài liệu tập dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_DATA_LICENSING",
+      "labels": {
+        "en": "Data Licensing",
+        "vi": "Cấp phép dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_EXPLAINABILITY",
+      "labels": {
+        "en": "Explainability",
+        "vi": "Khả năng giải thích"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_FAIRNESS",
+      "labels": {
+        "en": "Fairness",
+        "vi": "Tính công bằng"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "labels": {
+        "en": "Responsible AI, Governance, and Safety",
+        "vi": "AI có trách nhiệm, quản trị và an toàn"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_RESPONSIBLE_RESEARCH",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_MODEL_CARDS",
+      "labels": {
+        "en": "Model Cards",
+        "vi": "Thẻ mô hình"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_MODEL_SAFETY",
+      "labels": {
+        "en": "Model Safety",
+        "vi": "An toàn mô hình"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RAI_PRIVACY",
+      "labels": {
+        "en": "Privacy",
+        "vi": "Quyền riêng tư"
+      },
+      "aliases": [],
+      "parent_code": "RAI_GOVERNANCE_SAFETY_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "REC_RECOMMENDATION",
+      "labels": {
+        "en": "Recommendation",
+        "vi": "Gợi ý"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_OTHER_AI_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RESEARCH_ABLATIONS",
+      "labels": {
+        "en": "Ablations",
+        "vi": "Thí nghiệm loại bỏ thành phần"
+      },
+      "aliases": [],
+      "parent_code": "RESEARCH_PRACTICE_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RESEARCH_BASELINES",
+      "labels": {
+        "en": "Baselines",
+        "vi": "Đường cơ sở"
+      },
+      "aliases": [],
+      "parent_code": "RESEARCH_PRACTICE_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RESEARCH_PRACTICE_TOPICS",
+      "labels": {
+        "en": "Research Practice",
+        "vi": "Thực hành nghiên cứu"
+      },
+      "aliases": [],
+      "parent_code": "TOPIC_RESPONSIBLE_RESEARCH",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RESEARCH_REPRODUCIBILITY",
+      "labels": {
+        "en": "Reproducibility",
+        "vi": "Khả năng tái lập"
+      },
+      "aliases": [],
+      "parent_code": "RESEARCH_PRACTICE_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "RESEARCH_SCIENTIFIC_REPORTING",
+      "labels": {
+        "en": "Scientific Reporting",
+        "vi": "Báo cáo khoa học"
+      },
+      "aliases": [],
+      "parent_code": "RESEARCH_PRACTICE_TOPICS",
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TOPIC_AI_DOMAINS",
+      "labels": {
+        "en": "AI Domains",
+        "vi": "Lĩnh vực AI"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TOPIC_DATA",
+      "labels": {
+        "en": "Data",
+        "vi": "Dữ liệu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TOPIC_DEEP_LEARNING",
+      "labels": {
+        "en": "Deep Learning",
+        "vi": "Học sâu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TOPIC_EVALUATION",
+      "labels": {
+        "en": "Evaluation",
+        "vi": "Đánh giá"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TOPIC_MACHINE_LEARNING",
+      "labels": {
+        "en": "Machine Learning",
+        "vi": "Học máy"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TOPIC_MATHEMATICS",
+      "labels": {
+        "en": "Mathematics",
+        "vi": "Toán học"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TOPIC_PYTHON_COMPUTING",
+      "labels": {
+        "en": "Python and Computing",
+        "vi": "Python và tính toán"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TOPIC_RESPONSIBLE_RESEARCH",
+      "labels": {
+        "en": "Responsible AI and Research",
+        "vi": "AI có trách nhiệm và nghiên cứu"
+      },
+      "aliases": [],
+      "parent_code": null,
+      "status": "ACTIVE"
+    },
+    {
+      "vocabulary_type": "TOPIC",
+      "code": "TS_FORECASTING",
+      "labels": {
+        "en": "Forecasting",
+        "vi": "Dự báo"
+      },
+      "aliases": [],
+      "parent_code": "DOMAIN_OTHER_AI_TOPICS",
+      "status": "ACTIVE"
+    }
+  ]
+}

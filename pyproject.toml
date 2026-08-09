@@ -33,7 +33,7 @@ pythonVersion = "3.12"
 reportMissingTypeStubs = false
 
 [tool.pytest.ini_options]
-pythonpath = ["backend/src"]
+pythonpath = ["backend/src", "backend"]
 addopts = "-q"
 
 [tool.uv]
