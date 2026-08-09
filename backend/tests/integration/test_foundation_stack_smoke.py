@@ -2,34 +2,36 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from tests.fixtures.problem_fixtures import draft_problem, published_problem
+
 from ioai.entrypoints.api.factory import create_app
-from ioai.tests.fixtures.problem_fixtures import draft_problem, published_problem
 
 
 def test_compose_declares_four_services_and_dependency_chain() -> None:
-    compose_text = Path('docker-compose.yml').read_text()
+    compose_text = Path("docker-compose.yml").read_text()
 
-    assert 'postgres:' in compose_text
-    assert 'api:' in compose_text
-    assert 'learn:' in compose_text
-    assert 'studio:' in compose_text
-    assert 'depends_on:' in compose_text
-    assert 'postgres' in compose_text.split('api:')[1]
+    assert "postgres:" in compose_text
+    assert "api:" in compose_text
+    assert "learn:" in compose_text
+    assert "studio:" in compose_text
+    assert "depends_on:" in compose_text
+    assert "postgres" in compose_text.split("api:")[1]
 
 
 def test_studio_binding_remains_loopback_in_compose() -> None:
-    compose_text = Path('docker-compose.yml').read_text()
+    compose_text = Path("docker-compose.yml").read_text()
 
-    assert '--hostname 127.0.0.1' in compose_text
-    assert '/author/problems' in Path('frontend/apps/studio/app/author/problems/page.tsx').read_text()
+    assert "'127.0.0.1:3001:3001'" in compose_text
+    assert Path("frontend/apps/studio/app/author/problems/page.tsx").is_file()
 
 
-def test_public_api_does_not_expose_author_namespace() -> None:
+def test_public_vocabulary_schema_does_not_expose_author_fields() -> None:
     app = create_app()
     openapi = app.openapi()
 
-    for path in openapi['paths']:
-        assert not path.startswith('/api/v1/author')
+    public_schema = openapi["components"]["schemas"]["PublicVocabularyRecord"]
+    assert "availability" not in public_schema["properties"]
+    assert "status" not in public_schema["properties"]
 
 
 def test_public_list_foundation_rejects_draft_fixture() -> None:

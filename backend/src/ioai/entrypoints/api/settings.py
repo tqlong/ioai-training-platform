@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -20,5 +20,7 @@ class ApiSettings:
             project_name=os.getenv("IOAI_PROJECT_NAME", cls.project_name),
             api_prefix=os.getenv("IOAI_API_PREFIX", cls.api_prefix),
             debug=debug,
-            request_id_header=os.getenv("IOAI_REQUEST_ID_HEADER", cls.request_id_header),
+            request_id_header=os.getenv(
+                "IOAI_REQUEST_ID_HEADER", cls.request_id_header
+            ),
         )

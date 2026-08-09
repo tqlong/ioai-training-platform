@@ -67,7 +67,7 @@ services:
         condition: service_healthy
     command: sh -lc "corepack enable && corepack pnpm --dir frontend/apps/studio dev --hostname 0.0.0.0 --port 3001"
     ports:
-      - '3001:3001'
+      - '127.0.0.1:3001:3001'
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/author/problems"]
       interval: 10s

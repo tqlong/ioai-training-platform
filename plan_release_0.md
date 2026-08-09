@@ -498,7 +498,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   descendant expansion. Return canonical composite identities and never persist
   or return a display label as identity. Suggested commit:
   `feat(vocabulary): query canonical hierarchy`.
-- [ ] **R0-05010 — Expose separate public and author-safe vocabulary contracts
+- [x] **R0-05010 — Expose separate public and author-safe vocabulary contracts
   from R0-011, R0-013, R0-015, analysis sections 5.3 and 9, and design sections
   5.2, 6, 7, and 8.** Add versioned FastAPI read routes and Pydantic contracts
   around the query use case, including explicit type/search/root/

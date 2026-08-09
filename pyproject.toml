@@ -13,10 +13,18 @@ dev = [
 [dependency-groups]
 backend = [
     "alembic>=1.13,<2",
+    "fastapi>=0.116,<1",
     "psycopg[binary]>=3.2,<4",
+    "pydantic>=2.11,<3",
     "sqlalchemy>=2.0,<3",
+    "uvicorn>=0.35,<1",
 ]
-backend-dev = []
+backend-dev = [
+    "httpx2>=2,<3",
+    "pyright>=1.1,<2",
+    "pytest>=8,<10",
+    "ruff>=0.12,<1",
+]
 frontend = []
 
 [build-system]

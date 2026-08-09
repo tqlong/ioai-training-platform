@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ioai.tests.fixtures.clock import DeterministicClock
-from ioai.tests.fixtures.problem_fixtures import draft_problem, published_problem
+from tests.fixtures.clock import DeterministicClock
+from tests.fixtures.problem_fixtures import draft_problem, published_problem
 
 
 def test_draft_fixture_and_published_fixture_are_distinct() -> None:

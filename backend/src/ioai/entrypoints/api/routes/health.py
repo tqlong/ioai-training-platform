@@ -4,12 +4,11 @@ from typing import Callable
 
 from fastapi import APIRouter
 
-
 ReadinessProbe = Callable[[], bool]
-router = APIRouter(tags=["health"])
 
 
 def health_router(*, is_ready: ReadinessProbe | None = None) -> APIRouter:
+    router = APIRouter(tags=["health"])
     probe = is_ready or (lambda: True)
 
     @router.get("/health/live", tags=["health"], summary="Liveness check")

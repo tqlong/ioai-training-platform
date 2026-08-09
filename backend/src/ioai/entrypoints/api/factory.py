@@ -1,27 +1,38 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import contextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from ...adapters.database.session import (
+    build_engine,
+    build_session_factory,
+    check_connection,
+)
+from ...adapters.database.settings import DatabaseSettings
+from ...adapters.database.vocabulary_repository import SqlAlchemyVocabularyRepository
 from .errors import install_error_handlers
 from .routes.health import health_router
+from .routes.vocabulary import VocabularyReaderFactory, vocabulary_router
 from .settings import ApiSettings
-from ...adapters.database.session import check_connection
-from ...adapters.database.settings import DatabaseSettings
-
 
 ReadinessProbe = Callable[[], bool]
 
 
 def create_app(
-    *, settings: ApiSettings | None = None, readiness_probe: ReadinessProbe | None = None
+    *,
+    settings: ApiSettings | None = None,
+    readiness_probe: ReadinessProbe | None = None,
+    vocabulary_reader_factory: VocabularyReaderFactory | None = None,
 ) -> FastAPI:
     resolved_settings = settings or ApiSettings.from_env()
     resolved_probe = readiness_probe
+    resolved_reader_factory = vocabulary_reader_factory
+    db_settings = DatabaseSettings.from_env()
     if readiness_probe is None:
-        db_settings = DatabaseSettings.from_env()
 
         def default_probe() -> bool:
             try:
@@ -30,6 +41,17 @@ def create_app(
                 return False
 
         resolved_probe = default_probe
+
+    if resolved_reader_factory is None:
+        engine = build_engine(db_settings)
+        session_factory = build_session_factory(engine)
+
+        @contextmanager
+        def default_reader():
+            with session_factory() as session:
+                yield SqlAlchemyVocabularyRepository(session)
+
+        resolved_reader_factory = default_reader
 
     app = FastAPI(
         title=resolved_settings.project_name,
@@ -48,6 +70,9 @@ def create_app(
     )
 
     app.include_router(health_router(is_ready=resolved_probe), prefix="")
+    app.include_router(
+        vocabulary_router(resolved_reader_factory), prefix=resolved_settings.api_prefix
+    )
     install_error_handlers(app, request_id_header=resolved_settings.request_id_header)
     app.add_middleware(
         _RequestIdMiddleware,
@@ -62,19 +87,20 @@ def create_app(
 
 
 class _RequestIdMiddleware:
-    def __init__(self, app: FastAPI, header_name: str) -> None:
+    def __init__(self, app: ASGIApp, header_name: str) -> None:
         self.app = app
         self.header_name = header_name
 
-    async def __call__(self, scope, receive, send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
 
-        async def send_with_request_id(message: dict) -> None:
+        async def send_with_request_id(message: Message) -> None:
             if message.get("type") == "http.response.start":
-                headers = message.setdefault("headers", [])
+                headers = list(message.get("headers", []))
                 headers.append((self.header_name.encode(), b"generated"))
+                message["headers"] = headers
             await send(message)
 
         await self.app(scope, receive, send_with_request_id)
