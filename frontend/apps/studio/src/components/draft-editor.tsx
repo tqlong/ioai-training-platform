@@ -16,6 +16,12 @@ import {
   emptyCurriculumDraft,
   type CurriculumDraft,
 } from './curriculum-editor';
+import {
+  AssessmentEditor,
+  emptyAssessmentDraft,
+  type AssessmentDraft,
+  type ResponseType,
+} from './assessment-editor';
 
 type SaveFunction = (
   revisionId: string,
@@ -39,6 +45,11 @@ export function DraftEditor({
       ? curriculumFromMetadata(initialDraft.metadata)
       : emptyCurriculumDraft()
   ));
+  const [assessment, setAssessment] = useState<AssessmentDraft>(() => (
+    isAssessmentDraft(initialDraft.response, initialDraft.scoring)
+      ? { response: initialDraft.response, scoring: initialDraft.scoring, scoringValid: true } as AssessmentDraft
+      : emptyAssessmentDraft('QUIZ_SINGLE')
+  ));
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
 
@@ -60,9 +71,9 @@ export function DraftEditor({
     slug: slug || null,
     content,
     metadata: curriculumMetadata(curriculum) ?? draft.metadata,
-    response: draft.response,
-    scoring: draft.scoring,
-  }), [content, curriculum, draft, slug]);
+    response: assessment.response,
+    scoring: assessment.scoring,
+  }), [assessment, content, curriculum, draft, slug]);
 
   const save = async () => {
     setSaveState('saving');
@@ -139,6 +150,15 @@ export function DraftEditor({
           value={curriculum}
         />
 
+        <AssessmentEditor
+          onChange={(next) => {
+            setAssessment(next);
+            setDirtyFields((current) => new Set(current).add('assessment'));
+            setSaveState('idle');
+          }}
+          value={assessment}
+        />
+
         <div className="editor-actions">
           <button disabled={!isDirty || saveState === 'saving'} type="submit">Save draft</button>
           <button type="button">Validate draft</button>
@@ -155,6 +175,14 @@ const isContentDraft = (value: unknown): value is ContentDraft => (
 
 const isCurriculumDraft = (value: unknown): value is Record<string, unknown> => (
   typeof value === 'object' && value !== null && 'stage' in value
+);
+
+const isAssessmentDraft = (
+  response: unknown,
+  scoring: unknown,
+): response is Record<string, unknown> & { type: ResponseType } => (
+  typeof response === 'object' && response !== null && 'type' in response &&
+  typeof scoring === 'object' && scoring !== null && 'components' in scoring
 );
 
 const curriculumFromMetadata = (value: Record<string, unknown>): CurriculumDraft => ({

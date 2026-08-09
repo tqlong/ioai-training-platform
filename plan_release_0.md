@@ -685,7 +685,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   minimum evidence. Integrate the existing separately reviewable proposal
   command without allowing proposals to become metadata. Suggested commit:
   `feat(studio): edit canonical problem metadata`.
-- [ ] **R0-06015 — Build response and scoring editors from `AC-R0-013-12`
+- [x] **R0-06015 — Build response and scoring editors from `AC-R0-013-12`
   through `AC-R0-013-13`, analysis section 6.2, and design section 13.2.** Render
   only the fields for the selected approved response variant, preserve no stale
   inapplicable configuration when the type changes, and add keyboard-safe
