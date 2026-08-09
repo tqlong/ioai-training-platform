@@ -831,7 +831,7 @@ same transaction as its state change.
   Prove invalid-state, stale-policy, slug-conflict, retry, concurrency, and
   injected-failure rollback behavior against PostgreSQL. Suggested commit:
   `feat(publication): publish revisions atomically`.
-- [ ] **R0-07008 — Expose publication confirmation and permanent URL from
+- [x] **R0-07008 — Expose publication confirmation and permanent URL from
   `AC-R0-014-05` through `AC-R0-014-08`, `ui_release_0.md` sections 6.8 and
   8, and design sections 7.1 and 13.5.** Add the author publish endpoint with
   expected version, required note, and idempotency key; return the stable public

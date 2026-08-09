@@ -59,4 +59,19 @@ describe('editorial review workspace', () => {
     await waitFor(() => expect(onDraftChange).toHaveBeenCalledWith(approved));
     expect(transition).toHaveBeenCalledWith('revision-1', 'approve', expect.objectContaining({ expected_version: 2, note: 'Approved.' }));
   });
+
+  it('confirms publication with permanent URL and returns focus on Escape', async () => {
+    const approved = { ...draft, editorial_status: 'APPROVED', slug: 'metrics-basics' };
+    render(<EditorialReviewWorkspace draft={approved} loadHistory={async () => history} onDraftChange={() => undefined} publish={vi.fn()} transition={vi.fn()} />);
+    const trigger = screen.getByRole('button', { name: 'Publish' });
+    fireEvent.click(trigger);
+
+    const dialog = screen.getByRole('dialog', { name: 'Publish approved revision' });
+    expect(dialog.textContent).toContain('/problems/metrics-basics');
+    expect(dialog.textContent).toContain('This is different from Draft preview');
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Publish approved revision' })).toBeNull());
+    expect(document.activeElement).toBe(trigger);
+  });
 });

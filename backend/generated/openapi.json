@@ -651,6 +651,72 @@
         "title": "PublicVocabularyResponse",
         "type": "object"
       },
+      "PublicationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "public_url": {
+            "title": "Public Url",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "slug",
+          "public_url",
+          "published_at"
+        ],
+        "title": "PublicationResponse",
+        "type": "object"
+      },
+      "PublishRevisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_context": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Context",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "note": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "note",
+          "actor_context",
+          "idempotency_key"
+        ],
+        "title": "PublishRevisionRequest",
+        "type": "object"
+      },
       "RecordVocabularyProposalRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1393,6 +1459,68 @@
           }
         },
         "summary": "Preview Draft",
+        "tags": [
+          "author-revisions"
+        ]
+      }
+    },
+    "/api/v1/author/revisions/{revision_id}/publish": {
+      "post": {
+        "operationId": "publish_revision_api_v1_author_revisions__revision_id__publish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishRevisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Publish Revision",
         "tags": [
           "author-revisions"
         ]

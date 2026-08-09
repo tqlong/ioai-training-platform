@@ -34,6 +34,7 @@ from ...application.problems.editorial import (
     SubmitForReview,
 )
 from ...application.problems.payload import decode_revision_payload
+from ...application.problems.publication import PublishRevision
 from ...application.vocabulary.proposals import RecordVocabularyProposal
 from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ...domain.problems.revision import ProblemRevision
@@ -42,6 +43,7 @@ from ...domain.vocabulary.availability import Release0AvailabilityPolicy
 from .contracts.problems import (
     EditorialCommandRequest,
     PreviewDraftRequest,
+    PublishRevisionRequest,
     SaveDraftRequest,
 )
 from .errors import install_error_handlers
@@ -136,6 +138,12 @@ def create_app(
                 clock=lambda: datetime.now(UTC),
             ),
             history=ListEditorialHistory(draft_uow),
+            publish=PublishRevision(
+                unit_of_work_factory=draft_uow,
+                policy=Release0AvailabilityPolicy(),
+                id_generator=lambda: str(uuid4()),
+                clock=lambda: datetime.now(UTC),
+            ),
         )
 
     app = FastAPI(
@@ -197,6 +205,7 @@ class _DefaultAuthorProblemService:
         request_changes: RequestChanges,
         approve: ApproveRevision,
         history: ListEditorialHistory,
+        publish: PublishRevision,
     ):
         self._create = create
         self._list = list_drafts
@@ -211,6 +220,7 @@ class _DefaultAuthorProblemService:
             EditorialStatus.APPROVED: approve,
         }
         self._history = history
+        self._publish = publish
 
     def create(self):
         return self._create()
@@ -294,6 +304,15 @@ class _DefaultAuthorProblemService:
 
     def list_history(self, revision_id: RevisionId):
         return self._history(revision_id)
+
+    def publish(self, revision_id: RevisionId, request: PublishRevisionRequest):
+        return self._publish(
+            revision_id,
+            expected_version=request.expected_version,
+            note=request.note,
+            actor=ActorContext(request.actor_context),
+            idempotency_key=request.idempotency_key,
+        )
 
 
 class _RequestIdMiddleware:

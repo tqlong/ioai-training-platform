@@ -14,6 +14,8 @@ export type PreviewDraftRequest = components['schemas']['PreviewDraftRequest'];
 export type PreviewResponse = components['schemas']['PreviewResponse'];
 export type EditorialCommandRequest = components['schemas']['EditorialCommandRequest'];
 export type EditorialHistory = components['schemas']['EditorialHistoryResponse'];
+export type PublishRevisionRequest = components['schemas']['PublishRevisionRequest'];
+export type PublicationResult = components['schemas']['PublicationResponse'];
 export type EditorialAction = 'submit-review' | 'request-changes' | 'approve';
 
 export type PublicVocabularyQuery = {
@@ -74,6 +76,10 @@ export type ApiClient = {
     request: EditorialCommandRequest,
   ) => Promise<AuthorDraft>;
   getEditorialHistory: (revisionId: string) => Promise<EditorialHistory>;
+  publishAuthorRevision: (
+    revisionId: string,
+    request: PublishRevisionRequest,
+  ) => Promise<PublicationResult>;
 };
 
 export const createApiClient = ({
@@ -163,6 +169,11 @@ export const createApiClient = ({
     async getEditorialHistory(revisionId) {
       return requestJson<EditorialHistory>(fetchFn, `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}/history`, {
         cache: 'no-store',
+      });
+    },
+    async publishAuthorRevision(revisionId, request) {
+      return requestJson<PublicationResult>(fetchFn, `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}/publish`, {
+        method: 'POST', body: JSON.stringify(request),
       });
     },
   };

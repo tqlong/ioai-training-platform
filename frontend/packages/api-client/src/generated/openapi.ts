@@ -107,6 +107,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/author/revisions/{revision_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Revision */
+        post: operations["publish_revision_api_v1_author_revisions__revision_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/author/revisions/{revision_id}/request-changes": {
         parameters: {
             query?: never;
@@ -455,6 +472,31 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["PublicVocabularyRecord"][];
+        };
+        /** PublicationResponse */
+        PublicationResponse: {
+            /** Public Url */
+            public_url: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /** Slug */
+            slug: string;
+            /** Snapshot Id */
+            snapshot_id: string;
+        };
+        /** PublishRevisionRequest */
+        PublishRevisionRequest: {
+            /** Actor Context */
+            actor_context: string;
+            /** Expected Version */
+            expected_version: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Note */
+            note: string;
         };
         /** RecordVocabularyProposalRequest */
         RecordVocabularyProposalRequest: {
@@ -864,6 +906,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_revision_api_v1_author_revisions__revision_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishRevisionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicationResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

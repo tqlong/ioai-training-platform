@@ -122,3 +122,19 @@ class EditorialHistoryItemResponse(BaseModel):
 class EditorialHistoryResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     items: list[EditorialHistoryItemResponse]
+
+
+class PublishRevisionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_version: int = Field(ge=1)
+    note: str = Field(min_length=1, max_length=2000)
+    actor_context: str = Field(min_length=1, max_length=200)
+    idempotency_key: str = Field(min_length=1, max_length=200)
+
+
+class PublicationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    snapshot_id: str
+    slug: str
+    public_url: str
+    published_at: datetime

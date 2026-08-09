@@ -138,4 +138,24 @@ describe('generated vocabulary client', () => {
       expect.objectContaining({ cache: 'no-store' }),
     );
   });
+
+  it('publishes with a bounded idempotent author command', async () => {
+    const fetchFn = vi.fn(async () => Response.json({
+      snapshot_id: 'snapshot-1', slug: 'metrics',
+      public_url: '/problems/metrics', published_at: '2026-08-09T00:00:00Z',
+    }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    const request = {
+      expected_version: 3, note: 'Publish.', actor_context: 'local-reviewer',
+      idempotency_key: 'publish-1',
+    };
+
+    const result = await client.publishAuthorRevision('revision-1', request);
+
+    expect(result.public_url).toBe('/problems/metrics');
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/author/revisions/revision-1/publish',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify(request) }),
+    );
+  });
 });

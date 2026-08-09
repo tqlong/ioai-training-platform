@@ -8,9 +8,12 @@ from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResu
 from ioai.application.problems.errors import (
     DraftNotFoundError,
     DraftValidationError,
+    IdempotencyConflictError,
     RevisionConflictError,
+    SlugConflictError,
 )
 from ioai.application.problems.payload import encode_revision_payload
+from ioai.application.problems.publication import PublishedSnapshot
 from ioai.domain.problems.errors import (
     InvalidEditorialTransitionError,
     InvalidTransitionNoteError,
@@ -30,6 +33,8 @@ from ..contracts.problems import (
     EditorialHistoryResponse,
     PreviewDraftRequest,
     PreviewResponse,
+    PublicationResponse,
+    PublishRevisionRequest,
     SaveDraftRequest,
     ValidateDraftRequest,
     ValidationIssueResponse,
@@ -68,6 +73,10 @@ class AuthorProblemService(Protocol):
     def list_history(
         self, revision_id: RevisionId
     ) -> tuple[EditorialTransition, ...]: ...
+
+    def publish(
+        self, revision_id: RevisionId, request: PublishRevisionRequest
+    ) -> PublishedSnapshot: ...
 
 
 def author_problem_router(service: AuthorProblemService) -> APIRouter:
@@ -289,6 +298,58 @@ def author_revision_router(service: AuthorProblemService) -> APIRouter:
                 )
                 for item in items
             ]
+        )
+
+    @router.post(
+        "/{revision_id}/publish",
+        response_model=PublicationResponse,
+        responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+    )
+    def publish_revision(
+        revision_id: str, request: PublishRevisionRequest
+    ) -> PublicationResponse:
+        try:
+            result = service.publish(RevisionId(revision_id), request)
+        except RevisionConflictError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "REVISION_CONFLICT",
+                    "message": "A newer revision version exists.",
+                    "current_version": error.current_version,
+                },
+            ) from error
+        except DraftValidationError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={
+                    "code": "VALIDATION_BLOCKED",
+                    "message": "The approved revision is no longer publishable.",
+                    "validation": _validation_response(error.report).model_dump(
+                        mode="json"
+                    ),
+                },
+            ) from error
+        except SlugConflictError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "SLUG_CONFLICT", "message": str(error)},
+            ) from error
+        except IdempotencyConflictError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "IDEMPOTENCY_CONFLICT", "message": str(error)},
+            ) from error
+        except (InvalidEditorialTransitionError, InvalidTransitionNoteError) as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "WORKFLOW_INVALID", "message": str(error)},
+            ) from error
+        return PublicationResponse(
+            snapshot_id=result.snapshot_id,
+            slug=result.slug.value,
+            public_url=f"/problems/{result.slug.value}",
+            published_at=result.published_at,
         )
 
     return router

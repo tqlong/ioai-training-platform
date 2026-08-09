@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
 from ioai.application.problems.errors import RevisionConflictError
+from ioai.application.problems.publication import PublishedSnapshot
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import (
@@ -114,6 +115,17 @@ class FakeAuthorProblemService:
     def list_history(self, revision_id):
         assert revision_id == self.draft.revision_id
         return self.history
+
+    def publish(self, revision_id, request):
+        assert revision_id == self.draft.revision_id
+        return PublishedSnapshot(
+            snapshot_id="snapshot-1",
+            problem_id=self.draft.problem_id,
+            revision_id=revision_id,
+            slug=StableSlug("metrics-basics"),
+            public_payload={},
+            published_at=self.now,
+        )
 
 
 def test_author_can_create_list_and_read_private_draft_contracts() -> None:
@@ -334,3 +346,32 @@ def test_review_command_contract_rejects_missing_or_oversized_note() -> None:
 
     assert missing.status_code == 422
     assert oversized.status_code == 422
+
+
+def test_publish_is_a_distinct_author_command_returning_permanent_url() -> None:
+    service = FakeAuthorProblemService()
+    service.draft = replace(
+        service.draft,
+        version=3,
+        status=EditorialStatus.APPROVED,
+        slug=StableSlug("metrics-basics"),
+    )
+    client = TestClient(create_app(author_problem_service=service))
+
+    response = client.post(
+        "/api/v1/author/revisions/revision-1/publish",
+        json={
+            "expected_version": 3,
+            "note": "Publish approved content.",
+            "actor_context": "local-reviewer",
+            "idempotency_key": "publish-1",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "snapshot_id": "snapshot-1",
+        "slug": "metrics-basics",
+        "public_url": "/problems/metrics-basics",
+        "published_at": "2026-08-09T00:00:00Z",
+    }
