@@ -692,7 +692,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   repeated choice/test/component controls. Display the exact decimal scoring
   total and field-level errors, blocking validation until it is exactly `1.0`.
   Suggested commit: `feat(studio): configure response and scoring`.
-- [ ] **R0-06016 — Build resource and Release 0 policy editing from
+- [x] **R0-06016 — Build resource and Release 0 policy editing from
   `AC-R0-013-14`, analysis sections 5.4 and 7.1, and design sections 3.3 and
   13.2.** Add positive expected minutes, data modalities, exact compute/runtime
   limits, and network policy fields; derive display categories rather than

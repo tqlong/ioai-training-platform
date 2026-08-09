@@ -22,6 +22,11 @@ import {
   type AssessmentDraft,
   type ResponseType,
 } from './assessment-editor';
+import {
+  emptyResourceDraft,
+  ResourceEditorLoader,
+  type ResourceDraft,
+} from './resource-editor';
 
 type SaveFunction = (
   revisionId: string,
@@ -50,6 +55,11 @@ export function DraftEditor({
       ? { response: initialDraft.response, scoring: initialDraft.scoring, scoringValid: true } as AssessmentDraft
       : emptyAssessmentDraft('QUIZ_SINGLE')
   ));
+  const [resources, setResources] = useState<ResourceDraft>(() => (
+    isResourceMetadata(initialDraft.metadata)
+      ? resourceFromMetadata(initialDraft.metadata)
+      : emptyResourceDraft()
+  ));
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
 
@@ -70,10 +80,10 @@ export function DraftEditor({
     client_save_key: globalThis.crypto?.randomUUID?.() ?? `save-${draft.version}`,
     slug: slug || null,
     content,
-    metadata: curriculumMetadata(curriculum) ?? draft.metadata,
+    metadata: curriculumMetadata(curriculum, resources) ?? draft.metadata,
     response: assessment.response,
     scoring: assessment.scoring,
-  }), [assessment, content, curriculum, draft, slug]);
+  }), [assessment, content, curriculum, draft, resources, slug]);
 
   const save = async () => {
     setSaveState('saving');
@@ -159,6 +169,15 @@ export function DraftEditor({
           value={assessment}
         />
 
+        <ResourceEditorLoader
+          onChange={(next) => {
+            setResources(next);
+            setDirtyFields((current) => new Set(current).add('resources'));
+            setSaveState('idle');
+          }}
+          value={resources}
+        />
+
         <div className="editor-actions">
           <button disabled={!isDirty || saveState === 'saving'} type="submit">Save draft</button>
           <button type="button">Validate draft</button>
@@ -195,22 +214,40 @@ const curriculumFromMetadata = (value: Record<string, unknown>): CurriculumDraft
   prerequisites: (value.prerequisites as CurriculumDraft['prerequisites']) ?? [],
 });
 
-const curriculumMetadata = (value: CurriculumDraft): Record<string, unknown> | null => {
+const curriculumMetadata = (value: CurriculumDraft, resources: ResourceDraft): Record<string, unknown> | null => {
   if (!value.stage || !value.difficulty || !value.primary_competency || !value.task_type || value.topics.length === 0) return null;
   return {
     ...value,
-    modalities: [['DATA_MODALITY', 'NONE']],
-    expected_minutes: 1,
+    modalities: resources.modalities,
+    expected_minutes: resources.expected_minutes,
     resources: {
-      compute_tier: ['COMPUTE_TIER', 'NONE'],
-      runtime_class: ['RUNTIME_CLASS', 'INSTANT'],
-      cpu_cores: 0,
-      ram_mb: 0,
-      gpu_count: 0,
-      gpu_vram_mb: 0,
-      storage_mb: 0,
-      runtime_seconds: 0,
-      network_policy: 'DENIED',
+      compute_tier: resources.compute_tier,
+      runtime_class: resources.runtime_class,
+      cpu_cores: resources.cpu_cores,
+      ram_mb: resources.ram_mb,
+      gpu_count: resources.gpu_count,
+      gpu_vram_mb: resources.gpu_vram_mb,
+      storage_mb: resources.storage_mb,
+      runtime_seconds: resources.runtime_seconds,
+      network_policy: resources.network_policy,
     },
+  };
+};
+
+const isResourceMetadata = (value: unknown): value is Record<string, unknown> => (
+  typeof value === 'object' && value !== null && 'resources' in value && 'modalities' in value
+);
+
+const resourceFromMetadata = (value: Record<string, unknown>): ResourceDraft => {
+  const limits = value.resources as Record<string, unknown>;
+  return {
+    modalities: value.modalities as ResourceDraft['modalities'],
+    expected_minutes: Number(value.expected_minutes),
+    compute_tier: limits.compute_tier as ResourceDraft['compute_tier'],
+    runtime_class: limits.runtime_class as ResourceDraft['runtime_class'],
+    cpu_cores: Number(limits.cpu_cores), ram_mb: Number(limits.ram_mb),
+    gpu_count: Number(limits.gpu_count), gpu_vram_mb: Number(limits.gpu_vram_mb),
+    storage_mb: Number(limits.storage_mb), runtime_seconds: Number(limits.runtime_seconds),
+    network_policy: limits.network_policy as ResourceDraft['network_policy'],
   };
 };
