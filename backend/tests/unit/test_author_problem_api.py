@@ -9,7 +9,11 @@ from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResu
 from ioai.application.problems.errors import RevisionConflictError
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
-from ioai.domain.problems.workflow import EditorialStatus
+from ioai.domain.problems.workflow import (
+    ActorContext,
+    EditorialStatus,
+    EditorialTransition,
+)
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 from ioai.entrypoints.api.contracts.problems import (
     PreviewDraftRequest,
@@ -34,6 +38,7 @@ class FakeAuthorProblemService:
         )
         self.now = datetime(2026, 8, 9, tzinfo=UTC)
         self.list_query = None
+        self.history: tuple[EditorialTransition, ...] = ()
 
     def create(self) -> ProblemRevision:
         return self.draft
@@ -84,6 +89,31 @@ class FakeAuthorProblemService:
         if request.unsaved_state and request.unsaved_state.slug:
             revision = replace(revision, slug=StableSlug(request.unsaved_state.slug))
         return PreviewResult(revision, revision.validate(Release0AvailabilityPolicy()))
+
+    def transition(self, revision_id, request, target):
+        source = self.draft.status
+        self.draft = replace(
+            self.draft,
+            status=target,
+            version=self.draft.version + 1,
+        )
+        self.history = (
+            *self.history,
+            EditorialTransition(
+                revision_id=revision_id,
+                source=source,
+                target=target,
+                note=request.note,
+                actor=ActorContext(request.actor_context),
+                occurred_at=self.now,
+                operation_id=request.operation_id,
+            ),
+        )
+        return self.draft
+
+    def list_history(self, revision_id):
+        assert revision_id == self.draft.revision_id
+        return self.history
 
 
 def test_author_can_create_list_and_read_private_draft_contracts() -> None:
@@ -255,3 +285,52 @@ def test_preview_response_schema_omits_answer_keys_hidden_tests_and_author_state
         "type": "QUIZ_SINGLE",
         "choices": [{"id": "a", "content": {"en": "A", "vi": "Á"}}],
     }
+
+
+def test_author_review_commands_are_distinct_and_history_is_author_only() -> None:
+    service = FakeAuthorProblemService()
+    client = TestClient(create_app(author_problem_service=service))
+    command = {
+        "expected_version": 1,
+        "note": "Ready for review.",
+        "actor_context": "local-author",
+        "operation_id": "submit-01",
+    }
+
+    submitted = client.post(
+        "/api/v1/author/revisions/revision-1/submit-review", json=command
+    )
+    history = client.get("/api/v1/author/revisions/revision-1/history")
+
+    assert submitted.status_code == 200
+    assert submitted.json()["editorial_status"] == "IN_REVIEW"
+    assert history.status_code == 200
+    assert history.json()["items"][0] == {
+        "source_status": "DRAFT",
+        "target_status": "IN_REVIEW",
+        "note": "Ready for review.",
+        "actor_context": "local-author",
+        "occurred_at": "2026-08-09T00:00:00Z",
+        "operation_id": "submit-01",
+    }
+    assert client.get("/api/v1/revisions/revision-1/history").status_code == 404
+
+
+def test_review_command_contract_rejects_missing_or_oversized_note() -> None:
+    client = TestClient(create_app(author_problem_service=FakeAuthorProblemService()))
+    base = {
+        "expected_version": 1,
+        "actor_context": "local-reviewer",
+        "operation_id": "approve-01",
+    }
+
+    missing = client.post(
+        "/api/v1/author/revisions/revision-1/approve", json={**base, "note": ""}
+    )
+    oversized = client.post(
+        "/api/v1/author/revisions/revision-1/approve",
+        json={**base, "note": "x" * 2001},
+    )
+
+    assert missing.status_code == 422
+    assert oversized.status_code == 422

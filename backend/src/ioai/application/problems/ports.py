@@ -42,6 +42,10 @@ class DraftRepository(Protocol):
 
 
 class EditorialRepository(Protocol):
+    def list_history(
+        self, revision_id: RevisionId
+    ) -> tuple[EditorialTransition, ...]: ...
+
     def transition(
         self,
         transition: EditorialTransition,

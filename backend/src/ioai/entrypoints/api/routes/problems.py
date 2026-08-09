@@ -7,12 +7,17 @@ from fastapi import APIRouter, HTTPException, Query, status
 from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
 from ioai.application.problems.errors import (
     DraftNotFoundError,
+    DraftValidationError,
     RevisionConflictError,
 )
 from ioai.application.problems.payload import encode_revision_payload
+from ioai.domain.problems.errors import (
+    InvalidEditorialTransitionError,
+    InvalidTransitionNoteError,
+)
 from ioai.domain.problems.identity import ProblemId, RevisionId
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
-from ioai.domain.problems.workflow import EditorialStatus
+from ioai.domain.problems.workflow import EditorialStatus, EditorialTransition
 
 from ..contracts.errors import ErrorResponse
 from ..contracts.problems import (
@@ -20,6 +25,9 @@ from ..contracts.problems import (
     AuthorDraftListResponse,
     AuthorDraftResponse,
     CreateDraftRequest,
+    EditorialCommandRequest,
+    EditorialHistoryItemResponse,
+    EditorialHistoryResponse,
     PreviewDraftRequest,
     PreviewResponse,
     SaveDraftRequest,
@@ -49,6 +57,17 @@ class AuthorProblemService(Protocol):
     def preview(
         self, revision_id: RevisionId, request: PreviewDraftRequest
     ) -> PreviewResult: ...
+
+    def transition(
+        self,
+        revision_id: RevisionId,
+        request: EditorialCommandRequest,
+        target: EditorialStatus,
+    ) -> ProblemRevision: ...
+
+    def list_history(
+        self, revision_id: RevisionId
+    ) -> tuple[EditorialTransition, ...]: ...
 
 
 def author_problem_router(service: AuthorProblemService) -> APIRouter:
@@ -172,6 +191,105 @@ def author_revision_router(service: AuthorProblemService) -> APIRouter:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
             ) from error
+
+    def transition_revision(
+        revision_id: str,
+        request: EditorialCommandRequest,
+        target: EditorialStatus,
+    ) -> AuthorDraftResponse:
+        try:
+            return _draft_response(
+                service.transition(RevisionId(revision_id), request, target)
+            )
+        except RevisionConflictError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "REVISION_CONFLICT",
+                    "message": "A newer revision version exists.",
+                    "current_version": error.current_version,
+                },
+            ) from error
+        except DraftValidationError as error:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={
+                    "code": "VALIDATION_BLOCKED",
+                    "message": "Resolve publication-blocking validation errors.",
+                    "validation": _validation_response(error.report).model_dump(
+                        mode="json"
+                    ),
+                },
+            ) from error
+        except (InvalidEditorialTransitionError, InvalidTransitionNoteError) as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "WORKFLOW_INVALID", "message": str(error)},
+            ) from error
+        except DraftNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
+            ) from error
+
+    @router.post(
+        "/{revision_id}/submit-review",
+        response_model=AuthorDraftResponse,
+        responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+    )
+    def submit_review(
+        revision_id: str, request: EditorialCommandRequest
+    ) -> AuthorDraftResponse:
+        return transition_revision(revision_id, request, EditorialStatus.IN_REVIEW)
+
+    @router.post(
+        "/{revision_id}/request-changes",
+        response_model=AuthorDraftResponse,
+        responses={409: {"model": ErrorResponse}},
+    )
+    def request_changes(
+        revision_id: str, request: EditorialCommandRequest
+    ) -> AuthorDraftResponse:
+        return transition_revision(
+            revision_id, request, EditorialStatus.CHANGES_REQUESTED
+        )
+
+    @router.post(
+        "/{revision_id}/approve",
+        response_model=AuthorDraftResponse,
+        responses={409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+    )
+    def approve_revision(
+        revision_id: str, request: EditorialCommandRequest
+    ) -> AuthorDraftResponse:
+        return transition_revision(revision_id, request, EditorialStatus.APPROVED)
+
+    @router.get(
+        "/{revision_id}/history",
+        response_model=EditorialHistoryResponse,
+        responses={404: {"model": ErrorResponse}},
+    )
+    def editorial_history(revision_id: str) -> EditorialHistoryResponse:
+        try:
+            items = service.list_history(RevisionId(revision_id))
+        except DraftNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
+            ) from error
+        return EditorialHistoryResponse(
+            items=[
+                EditorialHistoryItemResponse(
+                    source_status=item.source.value,
+                    target_status=item.target.value,
+                    note=item.note,
+                    actor_context=item.actor.label,
+                    occurred_at=item.occurred_at,
+                    operation_id=item.operation_id,
+                )
+                for item in items
+            ]
+        )
 
     return router
 

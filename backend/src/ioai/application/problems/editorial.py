@@ -126,3 +126,13 @@ class StartSuccessorDraft:
                 request_digest=digest,
                 created_at=self._clock(),
             )
+
+
+class ListEditorialHistory:
+    def __init__(self, unit_of_work_factory: Callable[[], DraftUnitOfWork]) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
+
+    def __call__(self, revision_id: RevisionId):
+        with self._unit_of_work_factory() as unit_of_work:
+            unit_of_work.drafts.get(revision_id)
+            return unit_of_work.editorial.list_history(revision_id)

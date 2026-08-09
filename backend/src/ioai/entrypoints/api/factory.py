@@ -27,12 +27,23 @@ from ...application.problems.authoring import (
     SaveDraft,
     ValidateDraft,
 )
+from ...application.problems.editorial import (
+    ApproveRevision,
+    ListEditorialHistory,
+    RequestChanges,
+    SubmitForReview,
+)
 from ...application.problems.payload import decode_revision_payload
 from ...application.vocabulary.proposals import RecordVocabularyProposal
 from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ...domain.problems.revision import ProblemRevision
+from ...domain.problems.workflow import ActorContext, EditorialStatus
 from ...domain.vocabulary.availability import Release0AvailabilityPolicy
-from .contracts.problems import PreviewDraftRequest, SaveDraftRequest
+from .contracts.problems import (
+    EditorialCommandRequest,
+    PreviewDraftRequest,
+    SaveDraftRequest,
+)
 from .errors import install_error_handlers
 from .routes.health import health_router
 from .routes.problems import (
@@ -106,6 +117,25 @@ def create_app(
             save=SaveDraft(draft_uow, lambda: datetime.now(UTC)),
             validate=ValidateDraft(draft_uow, Release0AvailabilityPolicy()),
             preview=PreviewDraft(draft_uow, Release0AvailabilityPolicy()),
+            submit=SubmitForReview(
+                unit_of_work_factory=draft_uow,
+                policy=Release0AvailabilityPolicy(),
+                id_generator=lambda: str(uuid4()),
+                clock=lambda: datetime.now(UTC),
+            ),
+            request_changes=RequestChanges(
+                unit_of_work_factory=draft_uow,
+                policy=Release0AvailabilityPolicy(),
+                id_generator=lambda: str(uuid4()),
+                clock=lambda: datetime.now(UTC),
+            ),
+            approve=ApproveRevision(
+                unit_of_work_factory=draft_uow,
+                policy=Release0AvailabilityPolicy(),
+                id_generator=lambda: str(uuid4()),
+                clock=lambda: datetime.now(UTC),
+            ),
+            history=ListEditorialHistory(draft_uow),
         )
 
     app = FastAPI(
@@ -163,6 +193,10 @@ class _DefaultAuthorProblemService:
         save: SaveDraft,
         validate: ValidateDraft,
         preview: PreviewDraft,
+        submit: SubmitForReview,
+        request_changes: RequestChanges,
+        approve: ApproveRevision,
+        history: ListEditorialHistory,
     ):
         self._create = create
         self._list = list_drafts
@@ -171,6 +205,12 @@ class _DefaultAuthorProblemService:
         self._save = save
         self._validate = validate
         self._preview = preview
+        self._transitions = {
+            EditorialStatus.IN_REVIEW: submit,
+            EditorialStatus.CHANGES_REQUESTED: request_changes,
+            EditorialStatus.APPROVED: approve,
+        }
+        self._history = history
 
     def create(self):
         return self._create()
@@ -236,6 +276,24 @@ class _DefaultAuthorProblemService:
             expected_version=request.expected_version,
             unsaved=unsaved,
         )
+
+    def transition(
+        self,
+        revision_id: RevisionId,
+        request: EditorialCommandRequest,
+        target: EditorialStatus,
+    ):
+        command = self._transitions[target]
+        return command(
+            revision_id,
+            expected_version=request.expected_version,
+            note=request.note,
+            actor=ActorContext(request.actor_context),
+            operation_id=request.operation_id,
+        )
+
+    def list_history(self, revision_id: RevisionId):
+        return self._history(revision_id)
 
 
 class _RequestIdMiddleware:

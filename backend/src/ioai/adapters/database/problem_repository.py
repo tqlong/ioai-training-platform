@@ -25,7 +25,11 @@ from ioai.application.problems.ports import (
 )
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
-from ioai.domain.problems.workflow import EditorialStatus, EditorialTransition
+from ioai.domain.problems.workflow import (
+    ActorContext,
+    EditorialStatus,
+    EditorialTransition,
+)
 
 from .problem_model import (
     EditorialTransitionModel,
@@ -171,6 +175,28 @@ class SqlAlchemyDraftRepository:
 class SqlAlchemyEditorialRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
+
+    def list_history(self, revision_id: RevisionId) -> tuple[EditorialTransition, ...]:
+        rows = self._session.scalars(
+            select(EditorialTransitionModel)
+            .where(EditorialTransitionModel.revision_id == revision_id.value)
+            .order_by(
+                EditorialTransitionModel.occurred_at,
+                EditorialTransitionModel.transition_id,
+            )
+        )
+        return tuple(
+            EditorialTransition(
+                revision_id=revision_id,
+                source=EditorialStatus(row.source_status),
+                target=EditorialStatus(row.target_status),
+                note=row.note,
+                actor=ActorContext(row.actor_context),
+                occurred_at=row.occurred_at,
+                operation_id=row.operation_id,
+            )
+            for row in rows
+        )
 
     def transition(
         self,

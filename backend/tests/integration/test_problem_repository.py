@@ -194,6 +194,9 @@ def test_editorial_transition_updates_version_and_history_atomically(
 
     assert reviewed.status is EditorialStatus.IN_REVIEW
     assert reviewed.version == 2
+    with SqlAlchemyDraftUnitOfWork(session_factory) as work:
+        projected_history = work.editorial.list_history(RevisionId("revision-01"))
+    assert projected_history == (transition,)
     with session_factory() as session:
         history = session.scalars(select(EditorialTransitionModel)).all()
         assert len(history) == 1

@@ -788,7 +788,7 @@ same transaction as its state change.
   adding an unapproved `CHANGES_REQUESTED -> IN_REVIEW` shortcut or mutating
   immutable history; retrying the operation must not create duplicate
   revisions. Suggested commit: `feat(editorial): execute review commands`.
-- [ ] **R0-07004 — Expose editorial history and review commands from
+- [x] **R0-07004 — Expose editorial history and review commands from
   `AC-R0-014-01` through `AC-R0-014-04`, `AC-R0-014-13`, and
   `AC-R0-014-16`, design sections 7.1, 7.4-7.5, and 8.** Add author-only
   history reads and the submit-review, request-changes, and approve FastAPI

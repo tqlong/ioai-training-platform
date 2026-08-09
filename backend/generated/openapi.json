@@ -276,6 +276,99 @@
         "title": "CreateDraftRequest",
         "type": "object"
       },
+      "EditorialCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_context": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor Context",
+            "type": "string"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "note": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          },
+          "operation_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operation Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "note",
+          "actor_context",
+          "operation_id"
+        ],
+        "title": "EditorialCommandRequest",
+        "type": "object"
+      },
+      "EditorialHistoryItemResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_context": {
+            "title": "Actor Context",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "operation_id": {
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "source_status": {
+            "title": "Source Status",
+            "type": "string"
+          },
+          "target_status": {
+            "title": "Target Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_status",
+          "target_status",
+          "note",
+          "actor_context",
+          "occurred_at",
+          "operation_id"
+        ],
+        "title": "EditorialHistoryItemResponse",
+        "type": "object"
+      },
+      "EditorialHistoryResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EditorialHistoryItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "EditorialHistoryResponse",
+        "type": "object"
+      },
       "EditorialStatus": {
         "enum": [
           "DRAFT",
@@ -1119,6 +1212,120 @@
         ]
       }
     },
+    "/api/v1/author/revisions/{revision_id}/approve": {
+      "post": {
+        "operationId": "approve_revision_api_v1_author_revisions__revision_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditorialCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Approve Revision",
+        "tags": [
+          "author-revisions"
+        ]
+      }
+    },
+    "/api/v1/author/revisions/{revision_id}/history": {
+      "get": {
+        "operationId": "editorial_history_api_v1_author_revisions__revision_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorialHistoryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Editorial History",
+        "tags": [
+          "author-revisions"
+        ]
+      }
+    },
     "/api/v1/author/revisions/{revision_id}/preview": {
       "post": {
         "operationId": "preview_draft_api_v1_author_revisions__revision_id__preview_post",
@@ -1186,6 +1393,130 @@
           }
         },
         "summary": "Preview Draft",
+        "tags": [
+          "author-revisions"
+        ]
+      }
+    },
+    "/api/v1/author/revisions/{revision_id}/request-changes": {
+      "post": {
+        "operationId": "request_changes_api_v1_author_revisions__revision_id__request_changes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditorialCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Changes",
+        "tags": [
+          "author-revisions"
+        ]
+      }
+    },
+    "/api/v1/author/revisions/{revision_id}/submit-review": {
+      "post": {
+        "operationId": "submit_review_api_v1_author_revisions__revision_id__submit_review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditorialCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Submit Review",
         "tags": [
           "author-revisions"
         ]

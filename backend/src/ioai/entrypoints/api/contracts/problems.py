@@ -99,3 +99,26 @@ class PreviewResponse(BaseModel):
     marker: str
     learner_problem: dict[str, Any]
     author_issues: list[ValidationIssueResponse]
+
+
+class EditorialCommandRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_version: int = Field(ge=1)
+    note: str = Field(min_length=1, max_length=2000)
+    actor_context: str = Field(min_length=1, max_length=200)
+    operation_id: str = Field(min_length=1, max_length=200)
+
+
+class EditorialHistoryItemResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source_status: str
+    target_status: str
+    note: str
+    actor_context: str
+    occurred_at: datetime
+    operation_id: str
+
+
+class EditorialHistoryResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    items: list[EditorialHistoryItemResponse]
