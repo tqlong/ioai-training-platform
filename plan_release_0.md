@@ -675,7 +675,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   representative tone/diacritic sequences, native composition safety, and
   keyboard/screen-reader names before integration. Suggested commit:
   `feat(studio): edit bilingual content with optional telex`.
-- [ ] **R0-06014 — Build canonical curriculum and prerequisite editing from
+- [x] **R0-06014 — Build canonical curriculum and prerequisite editing from
   `AC-R0-013-07` through `AC-R0-013-11`, analysis sections 5.2-5.4 and 7.1,
   and design sections 5.2-5.4 and 13.2.** Consume the Phase 5 vocabulary client
   for type-disambiguated stage, difficulty, task type, competency, and

@@ -8,6 +8,7 @@ export type VocabularyProposal = components['schemas']['VocabularyProposalRespon
 export type AuthorDraft = components['schemas']['AuthorDraftResponse'];
 export type AuthorDraftList = components['schemas']['AuthorDraftListResponse'];
 export type SaveDraftRequest = components['schemas']['SaveDraftRequest'];
+export type RecordVocabularyProposalRequest = components['schemas']['RecordVocabularyProposalRequest'];
 
 export type PublicVocabularyQuery = {
   vocabularyType: string;
@@ -16,6 +17,7 @@ export type PublicVocabularyQuery = {
   includeDescendants?: boolean;
   limit?: number;
 };
+export type AuthorVocabularyQuery = PublicVocabularyQuery;
 
 export type FetchFunction = (
   input: string,
@@ -45,12 +47,18 @@ export type ApiClient = {
     query: PublicVocabularyQuery,
   ) => Promise<PublicVocabularyResponse>;
   listAuthorDrafts: () => Promise<AuthorDraftList>;
+  listAuthorVocabulary: (
+    query: AuthorVocabularyQuery,
+  ) => Promise<AuthorVocabularyResponse>;
   createAuthorDraft: () => Promise<AuthorDraft>;
   getAuthorDraft: (problemId: string) => Promise<AuthorDraft>;
   saveAuthorDraft: (
     revisionId: string,
     request: SaveDraftRequest,
   ) => Promise<AuthorDraft>;
+  recordVocabularyProposal: (
+    request: RecordVocabularyProposalRequest,
+  ) => Promise<VocabularyProposal>;
 };
 
 export const createApiClient = ({
@@ -82,6 +90,13 @@ export const createApiClient = ({
     async listAuthorDrafts() {
       return requestJson<AuthorDraftList>(fetchFn, `${normalizedBaseUrl}/author/problems`);
     },
+    async listAuthorVocabulary(query) {
+      const parameters = vocabularyParameters(query);
+      return requestJson<AuthorVocabularyResponse>(
+        fetchFn,
+        `${normalizedBaseUrl}/author/vocabulary?${parameters.toString()}`,
+      );
+    },
     async createAuthorDraft() {
       return requestJson<AuthorDraft>(fetchFn, `${normalizedBaseUrl}/author/problems`, {
         method: 'POST',
@@ -101,7 +116,25 @@ export const createApiClient = ({
         { method: 'PUT', body: JSON.stringify(request) },
       );
     },
+    async recordVocabularyProposal(request) {
+      return requestJson<VocabularyProposal>(
+        fetchFn,
+        `${normalizedBaseUrl}/author/vocabulary/proposals`,
+        { method: 'POST', body: JSON.stringify(request) },
+      );
+    },
   };
+};
+
+const vocabularyParameters = (query: PublicVocabularyQuery): URLSearchParams => {
+  const parameters = new URLSearchParams({ vocabulary_type: query.vocabularyType });
+  if (query.search !== undefined) parameters.set('search', query.search);
+  if (query.rootCode !== undefined) parameters.set('root_code', query.rootCode);
+  if (query.includeDescendants !== undefined) {
+    parameters.set('include_descendants', String(query.includeDescendants));
+  }
+  if (query.limit !== undefined) parameters.set('limit', String(query.limit));
+  return parameters;
 };
 
 const requestJson = async <Result>(

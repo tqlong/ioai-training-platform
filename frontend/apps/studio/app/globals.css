@@ -53,3 +53,12 @@ th, td { padding: .85rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
 .pending-control { display: flex !important; grid-template-columns: auto 1fr; align-items: center; }
 .pending-control input { min-height: auto; }
 .input-method-note { padding: .75rem; background: #ecfeff; border-left: .25rem solid #0f766e; }
+.field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+.field-grid label, fieldset > label { display: grid; gap: .35rem; }
+fieldset { margin: 1.5rem 0; border: 1px solid #cbd5e1; }
+legend { font-weight: 750; }
+.choice-row { display: flex !important; align-items: flex-start; grid-template-columns: none !important; font-weight: 500 !important; }
+.choice-row input { min-height: auto; }
+.choice-row small { display: block; color: #475569; }
+.selection-list { max-height: 20rem; overflow: auto; padding: .5rem; border: 1px solid #cbd5e1; }
+.field-guidance { color: #475569; }

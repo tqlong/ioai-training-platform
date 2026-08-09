@@ -11,6 +11,11 @@ import {
   emptyContentDraft,
   type ContentDraft,
 } from './content-editor';
+import {
+  CurriculumEditorLoader,
+  emptyCurriculumDraft,
+  type CurriculumDraft,
+} from './curriculum-editor';
 
 type SaveFunction = (
   revisionId: string,
@@ -28,6 +33,11 @@ export function DraftEditor({
   const [slug, setSlug] = useState(initialDraft.slug ?? '');
   const [content, setContent] = useState<ContentDraft>(() => (
     isContentDraft(initialDraft.content) ? initialDraft.content : emptyContentDraft()
+  ));
+  const [curriculum, setCurriculum] = useState<CurriculumDraft>(() => (
+    isCurriculumDraft(initialDraft.metadata)
+      ? curriculumFromMetadata(initialDraft.metadata)
+      : emptyCurriculumDraft()
   ));
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
@@ -49,10 +59,10 @@ export function DraftEditor({
     client_save_key: globalThis.crypto?.randomUUID?.() ?? `save-${draft.version}`,
     slug: slug || null,
     content,
-    metadata: draft.metadata,
+    metadata: curriculumMetadata(curriculum) ?? draft.metadata,
     response: draft.response,
     scoring: draft.scoring,
-  }), [content, draft, slug]);
+  }), [content, curriculum, draft, slug]);
 
   const save = async () => {
     setSaveState('saving');
@@ -120,6 +130,15 @@ export function DraftEditor({
           value={content}
         />
 
+        <CurriculumEditorLoader
+          onChange={(next) => {
+            setCurriculum(next);
+            setDirtyFields((current) => new Set(current).add('metadata'));
+            setSaveState('idle');
+          }}
+          value={curriculum}
+        />
+
         <div className="editor-actions">
           <button disabled={!isDirty || saveState === 'saving'} type="submit">Save draft</button>
           <button type="button">Validate draft</button>
@@ -133,3 +152,37 @@ export function DraftEditor({
 const isContentDraft = (value: unknown): value is ContentDraft => (
   typeof value === 'object' && value !== null && 'title' in value && 'blocks' in value
 );
+
+const isCurriculumDraft = (value: unknown): value is Record<string, unknown> => (
+  typeof value === 'object' && value !== null && 'stage' in value
+);
+
+const curriculumFromMetadata = (value: Record<string, unknown>): CurriculumDraft => ({
+  stage: (value.stage as CurriculumDraft['stage']) ?? null,
+  difficulty: (value.difficulty as CurriculumDraft['difficulty']) ?? null,
+  primary_competency: (value.primary_competency as CurriculumDraft['primary_competency']) ?? null,
+  secondary_competencies: (value.secondary_competencies as CurriculumDraft['secondary_competencies']) ?? [],
+  task_type: (value.task_type as CurriculumDraft['task_type']) ?? null,
+  topics: (value.topics as CurriculumDraft['topics']) ?? [],
+  prerequisites: (value.prerequisites as CurriculumDraft['prerequisites']) ?? [],
+});
+
+const curriculumMetadata = (value: CurriculumDraft): Record<string, unknown> | null => {
+  if (!value.stage || !value.difficulty || !value.primary_competency || !value.task_type || value.topics.length === 0) return null;
+  return {
+    ...value,
+    modalities: [['DATA_MODALITY', 'NONE']],
+    expected_minutes: 1,
+    resources: {
+      compute_tier: ['COMPUTE_TIER', 'NONE'],
+      runtime_class: ['RUNTIME_CLASS', 'INSTANT'],
+      cpu_cores: 0,
+      ram_mb: 0,
+      gpu_count: 0,
+      gpu_vram_mb: 0,
+      storage_mb: 0,
+      runtime_seconds: 0,
+      network_policy: 'DENIED',
+    },
+  };
+};

@@ -54,4 +54,19 @@ describe('generated vocabulary client', () => {
       client.listPublicVocabulary({ vocabularyType: 'topic' }),
     ).rejects.toMatchObject({ code: 'invalid_request', status: 422 });
   });
+
+  it('records a vocabulary proposal through the author command', async () => {
+    const fetchFn = vi.fn(async () => Response.json({
+      proposal_id: 'proposal-1', vocabulary_type: 'TOPIC', note: 'Add graph cuts',
+      status: 'PENDING', created_at: '2026-08-09T00:00:00Z',
+    }, { status: 201 }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+
+    await client.recordVocabularyProposal({ vocabulary_type: 'TOPIC', note: 'Add graph cuts' });
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/author/vocabulary/proposals',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ vocabulary_type: 'TOPIC', note: 'Add graph cuts' }) }),
+    );
+  });
 });
