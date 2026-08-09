@@ -129,6 +129,15 @@ header nav {
 @media (prefers-reduced-motion: reduce) { .skeleton-heading, .skeleton-filter, .skeleton-results span { animation: none; } }
 
 button:focus-visible, a:focus-visible { outline: 3px solid #67e8f9; outline-offset: 2px; }
+.problem-detail { width: min(58rem, 100%); display: grid; gap: 1.25rem; margin: 0 auto; }
+.problem-detail > header { padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.problem-detail h1 { margin: 0.2rem 0; font-size: clamp(1.9rem, 5vw, 3rem); }
+.problem-detail h2 { margin-bottom: 0.4rem; font-size: 1.15rem; text-transform: capitalize; }
+.problem-metadata { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.problem-metadata span { border: 1px solid var(--line); border-radius: 999px; padding: 0.35rem 0.65rem; background: white; }
+.problem-detail details, .response-placeholder { border: 1px solid var(--line); border-radius: 0.65rem; padding: 0.8rem 1rem; background: white; }
+.problem-detail summary { min-height: 2.75rem; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
+.problem-detail footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--line); padding-top: 1rem; }
 
 @media (max-width: 1023px) {
   .stage-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }

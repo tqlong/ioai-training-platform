@@ -1017,7 +1017,7 @@ observe the required red step before implementation.
   or archived-only content; regenerate the client and prove revisions keep the
   permanent URL while only the current snapshot changes. Suggested commit:
   `feat(api): complete the public problem detail`.
-- [ ] **R0-08011 — Build the permanent learner problem page from
+- [x] **R0-08011 — Build the permanent learner problem page from
   `AC-R0-011-15` and `AC-R0-012-01` through `AC-R0-012-03`.** Add
   `/problems/[slug]` using only generated public types and render the published
   reading order, metadata hierarchy, prerequisites, examples, constraints,
