@@ -52,3 +52,26 @@ class SaveDraftRequest(BaseModel):
     metadata: dict[str, Any] | None = None
     response: dict[str, Any] | None = None
     scoring: dict[str, Any] | None = None
+
+
+class ValidateDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_version: int = Field(ge=1)
+
+
+class ValidationIssueResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    code: str
+    section: str
+    field_path: str
+    message: str
+    severity: str
+
+
+class ValidationReportResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    revision_id: str
+    revision_version: int = Field(ge=1)
+    errors: list[ValidationIssueResponse]
+    warnings: list[ValidationIssueResponse]
+    publication_eligible: bool

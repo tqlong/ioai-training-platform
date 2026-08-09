@@ -8,8 +8,9 @@ from fastapi.testclient import TestClient
 from ioai.application.problems.authoring import AuthorDraftListItem
 from ioai.application.problems.errors import RevisionConflictError
 from ioai.domain.problems.identity import ProblemId, RevisionId
-from ioai.domain.problems.revision import ProblemRevision
+from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import EditorialStatus
+from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 from ioai.entrypoints.api.contracts.problems import SaveDraftRequest
 from ioai.entrypoints.api.factory import create_app
 
@@ -57,6 +58,16 @@ class FakeAuthorProblemService:
             version=request.expected_version + 1,
         )
         return self.draft
+
+    def validate(
+        self, revision_id: RevisionId, expected_version: int
+    ) -> ValidationReport:
+        if (
+            revision_id != self.draft.revision_id
+            or expected_version != self.draft.version
+        ):
+            raise RevisionConflictError(revision_id, self.draft.version)
+        return self.draft.validate(Release0AvailabilityPolicy())
 
 
 def test_author_can_create_list_and_read_private_draft_contracts() -> None:
@@ -121,3 +132,38 @@ def test_versioned_save_returns_increment_and_stable_conflict() -> None:
         "message": "A newer draft version exists.",
         "current_version": 2,
     }
+
+
+def test_author_validates_current_revision_with_stable_layered_report() -> None:
+    client = TestClient(create_app(author_problem_service=FakeAuthorProblemService()))
+
+    response = client.post(
+        "/api/v1/author/revisions/revision-1/validate",
+        json={"expected_version": 1},
+    )
+
+    assert response.status_code == 200
+    report = response.json()
+    assert report["revision_id"] == "revision-1"
+    assert report["revision_version"] == 1
+    assert report["publication_eligible"] is False
+    assert {issue["section"] for issue in report["errors"]} == {
+        "CONTENT",
+        "CURRICULUM",
+        "ASSESSMENT",
+        "PUBLICATION",
+    }
+    assert all(
+        set(issue) == {"code", "section", "field_path", "message", "severity"}
+        for issue in report["errors"]
+    )
+
+
+def test_author_validation_rejects_stale_revision_version() -> None:
+    client = TestClient(create_app(author_problem_service=FakeAuthorProblemService()))
+    response = client.post(
+        "/api/v1/author/revisions/revision-1/validate",
+        json={"expected_version": 2},
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "REVISION_CONFLICT"

@@ -144,6 +144,7 @@ class ProblemRevision:
             section = (
                 ValidationSection.RESOURCES
                 if blocker.field.startswith("resources")
+                or blocker.field == "modalities"
                 else ValidationSection.CURRICULUM
             )
             errors.append(

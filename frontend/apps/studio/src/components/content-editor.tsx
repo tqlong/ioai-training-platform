@@ -75,6 +75,7 @@ export function ContentEditor({
       {multiline ? (
         <textarea
           aria-label={`${languageName} ${label}`}
+          id={`field-content-${label.replaceAll(' ', '-')}-${language}`}
           onChange={(event) => update(updateLocalized(target, event.target.value))}
           rows={label === 'title' ? 2 : 5}
           value={target[language]}
@@ -82,6 +83,7 @@ export function ContentEditor({
       ) : (
         <input
           aria-label={`${languageName} ${label}`}
+          id={`field-content-${label.replaceAll(' ', '-')}-${language}`}
           onChange={(event) => update(updateLocalized(target, event.target.value))}
           value={target[language]}
         />

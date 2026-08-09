@@ -103,6 +103,7 @@ export function CurriculumEditor({
       <span>{label}</span>
       <select
         aria-label={label}
+        id={`field-metadata-${label.toLowerCase().replaceAll(' ', '-')}`}
         onChange={(event) => update(identity(type, event.target.value))}
         value={selected?.[1] ?? ''}
       >

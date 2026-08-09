@@ -56,6 +56,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/author/revisions/{revision_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate Draft */
+        post: operations["validate_draft_api_v1_author_revisions__revision_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/author/vocabulary": {
         parameters: {
             query?: never;
@@ -305,6 +322,11 @@ export interface components {
             /** Slug */
             slug?: string | null;
         };
+        /** ValidateDraftRequest */
+        ValidateDraftRequest: {
+            /** Expected Version */
+            expected_version: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -317,6 +339,32 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** ValidationIssueResponse */
+        ValidationIssueResponse: {
+            /** Code */
+            code: string;
+            /** Field Path */
+            field_path: string;
+            /** Message */
+            message: string;
+            /** Section */
+            section: string;
+            /** Severity */
+            severity: string;
+        };
+        /** ValidationReportResponse */
+        ValidationReportResponse: {
+            /** Errors */
+            errors: components["schemas"]["ValidationIssueResponse"][];
+            /** Publication Eligible */
+            publication_eligible: boolean;
+            /** Revision Id */
+            revision_id: string;
+            /** Revision Version */
+            revision_version: number;
+            /** Warnings */
+            warnings: components["schemas"]["ValidationIssueResponse"][];
         };
         /** VocabularyIdentityResponse */
         VocabularyIdentityResponse: {
@@ -485,6 +533,59 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_draft_api_v1_author_revisions__revision_id__validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidateDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationReportResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -11,7 +11,7 @@ from ioai.application.problems.errors import (
 )
 from ioai.application.problems.payload import encode_revision_payload
 from ioai.domain.problems.identity import ProblemId, RevisionId
-from ioai.domain.problems.revision import ProblemRevision
+from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 
 from ..contracts.errors import ErrorResponse
 from ..contracts.problems import (
@@ -20,6 +20,9 @@ from ..contracts.problems import (
     AuthorDraftResponse,
     CreateDraftRequest,
     SaveDraftRequest,
+    ValidateDraftRequest,
+    ValidationIssueResponse,
+    ValidationReportResponse,
 )
 
 
@@ -33,6 +36,10 @@ class AuthorProblemService(Protocol):
     def save(
         self, revision_id: RevisionId, request: SaveDraftRequest
     ) -> ProblemRevision: ...
+
+    def validate(
+        self, revision_id: RevisionId, expected_version: int
+    ) -> ValidationReport: ...
 
 
 def author_problem_router(service: AuthorProblemService) -> APIRouter:
@@ -91,6 +98,59 @@ def author_problem_router(service: AuthorProblemService) -> APIRouter:
             ) from error
 
     return router
+
+
+def author_revision_router(service: AuthorProblemService) -> APIRouter:
+    router = APIRouter(prefix="/author/revisions", tags=["author-revisions"])
+
+    @router.post(
+        "/{revision_id}/validate",
+        response_model=ValidationReportResponse,
+        responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
+    )
+    def validate_draft(
+        revision_id: str, request: ValidateDraftRequest
+    ) -> ValidationReportResponse:
+        identity = RevisionId(revision_id)
+        try:
+            return _validation_response(
+                service.validate(identity, request.expected_version)
+            )
+        except RevisionConflictError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "REVISION_CONFLICT",
+                    "message": "A newer draft version exists.",
+                    "current_version": error.current_version,
+                },
+            ) from error
+        except DraftNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
+            ) from error
+
+    return router
+
+
+def _validation_response(report: ValidationReport) -> ValidationReportResponse:
+    def issue(value):
+        return ValidationIssueResponse(
+            code=value.code,
+            section=value.section.value,
+            field_path=value.field_path,
+            message=value.message,
+            severity=value.severity.value,
+        )
+
+    return ValidationReportResponse(
+        revision_id=report.revision_id.value,
+        revision_version=report.revision_version,
+        errors=[issue(value) for value in report.errors],
+        warnings=[issue(value) for value in report.warnings],
+        publication_eligible=report.publication_eligible,
+    )
 
 
 def _draft_response(revision: ProblemRevision) -> AuthorDraftResponse:

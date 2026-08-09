@@ -709,7 +709,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   resolve choice; never silently overwrite newer server work or discard unsaved
   fields. Test timers and storage deterministically, including unavailable or
   corrupt local storage. Suggested commit: `feat(studio): recover draft saves`.
-- [ ] **R0-06018 — Expose and render complete draft validation from
+- [x] **R0-06018 — Expose and render complete draft validation from
   `AC-R0-013-06`, `AC-R0-013-14`, and `AC-R0-013-19`, analysis section 7.3,
   and design sections 7.3 and 13.4.** Add
   `POST /api/v1/author/revisions/{revision_id}/validate`, require the current

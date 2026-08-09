@@ -24,15 +24,21 @@ from ...application.problems.authoring import (
     GetRevisionDraft,
     ListDrafts,
     SaveDraft,
+    ValidateDraft,
 )
 from ...application.problems.payload import decode_revision_payload
 from ...application.vocabulary.proposals import RecordVocabularyProposal
 from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ...domain.problems.revision import ProblemRevision
+from ...domain.vocabulary.availability import Release0AvailabilityPolicy
 from .contracts.problems import SaveDraftRequest
 from .errors import install_error_handlers
 from .routes.health import health_router
-from .routes.problems import AuthorProblemService, author_problem_router
+from .routes.problems import (
+    AuthorProblemService,
+    author_problem_router,
+    author_revision_router,
+)
 from .routes.proposals import ProposalService, proposal_router
 from .routes.vocabulary import VocabularyReaderFactory, vocabulary_router
 from .settings import ApiSettings
@@ -97,6 +103,7 @@ def create_app(
             get=GetDraft(draft_uow),
             get_revision=GetRevisionDraft(draft_uow),
             save=SaveDraft(draft_uow, lambda: datetime.now(UTC)),
+            validate=ValidateDraft(draft_uow, Release0AvailabilityPolicy()),
         )
 
     app = FastAPI(
@@ -126,6 +133,10 @@ def create_app(
         author_problem_router(resolved_author_problem_service),
         prefix=resolved_settings.api_prefix,
     )
+    app.include_router(
+        author_revision_router(resolved_author_problem_service),
+        prefix=resolved_settings.api_prefix,
+    )
     install_error_handlers(app, request_id_header=resolved_settings.request_id_header)
     app.add_middleware(
         _RequestIdMiddleware,
@@ -148,12 +159,14 @@ class _DefaultAuthorProblemService:
         get: GetDraft,
         get_revision: GetRevisionDraft,
         save: SaveDraft,
+        validate: ValidateDraft,
     ):
         self._create = create
         self._list = list_drafts
         self._get = get
         self._get_revision = get_revision
         self._save = save
+        self._validate = validate
 
     def create(self):
         return self._create()
@@ -186,6 +199,9 @@ class _DefaultAuthorProblemService:
             scoring=scoring,
         )
         return self._save(revision, expected_version=request.expected_version)
+
+    def validate(self, revision_id: RevisionId, expected_version: int):
+        return self._validate(revision_id, expected_version=expected_version)
 
 
 class _RequestIdMiddleware:

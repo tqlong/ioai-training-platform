@@ -9,6 +9,7 @@ export type AuthorDraft = components['schemas']['AuthorDraftResponse'];
 export type AuthorDraftList = components['schemas']['AuthorDraftListResponse'];
 export type SaveDraftRequest = components['schemas']['SaveDraftRequest'];
 export type RecordVocabularyProposalRequest = components['schemas']['RecordVocabularyProposalRequest'];
+export type ValidationReport = components['schemas']['ValidationReportResponse'];
 
 export type PublicVocabularyQuery = {
   vocabularyType: string;
@@ -59,6 +60,7 @@ export type ApiClient = {
   recordVocabularyProposal: (
     request: RecordVocabularyProposalRequest,
   ) => Promise<VocabularyProposal>;
+  validateAuthorDraft: (revisionId: string, expectedVersion: number) => Promise<ValidationReport>;
 };
 
 export const createApiClient = ({
@@ -122,6 +124,11 @@ export const createApiClient = ({
         `${normalizedBaseUrl}/author/vocabulary/proposals`,
         { method: 'POST', body: JSON.stringify(request) },
       );
+    },
+    async validateAuthorDraft(revisionId, expectedVersion) {
+      return requestJson<ValidationReport>(fetchFn, `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}/validate`, {
+        method: 'POST', body: JSON.stringify({ expected_version: expectedVersion }),
+      });
     },
   };
 };

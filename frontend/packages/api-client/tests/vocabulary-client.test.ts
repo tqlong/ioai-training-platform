@@ -74,4 +74,11 @@ describe('generated vocabulary client', () => {
     const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn: async () => Response.json({ detail: { code: 'REVISION_CONFLICT', message: 'A newer draft version exists.', current_version: 3 } }, { status: 409 }) });
     await expect(client.saveAuthorDraft('revision-1', { problem_id: 'problem-1', expected_version: 2 })).rejects.toMatchObject({ code: 'REVISION_CONFLICT', status: 409 });
   });
+
+  it('validates an exact saved author revision version', async () => {
+    const fetchFn = vi.fn(async () => Response.json({ revision_id: 'revision-1', revision_version: 2, errors: [], warnings: [], publication_eligible: true }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    await client.validateAuthorDraft('revision-1', 2);
+    expect(fetchFn).toHaveBeenCalledWith('http://localhost:8000/api/v1/author/revisions/revision-1/validate', expect.objectContaining({ method: 'POST', body: '{"expected_version":2}' }));
+  });
 });

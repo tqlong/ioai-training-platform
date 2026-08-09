@@ -5,8 +5,9 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from ioai.domain.problems.identity import ProblemId, RevisionId
-from ioai.domain.problems.revision import ProblemRevision
+from ioai.domain.problems.revision import ProblemRevision, ValidationReport
 from ioai.domain.problems.workflow import EditorialStatus
+from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 
 from .ports import DraftUnitOfWork
 
@@ -104,3 +105,24 @@ class SaveDraft:
                 expected_version=expected_version,
                 saved_at=self._clock(),
             )
+
+
+class ValidateDraft:
+    def __init__(
+        self,
+        unit_of_work_factory: Callable[[], DraftUnitOfWork],
+        policy: Release0AvailabilityPolicy,
+    ) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
+        self._policy = policy
+
+    def __call__(
+        self, revision_id: RevisionId, *, expected_version: int
+    ) -> ValidationReport:
+        with self._unit_of_work_factory() as unit_of_work:
+            revision = unit_of_work.drafts.get(revision_id)
+        if revision.version != expected_version:
+            from .errors import RevisionConflictError
+
+            raise RevisionConflictError(revision_id, revision.version)
+        return revision.validate(self._policy)

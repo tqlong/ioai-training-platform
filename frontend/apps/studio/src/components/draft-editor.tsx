@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
-import { ApiError, type AuthorDraft, type SaveDraftRequest } from '@ioai/api-client';
+import { ApiError, type AuthorDraft, type SaveDraftRequest, type ValidationReport } from '@ioai/api-client';
 
 import { studioApi } from '../api';
 import {
@@ -27,6 +27,7 @@ import {
   ResourceEditorLoader,
   type ResourceDraft,
 } from './resource-editor';
+import { ValidationPanel } from './validation-panel';
 
 type SaveFunction = (
   revisionId: string,
@@ -68,6 +69,8 @@ export function DraftEditor({
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const [conflict, setConflict] = useState(false);
   const [recoveryAvailable, setRecoveryAvailable] = useState(false);
+  const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
+  const [validationFailed, setValidationFailed] = useState(false);
   const recoveryKey = `ioai:studio:recovery:${initialDraft.revision_id}`;
 
   const isDirty = dirtyFields.size > 0;
@@ -177,6 +180,7 @@ export function DraftEditor({
             <span>URL slug</span>
             <input
               aria-label="URL slug"
+              id="field-slug"
               onChange={(event) => {
                 setSlug(event.target.value);
                 setDirtyFields((current) => new Set(current).add('slug'));
@@ -227,10 +231,12 @@ export function DraftEditor({
 
         <div className="editor-actions">
           <button disabled={!isDirty || saveState === 'saving'} type="submit">Save draft</button>
-          <button type="button">Validate draft</button>
+          <button disabled={isDirty} onClick={async () => { try { setValidationFailed(false); setValidationReport(await studioApi.validateAuthorDraft(draft.revision_id, draft.version)); } catch { setValidationFailed(true); } }} title={isDirty ? 'Save the current changes before validation.' : undefined} type="button">Validate draft</button>
           <Link href={`/author/problems/${draft.problem_id}/preview`}>Preview as learner</Link>
         </div>
       </form>
+      {validationFailed && <p role="alert">Validation could not be completed for the current saved version.</p>}
+      {validationReport && <ValidationPanel report={validationReport} />}
       {recoveryAvailable && <dialog aria-labelledby="recovery-title" open><h2 id="recovery-title">Recover unsaved draft</h2><p>A local recovery copy exists for this revision. Review its target before choosing.</p><button onClick={restoreRecovery} type="button">Restore local copy</button><button onClick={() => { safeRemoveRecovery(recoveryKey); setRecoveryAvailable(false); }} type="button">Discard local copy</button></dialog>}
       {conflict && <dialog aria-labelledby="conflict-title" open><h2 id="conflict-title">Resolve draft conflict</h2><p>The server has a newer revision. Your local recovery copy for version {draft.version} has been retained.</p><button onClick={() => { void keepLocal(); }} type="button">Keep local changes and retry</button><button onClick={() => { void useServer(); }} type="button">Use server version</button><button onClick={() => setConflict(false)} type="button">Review differences before resolving</button></dialog>}
     </section>
