@@ -585,7 +585,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   message, revision/version context, and `publication_eligible`; group them as
   Content, Curriculum, Assessment, Resources, and Publication. Suggested
   commit: `feat(problems): validate problem revisions`.
-- [ ] **R0-06006 — Add PostgreSQL problem and revision migrations from R0-013,
+- [x] **R0-06006 — Add PostgreSQL problem and revision migrations from R0-013,
   R0-014, analysis sections 4 and 9, and design sections 9.1-9.5.** Create
   explicit SQLAlchemy 2 mappings and Alembic revisions for stable problems,
   versioned revisions, localized structured content, competency/topic joins,

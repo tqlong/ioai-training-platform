@@ -9,7 +9,7 @@ from sqlalchemy import engine_from_config, pool
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ioai.adapters.database import vocabulary_model  # noqa: E402, F401
+from ioai.adapters.database import problem_model, vocabulary_model  # noqa: E402, F401
 from ioai.adapters.database.base import Base  # noqa: E402
 from ioai.adapters.database.settings import DatabaseSettings  # noqa: E402
 
