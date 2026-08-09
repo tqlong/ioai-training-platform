@@ -18,6 +18,8 @@ class VocabularyRecordModel(Base):
             name="fk_vocabulary_parent",
             onupdate="RESTRICT",
             ondelete="RESTRICT",
+            deferrable=True,
+            initially="DEFERRED",
         ),
         CheckConstraint(
             "vocabulary_type ~ '^[A-Z][A-Z0-9_]*$' AND code ~ '^[A-Z][A-Z0-9_]*$'",

@@ -9,6 +9,7 @@ printf 'Recreating PostgreSQL without removing its data volume\n'
 docker compose up -d --force-recreate postgres
 
 bash scripts/dev_migrate.sh
+bash scripts/dev_seed.sh
 
 printf 'Recreating API, Learn, and Studio services\n'
 docker compose up -d --force-recreate --remove-orphans api learn studio

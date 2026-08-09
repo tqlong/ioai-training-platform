@@ -33,6 +33,8 @@ def test_vocabulary_mapping_uses_composite_identity_and_explicit_parent() -> Non
         "vocabulary_type",
         "code",
     ]
+    assert parent_keys[0].deferrable is True
+    assert parent_keys[0].initially == "DEFERRED"
 
 
 def test_vocabulary_mapping_declares_database_invariant_constraints_and_indexes() -> (

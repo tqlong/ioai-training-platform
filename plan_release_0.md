@@ -479,7 +479,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   indexes. Integration-test upgrade, safe downgrade, constraints, and rollback
   against PostgreSQL without turning ORM rows into domain objects. Suggested
   commit: `feat(vocabulary): migrate canonical records`.
-- [ ] **R0-05008 — Synchronize the validated artifact idempotently from R0-010,
+- [x] **R0-05008 — Synchronize the validated artifact idempotently from R0-010,
   R0-015, analysis section 5.5, and design sections 4.1 and 5.4.** Define the
   narrow vocabulary repository/source ports and implement one transactional
   synchronization use case. Validate the complete artifact before writing;
