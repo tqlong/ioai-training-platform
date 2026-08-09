@@ -154,3 +154,21 @@ def test_editorial_status_is_not_learner_task_status() -> None:
         "ARCHIVED",
     }
     assert "COMPLETED" not in {status.value for status in EditorialStatus}
+
+
+def test_incomplete_pending_objective_can_be_saved_for_later_validation() -> None:
+    pending = LocalizedText(
+        en="",
+        vi="",
+        en_state=TranslationState.PENDING,
+        vi_state=TranslationState.PENDING,
+    )
+
+    content = ProblemContent(
+        title=pending,
+        summary=pending,
+        objectives=(LearningObjective(pending),),
+        blocks=(),
+    )
+
+    assert content.pending_translation_paths

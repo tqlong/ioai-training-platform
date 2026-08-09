@@ -6,6 +6,11 @@ import Link from 'next/link';
 import type { AuthorDraft, SaveDraftRequest } from '@ioai/api-client';
 
 import { studioApi } from '../api';
+import {
+  ContentEditor,
+  emptyContentDraft,
+  type ContentDraft,
+} from './content-editor';
 
 type SaveFunction = (
   revisionId: string,
@@ -21,6 +26,9 @@ export function DraftEditor({
 }) {
   const [draft, setDraft] = useState(initialDraft);
   const [slug, setSlug] = useState(initialDraft.slug ?? '');
+  const [content, setContent] = useState<ContentDraft>(() => (
+    isContentDraft(initialDraft.content) ? initialDraft.content : emptyContentDraft()
+  ));
   const [dirtyFields, setDirtyFields] = useState<Set<string>>(new Set());
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
 
@@ -40,11 +48,11 @@ export function DraftEditor({
     expected_version: draft.version,
     client_save_key: globalThis.crypto?.randomUUID?.() ?? `save-${draft.version}`,
     slug: slug || null,
-    content: draft.content,
+    content,
     metadata: draft.metadata,
     response: draft.response,
     scoring: draft.scoring,
-  }), [draft, slug]);
+  }), [content, draft, slug]);
 
   const save = async () => {
     setSaveState('saving');
@@ -103,6 +111,15 @@ export function DraftEditor({
           </label>
         </section>
 
+        <ContentEditor
+          onChange={(next) => {
+            setContent(next);
+            setDirtyFields((current) => new Set(current).add('content'));
+            setSaveState('idle');
+          }}
+          value={content}
+        />
+
         <div className="editor-actions">
           <button disabled={!isDirty || saveState === 'saving'} type="submit">Save draft</button>
           <button type="button">Validate draft</button>
@@ -112,3 +129,7 @@ export function DraftEditor({
     </section>
   );
 }
+
+const isContentDraft = (value: unknown): value is ContentDraft => (
+  typeof value === 'object' && value !== null && 'title' in value && 'blocks' in value
+);

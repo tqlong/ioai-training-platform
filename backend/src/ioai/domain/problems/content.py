@@ -81,6 +81,8 @@ class LearningObjective:
 
     def __post_init__(self) -> None:
         english = self.content.en.strip()
+        if not english and self.content.en_state is TranslationState.PENDING:
+            return
         first_word = english.split(maxsplit=1)[0].lower() if english else ""
         if _VAGUE_OBJECTIVE.match(english) or first_word not in _OBSERVABLE_VERBS:
             raise InvalidProblemContentError(
@@ -128,10 +130,6 @@ class ProblemContent:
     blocks: tuple[ContentBlock, ...]
 
     def __post_init__(self) -> None:
-        if not self.objectives:
-            raise InvalidProblemContentError(
-                "problem content requires at least one learning objective"
-            )
         orders = [block.order for block in self.blocks]
         if len(orders) != len(set(orders)):
             raise InvalidProblemContentError("content block orders must be unique")

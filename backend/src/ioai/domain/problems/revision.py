@@ -64,7 +64,7 @@ class ProblemRevision:
         errors: list[ValidationIssue] = []
         warnings: list[ValidationIssue] = []
         self._validate_required(errors)
-        self._validate_content(warnings)
+        self._validate_content(errors, warnings)
         self._validate_metadata(policy, errors)
         self._validate_assessment(errors)
         return ValidationReport(
@@ -95,9 +95,33 @@ class ProblemRevision:
                     )
                 )
 
-    def _validate_content(self, warnings: list[ValidationIssue]) -> None:
+    def _validate_content(
+        self, errors: list[ValidationIssue], warnings: list[ValidationIssue]
+    ) -> None:
         if self.content is None:
             return
+        required_english = [
+            ("content.title.en", self.content.title.en),
+            ("content.summary.en", self.content.summary.en),
+        ]
+        if not self.content.objectives:
+            required_english.append(("content.objectives", ""))
+        else:
+            required_english.extend(
+                (f"content.objectives.{index}.en", objective.content.en)
+                for index, objective in enumerate(self.content.objectives)
+            )
+        for path, value in required_english:
+            if not value:
+                errors.append(
+                    ValidationIssue(
+                        code="REQUIRED_CONTENT_MISSING",
+                        section=ValidationSection.CONTENT,
+                        field_path=path,
+                        message="Complete this required English learner content.",
+                        severity=ValidationSeverity.ERROR,
+                    )
+                )
         for path in self.content.pending_translation_paths:
             warnings.append(
                 ValidationIssue(

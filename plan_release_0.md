@@ -645,7 +645,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   and Preview actions, and unsaved-change protection. Keep save, validation,
   preview, review, approval, and publication visibly distinct. Suggested
   commit: `feat(studio): establish draft editor state`.
-- [ ] **R0-06013 — Build bilingual structured content editing from
+- [x] **R0-06013 — Build bilingual structured content editing from
   `AC-R0-013-04` through `AC-R0-013-06` and design section 13.2.** Add visible
   English/Vietnamese fields in learner reading order for title, objective,
   statement, provided information, examples, constraints, hints, explanation,

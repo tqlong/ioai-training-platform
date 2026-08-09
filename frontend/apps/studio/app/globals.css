@@ -46,3 +46,10 @@ th, td { padding: .85rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
 .save-status { min-width: 10rem; font-weight: 700; }
 .editor-actions { justify-content: flex-end; position: sticky; bottom: 0; padding: 1rem; background: rgba(248, 250, 252, .96); border-top: 1px solid #cbd5e1; }
 .narrow-page { max-width: 44rem; }
+.section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.language-toggle { display: flex; gap: .5rem; }
+.language-toggle button[aria-pressed="true"] { background: #3730a3; color: white; }
+.editor-section textarea { min-height: 7rem; resize: vertical; border: 1px solid #94a3b8; border-radius: .25rem; padding: .75rem; font: inherit; }
+.pending-control { display: flex !important; grid-template-columns: auto 1fr; align-items: center; }
+.pending-control input { min-height: auto; }
+.input-method-note { padding: .75rem; background: #ecfeff; border-left: .25rem solid #0f766e; }
