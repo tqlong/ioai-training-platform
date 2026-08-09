@@ -987,7 +987,7 @@ observe the required red step before implementation.
   using bounded device-local context and public data only. Do not display zeros
   as failure or imply personalization, mastery, or server-saved progress.
   Suggested commit: `feat(learn): add learning path guidance`.
-- [ ] **R0-08008 — Build the dense learner results table from
+- [x] **R0-08008 — Build the dense learner results table from
   `AC-R0-011-01`, `AC-R0-011-02`, `AC-R0-011-12`, and `AC-R0-011-14`.** Render
   task status and learning evidence as separate text-backed indicators; title,
   permanent short ID and objective; paired stage/difficulty; primary

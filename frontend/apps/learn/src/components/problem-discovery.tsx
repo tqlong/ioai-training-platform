@@ -1,9 +1,10 @@
-import type { PublicProblemQuery } from '@ioai/api-client';
+import type { PublicProblemList, PublicProblemQuery } from '@ioai/api-client';
 
 import {
   LearningGuidance,
   type StarterRecommendation,
 } from './learning-guidance';
+import { ProblemResultsTable } from './problem-results-table';
 
 
 export type VocabularyOption = { code: string; label: string };
@@ -107,7 +108,7 @@ type ProblemDiscoveryProps = {
   vocabulary: ProblemVocabulary;
   query: PublicProblemQuery;
   resultCount: number;
-  problemTitles: string[];
+  items: PublicProblemList['items'];
   starter?: StarterRecommendation;
 };
 
@@ -115,12 +116,20 @@ export function ProblemDiscovery({
   vocabulary,
   query,
   resultCount,
-  problemTitles,
+  items,
   starter,
 }: ProblemDiscoveryProps) {
   const queryParams = toSearchParams(query);
   const families = vocabulary.topics.filter((item) => item.parentCode === null);
   const activeFilters = activeFilterEntries(query, vocabulary);
+  const labels = Object.fromEntries([
+    ...vocabulary.stages,
+    ...vocabulary.topics,
+    ...vocabulary.competencies,
+    ...vocabulary.difficulties,
+    ...vocabulary.taskTypes,
+    ...vocabulary.computeTiers,
+  ].map((item) => [item.code, item.label]));
 
   return (
     <section className="problem-library" aria-labelledby="problems-heading">
@@ -159,11 +168,7 @@ export function ProblemDiscovery({
       {starter ? (
         <LearningGuidance
           starter={starter}
-          labels={Object.fromEntries([
-            ...vocabulary.stages,
-            ...vocabulary.difficulties,
-            ...vocabulary.computeTiers,
-          ].map((item) => [item.code, item.label]))}
+          labels={labels}
         />
       ) : null}
 
@@ -290,8 +295,12 @@ export function ProblemDiscovery({
       </ul>
 
       <div className="results-placeholder" aria-label="Published problem results">
-        {problemTitles.length ? (
-          <ul>{problemTitles.map((title) => <li key={title}>{title}</li>)}</ul>
+        {items.length ? (
+          <ProblemResultsTable
+            items={items}
+            labels={labels}
+            returnUrl={queryParams.size ? `/problems?${queryParams}` : '/problems'}
+          />
         ) : (
           <p>No published problems match these filters.</p>
         )}

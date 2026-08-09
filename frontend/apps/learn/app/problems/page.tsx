@@ -27,7 +27,7 @@ export default async function ProblemsPage({
       vocabulary={vocabulary}
       query={query}
       resultCount={problems.total}
-      problemTitles={problems.items.map((item) => item.title.en)}
+      items={problems.items}
       starter={problems.items[0] ? {
         slug: problems.items[0].slug,
         title: problems.items[0].title.en,

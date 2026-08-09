@@ -90,6 +90,26 @@ header nav {
 .active-filters a, .topic-shortcuts a { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 0.35rem 0.65rem; background: white; text-decoration: none; font-size: 0.82rem; }
 .active-filters a { background: var(--brand-soft); border-color: #a5f3fc; }
 .results-placeholder { min-height: 10rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.problem-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 0.75rem; background: white; }
+.problem-table { width: 100%; min-width: 1080px; border-collapse: collapse; font-size: 0.82rem; }
+.problem-table thead { position: sticky; top: 0; z-index: 1; background: #eef4f8; }
+.problem-table th { color: #334155; font-size: 0.72rem; letter-spacing: 0.03em; text-align: left; text-transform: uppercase; }
+.problem-table th, .problem-table td { padding: 0.72rem 0.65rem; border-bottom: 1px solid #e7edf3; vertical-align: middle; }
+.problem-table tbody tr:nth-child(even) { background: #fbfdff; }
+.problem-table tbody tr:hover, .problem-table tbody tr:focus-visible { background: var(--brand-soft); outline: 2px solid var(--brand); outline-offset: -2px; cursor: pointer; }
+.problem-cell { min-width: 16rem; }
+.problem-cell > a { display: block; font-size: 0.93rem; font-weight: 750; }
+.problem-cell > span { display: block; max-width: 30rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.problem-cell .short-id { margin: 0.15rem 0; color: #64748b; font-family: ui-monospace, monospace; font-size: 0.7rem; }
+.status { display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 700; white-space: nowrap; }
+.status-completed { color: #166534; }
+.status-attempted { color: #854d0e; }
+.evidence { white-space: nowrap; }
+.topic-list { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3rem; min-width: 10rem; }
+.topic-chip, .topic-remainder summary { border-radius: 999px; padding: 0.2rem 0.45rem; background: #eef2ff; color: #3730a3; font-size: 0.72rem; white-space: nowrap; }
+.topic-remainder { position: relative; }
+.topic-remainder summary { cursor: pointer; list-style: none; }
+.topic-remainder > span { position: absolute; z-index: 2; top: 1.8rem; right: 0; width: max-content; border: 1px solid var(--line); border-radius: 0.45rem; padding: 0.5rem; background: white; box-shadow: 0 8px 20px rgb(15 23 42 / 15%); }
 
 @media (max-width: 1023px) {
   .stage-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }

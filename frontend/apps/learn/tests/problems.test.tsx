@@ -60,7 +60,16 @@ describe('IOAI Learn URL-owned discovery', () => {
         vocabulary={vocabulary}
         query={query}
         resultCount={3}
-        problemTitles={['Metrics basics']}
+        items={[{
+          slug: 'metrics-basics', public_short_id: 'metrics-basics',
+          title: { en: 'Metrics basics', vi: 'Độ đo' },
+          objective: { en: 'Calculate metrics.', vi: 'Tính độ đo.' },
+          stage_code: 'AI_1_FOUNDATIONS', difficulty_code: 'EASY',
+          primary_competency_code: 'EVAL_METRICS', topic_codes: ['MATH_BAYES'],
+          remaining_topic_count: 0, task_type_code: 'QUIZ_SINGLE',
+          expected_minutes: 10, compute_tier_code: 'NONE',
+          published_at: '2026-08-09T00:00:00Z',
+        }]}
       />,
     );
 
