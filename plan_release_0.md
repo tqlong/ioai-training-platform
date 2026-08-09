@@ -1026,7 +1026,7 @@ observe the required red step before implementation.
   context, and provide loading, safe not-found, retry, and unavailable-content
   states without importing Studio preview or author code. Suggested commit:
   `feat(learn): build the permanent problem page`.
-- [ ] **R0-08012 — Implement accessible discriminated response forms from
+- [x] **R0-08012 — Implement accessible discriminated response forms from
   `AC-R0-012-03` and `AC-R0-012-05`.** Build typed forms for exactly
   `QUIZ_SINGLE`, `QUIZ_MULTIPLE`, `NUMERIC_ANSWER`, `SHORT_ANSWER`, and
   `CODE_FUNCTION`, including required inputs, numeric unit/tolerance guidance,

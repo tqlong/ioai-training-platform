@@ -138,6 +138,17 @@ button:focus-visible, a:focus-visible { outline: 3px solid #67e8f9; outline-offs
 .problem-detail details, .response-placeholder { border: 1px solid var(--line); border-radius: 0.65rem; padding: 0.8rem 1rem; background: white; }
 .problem-detail summary { min-height: 2.75rem; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
 .problem-detail footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.response-form { display: grid; gap: 0.85rem; }
+.response-form fieldset { display: grid; gap: 0.55rem; border: 0; padding: 0; }
+.response-form label { display: grid; gap: 0.35rem; font-weight: 650; }
+.response-form fieldset label { min-height: 2.75rem; display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.5rem 0.7rem; background: white; }
+.response-form input[type='radio'], .response-form input[type='checkbox'] { width: 1.1rem; height: 1.1rem; }
+.response-form input:not([type='radio']):not([type='checkbox']), .response-form textarea { width: 100%; min-height: 2.75rem; border: 1px solid #94a3b8; border-radius: 0.45rem; padding: 0.65rem; color: var(--foreground); font: inherit; }
+.response-form textarea { min-height: 9rem; resize: vertical; }
+.response-form button { min-height: 2.75rem; justify-self: start; border: 1px solid var(--brand); border-radius: 0.45rem; padding: 0.55rem 1rem; background: var(--brand); color: white; font: inherit; font-weight: 750; }
+.response-form small { color: var(--muted); font-weight: 400; }
+.field-error { color: #991b1b; font-weight: 700; }
+.code-response pre { overflow-x: auto; border-radius: 0.45rem; padding: 0.65rem; background: #0f172a; color: white; }
 
 @media (max-width: 1023px) {
   .stage-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }
