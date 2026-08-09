@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from contextlib import contextmanager
+from datetime import UTC, datetime
+from uuid import uuid4
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from ...adapters.database.proposal_repository import SqlAlchemyProposalUnitOfWork
 from ...adapters.database.session import (
     build_engine,
     build_session_factory,
@@ -14,8 +17,10 @@ from ...adapters.database.session import (
 )
 from ...adapters.database.settings import DatabaseSettings
 from ...adapters.database.vocabulary_repository import SqlAlchemyVocabularyRepository
+from ...application.vocabulary.proposals import RecordVocabularyProposal
 from .errors import install_error_handlers
 from .routes.health import health_router
+from .routes.proposals import ProposalService, proposal_router
 from .routes.vocabulary import VocabularyReaderFactory, vocabulary_router
 from .settings import ApiSettings
 
@@ -27,11 +32,15 @@ def create_app(
     settings: ApiSettings | None = None,
     readiness_probe: ReadinessProbe | None = None,
     vocabulary_reader_factory: VocabularyReaderFactory | None = None,
+    proposal_service: ProposalService | None = None,
 ) -> FastAPI:
     resolved_settings = settings or ApiSettings.from_env()
     resolved_probe = readiness_probe
     resolved_reader_factory = vocabulary_reader_factory
+    resolved_proposal_service = proposal_service
     db_settings = DatabaseSettings.from_env()
+    engine = build_engine(db_settings)
+    session_factory = build_session_factory(engine)
     if readiness_probe is None:
 
         def default_probe() -> bool:
@@ -43,8 +52,6 @@ def create_app(
         resolved_probe = default_probe
 
     if resolved_reader_factory is None:
-        engine = build_engine(db_settings)
-        session_factory = build_session_factory(engine)
 
         @contextmanager
         def default_reader():
@@ -52,6 +59,13 @@ def create_app(
                 yield SqlAlchemyVocabularyRepository(session)
 
         resolved_reader_factory = default_reader
+
+    if resolved_proposal_service is None:
+        resolved_proposal_service = RecordVocabularyProposal(
+            unit_of_work_factory=lambda: SqlAlchemyProposalUnitOfWork(session_factory),
+            id_generator=lambda: str(uuid4()),
+            clock=lambda: datetime.now(UTC),
+        )
 
     app = FastAPI(
         title=resolved_settings.project_name,
@@ -72,6 +86,9 @@ def create_app(
     app.include_router(health_router(is_ready=resolved_probe), prefix="")
     app.include_router(
         vocabulary_router(resolved_reader_factory), prefix=resolved_settings.api_prefix
+    )
+    app.include_router(
+        proposal_router(resolved_proposal_service), prefix=resolved_settings.api_prefix
     )
     install_error_handlers(app, request_id_header=resolved_settings.request_id_header)
     app.add_middleware(

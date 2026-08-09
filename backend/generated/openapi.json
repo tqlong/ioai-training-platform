@@ -198,6 +198,28 @@
         "title": "PublicVocabularyResponse",
         "type": "object"
       },
+      "RecordVocabularyProposalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          },
+          "vocabulary_type": {
+            "pattern": "^[A-Z][A-Z0-9_]*$",
+            "title": "Vocabulary Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "vocabulary_type",
+          "note"
+        ],
+        "title": "RecordVocabularyProposalRequest",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -255,6 +277,63 @@
           "code"
         ],
         "title": "VocabularyIdentityResponse",
+        "type": "object"
+      },
+      "VocabularyProposalListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyProposalResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "count"
+        ],
+        "title": "VocabularyProposalListResponse",
+        "type": "object"
+      },
+      "VocabularyProposalResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "proposal_id": {
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "vocabulary_type": {
+            "title": "Vocabulary Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "vocabulary_type",
+          "note",
+          "status",
+          "created_at"
+        ],
+        "title": "VocabularyProposalResponse",
         "type": "object"
       }
     }
@@ -359,6 +438,66 @@
           }
         },
         "summary": "List Author Vocabulary",
+        "tags": [
+          "vocabulary"
+        ]
+      }
+    },
+    "/api/v1/author/vocabulary/proposals": {
+      "get": {
+        "operationId": "list_proposals_api_v1_author_vocabulary_proposals_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyProposalListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Proposals",
+        "tags": [
+          "vocabulary"
+        ]
+      },
+      "post": {
+        "operationId": "record_proposal_api_v1_author_vocabulary_proposals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordVocabularyProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyProposalResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Proposal",
         "tags": [
           "vocabulary"
         ]

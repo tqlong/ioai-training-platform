@@ -507,7 +507,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   permits it. Prove public responses contain canonical active values and no
   proposals, persistence objects, internal diagnostics, or author-only fields.
   Suggested commit: `feat(api): expose canonical vocabulary reads`.
-- [ ] **R0-05011 — Record missing-value proposals without creating canonical
+- [x] **R0-05011 — Record missing-value proposals without creating canonical
   metadata from R0-010, R0-013, `AC-R0-013-10`, analysis sections 5.3 and
   5.5, and design section 5.4.** Define and test a bounded author proposal
   command, persistence model, migration, and author-safe contract carrying the

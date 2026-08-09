@@ -1,6 +1,16 @@
 from __future__ import annotations
 
-from sqlalchemy import CheckConstraint, ForeignKeyConstraint, Index, String, func, text
+from datetime import datetime
+
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKeyConstraint,
+    Index,
+    String,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -63,3 +73,32 @@ class VocabularyRecordModel(Base):
     status: Mapped[str] = mapped_column(String(64), nullable=False)
     parent_vocabulary_type: Mapped[str | None] = mapped_column(String(64))
     parent_code: Mapped[str | None] = mapped_column(String(128))
+
+
+class VocabularyProposalModel(Base):
+    """Author proposal persistence, deliberately separate from canonical records."""
+
+    __tablename__ = "vocabulary_proposal"
+    __table_args__ = (
+        CheckConstraint(
+            "vocabulary_type ~ '^[A-Z][A-Z0-9_]*$'",
+            name="vocabulary_proposal_type_format",
+        ),
+        CheckConstraint(
+            "char_length(note) BETWEEN 1 AND 1000",
+            name="vocabulary_proposal_note_length",
+        ),
+        CheckConstraint(
+            "status = 'PENDING'",
+            name="vocabulary_proposal_pending_status",
+        ),
+        Index("ix_vocabulary_proposal_review", "status", "created_at", "proposal_id"),
+    )
+
+    proposal_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    vocabulary_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    note: Mapped[str] = mapped_column(String(1000), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )

@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
 
 from ioai.adapters.vocabulary.runtime import load_generated_vocabulary
 from ioai.application.vocabulary.queries import VocabularyQuery
-from ioai.domain.vocabulary.values import VocabularyIdentity, VocabularyRecord
+from ioai.domain.vocabulary.proposals import ProposalNote, VocabularyProposal
+from ioai.domain.vocabulary.values import (
+    VocabularyIdentity,
+    VocabularyRecord,
+    VocabularyType,
+)
 from ioai.entrypoints.api.factory import create_app
 
 
@@ -33,6 +39,24 @@ def client_with_reader(reader: FakeVocabularyReader) -> TestClient:
         yield reader
 
     return TestClient(create_app(vocabulary_reader_factory=reader_factory))
+
+
+class FakeProposalService:
+    def __init__(self) -> None:
+        self.items: list[VocabularyProposal] = []
+
+    def __call__(self, *, vocabulary_type: str, note: str) -> VocabularyProposal:
+        proposal = VocabularyProposal.create(
+            proposal_id=f"proposal-{len(self.items) + 1}",
+            vocabulary_type=VocabularyType(vocabulary_type),
+            note=ProposalNote(note),
+            created_at=datetime(2026, 8, 9, tzinfo=UTC),
+        )
+        self.items.append(proposal)
+        return proposal
+
+    def list_pending(self) -> tuple[VocabularyProposal, ...]:
+        return tuple(self.items)
 
 
 def test_public_vocabulary_read_returns_active_canonical_projection_only() -> None:
@@ -120,3 +144,32 @@ def test_openapi_separates_public_and_author_vocabulary_schemas() -> None:
     assert "status" not in public_schema
     assert "availability" in author_schema
     assert "VocabularyRecordModel" not in str(schema)
+
+
+def test_author_can_record_and_review_pending_proposals() -> None:
+    proposal_service = FakeProposalService()
+    client = TestClient(create_app(proposal_service=proposal_service))
+
+    created = client.post(
+        "/api/v1/author/vocabulary/proposals",
+        json={"vocabulary_type": "TOPIC", "note": "Add causal inference"},
+    )
+    listed = client.get("/api/v1/author/vocabulary/proposals")
+
+    assert created.status_code == 201
+    assert created.json()["proposal_id"] == "proposal-1"
+    assert created.json()["status"] == "PENDING"
+    assert listed.status_code == 200
+    assert listed.json()["items"] == [created.json()]
+
+
+def test_proposal_note_validation_is_safe_and_bounded() -> None:
+    client = TestClient(create_app(proposal_service=FakeProposalService()))
+
+    response = client.post(
+        "/api/v1/author/vocabulary/proposals",
+        json={"vocabulary_type": "TOPIC", "note": ""},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_request"
