@@ -28,6 +28,16 @@ export default async function ProblemsPage({
       query={query}
       resultCount={problems.total}
       problemTitles={problems.items.map((item) => item.title.en)}
+      starter={problems.items[0] ? {
+        slug: problems.items[0].slug,
+        title: problems.items[0].title.en,
+        objective: problems.items[0].objective.en,
+        stageCode: problems.items[0].stage_code,
+        stageLabel: label(vocabulary.stages, problems.items[0].stage_code),
+        difficultyLabel: label(vocabulary.difficulties, problems.items[0].difficulty_code),
+        expectedMinutes: problems.items[0].expected_minutes,
+        computeLabel: label(vocabulary.computeTiers, problems.items[0].compute_tier_code),
+      } : undefined}
     />
   );
 }
@@ -73,3 +83,8 @@ const option = (item: PublicVocabularyRecord) => ({
 
 const available = (item: PublicVocabularyRecord): boolean =>
   item.availability.is_available;
+
+const label = (
+  options: Array<{ code: string; label: string }>,
+  code: string,
+): string => options.find((item) => item.code === code)?.label ?? code;

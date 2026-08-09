@@ -1,5 +1,10 @@
 import type { PublicProblemQuery } from '@ioai/api-client';
 
+import {
+  LearningGuidance,
+  type StarterRecommendation,
+} from './learning-guidance';
+
 
 export type VocabularyOption = { code: string; label: string };
 export type StageOption = VocabularyOption & {
@@ -103,6 +108,7 @@ type ProblemDiscoveryProps = {
   query: PublicProblemQuery;
   resultCount: number;
   problemTitles: string[];
+  starter?: StarterRecommendation;
 };
 
 export function ProblemDiscovery({
@@ -110,6 +116,7 @@ export function ProblemDiscovery({
   query,
   resultCount,
   problemTitles,
+  starter,
 }: ProblemDiscoveryProps) {
   const queryParams = toSearchParams(query);
   const families = vocabulary.topics.filter((item) => item.parentCode === null);
@@ -148,6 +155,17 @@ export function ProblemDiscovery({
           </button>
         ))}
       </div>
+
+      {starter ? (
+        <LearningGuidance
+          starter={starter}
+          labels={Object.fromEntries([
+            ...vocabulary.stages,
+            ...vocabulary.difficulties,
+            ...vocabulary.computeTiers,
+          ].map((item) => [item.code, item.label]))}
+        />
+      ) : null}
 
       <form className="filter-bar" role="search" action="/problems" method="get">
         <input type="hidden" name="stage" value={query.stage} />

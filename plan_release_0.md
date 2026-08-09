@@ -979,7 +979,7 @@ observe the required red step before implementation.
   back/forward navigation, aliases, invalid URL values, focus return, and empty
   results with accessible component tests. Suggested commit:
   `feat(learn): add URL-backed library discovery`.
-- [ ] **R0-08007 — Build the recommendation and learning-path guidance from
+- [x] **R0-08007 — Build the recommendation and learning-path guidance from
   `AC-R0-012-09`, `AC-R0-012-10`, `AC-R0-012-15`, and `AC-R0-012-16`.** Render
   one stage-scoped “Recommended start” or continuation card with an accessible
   “Why this?” disclosure. Add the supportive weekly goal, current path,

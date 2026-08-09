@@ -54,6 +54,24 @@ header nav {
 .stage.unavailable { color: #64748b; background: #f1f5f9; cursor: not-allowed; }
 .stage.unavailable span { display: block; font-size: 0.7rem; font-weight: 600; }
 
+.learning-guidance { display: grid; grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr); gap: 1rem; align-items: start; }
+.recommendation-card, .learning-sidebar { border: 1px solid var(--line); border-radius: 0.85rem; background: white; box-shadow: 0 8px 24px rgb(15 23 42 / 5%); }
+.recommendation-card { padding: clamp(1rem, 2.5vw, 1.5rem); border-left: 5px solid var(--brand); }
+.recommendation-card h2 { margin: 0.2rem 0 0.5rem; font-size: 1.45rem; }
+.recommendation-label { margin: 0; color: var(--brand); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.recommendation-meta { margin: 0.3rem 0; color: var(--muted); font-size: 0.88rem; font-weight: 650; }
+.recommendation-actions { display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 1rem; }
+.recommendation-actions > a, .recommendation-actions summary { display: inline-grid; min-height: 2.6rem; place-content: center; border-radius: 0.5rem; padding: 0.5rem 0.85rem; font-weight: 750; cursor: pointer; }
+.recommendation-actions > a { background: var(--brand); color: white; text-decoration: none; }
+.recommendation-actions summary { border: 1px solid var(--line); }
+.recommendation-actions details p { max-width: 34rem; margin: 0.5rem 0 0; color: var(--muted); }
+.learning-sidebar { padding: 0.4rem 1rem; }
+.learning-sidebar section { padding: 0.75rem 0; border-bottom: 1px solid var(--line); }
+.learning-sidebar section:last-child { border-bottom: 0; }
+.learning-sidebar h2 { margin: 0 0 0.35rem; font-size: 0.88rem; }
+.learning-sidebar p, .learning-sidebar ul { margin: 0; color: var(--muted); font-size: 0.84rem; }
+.learning-sidebar ul { padding-left: 1.1rem; }
+
 .filter-bar { display: flex; align-items: flex-end; gap: 0.65rem; padding: 0.85rem; border: 1px solid var(--line); border-radius: 0.8rem; background: white; box-shadow: 0 8px 24px rgb(15 23 42 / 5%); }
 .filter-bar label { display: grid; gap: 0.3rem; min-width: 8rem; color: #334155; font-size: 0.76rem; font-weight: 700; }
 .filter-bar input, .filter-bar select { min-height: 2.6rem; max-width: 16rem; border: 1px solid #b8c4d1; border-radius: 0.45rem; padding: 0.55rem 0.7rem; background: white; color: var(--foreground); font: inherit; }
@@ -75,6 +93,8 @@ header nav {
 
 @media (max-width: 1023px) {
   .stage-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .learning-guidance { grid-template-columns: 1fr; }
+  .learning-sidebar { grid-row: 2; }
   .filter-bar { display: grid; grid-template-columns: 1fr 1fr; align-items: flex-end; }
   .search-field { grid-column: 1 / -1; }
   .filter-bar input, .filter-bar select { max-width: none; width: 100%; }
