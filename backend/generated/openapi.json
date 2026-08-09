@@ -834,6 +834,35 @@
         "title": "SaveDraftRequest",
         "type": "object"
       },
+      "StartRevisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "operation_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Operation Id",
+            "type": "string"
+          },
+          "source_revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Source Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_revision_id",
+          "expected_version",
+          "operation_id"
+        ],
+        "title": "StartRevisionRequest",
+        "type": "object"
+      },
       "ValidateDraftRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1201,6 +1230,78 @@
           }
         },
         "summary": "Read Draft",
+        "tags": [
+          "author-problems"
+        ]
+      }
+    },
+    "/api/v1/author/problems/{problem_id}/revisions": {
+      "post": {
+        "operationId": "start_revision_api_v1_author_problems__problem_id__revisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "problem_id",
+            "required": true,
+            "schema": {
+              "title": "Problem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartRevisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Revision",
         "tags": [
           "author-problems"
         ]

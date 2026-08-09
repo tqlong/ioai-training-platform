@@ -127,6 +127,16 @@ class FakeAuthorProblemService:
             published_at=self.now,
         )
 
+    def start_revision(self, problem_id, request):
+        assert problem_id == self.draft.problem_id
+        self.draft = replace(
+            self.draft,
+            revision_id=RevisionId("revision-2"),
+            version=1,
+            status=EditorialStatus.DRAFT,
+        )
+        return self.draft
+
 
 def test_author_can_create_list_and_read_private_draft_contracts() -> None:
     service = FakeAuthorProblemService()
@@ -375,3 +385,22 @@ def test_publish_is_a_distinct_author_command_returning_permanent_url() -> None:
         "public_url": "/problems/metrics-basics",
         "published_at": "2026-08-09T00:00:00Z",
     }
+
+
+def test_author_starts_a_private_revision_from_published_problem() -> None:
+    service = FakeAuthorProblemService()
+    service.draft = replace(service.draft, version=4, status=EditorialStatus.PUBLISHED)
+    client = TestClient(create_app(author_problem_service=service))
+
+    response = client.post(
+        "/api/v1/author/problems/problem-1/revisions",
+        json={
+            "source_revision_id": "revision-1",
+            "expected_version": 4,
+            "operation_id": "revise-1",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["revision_id"] == "revision-2"
+    assert response.json()["editorial_status"] == "DRAFT"

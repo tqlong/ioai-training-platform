@@ -158,4 +158,19 @@ describe('generated vocabulary client', () => {
       expect.objectContaining({ method: 'POST', body: JSON.stringify(request) }),
     );
   });
+
+  it('starts a successor revision through the author problem boundary', async () => {
+    const fetchFn = vi.fn(async () => Response.json({}));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    const request = {
+      source_revision_id: 'revision-1', expected_version: 4, operation_id: 'revise-1',
+    };
+
+    await client.startAuthorRevision('problem-1', request);
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/author/problems/problem-1/revisions',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify(request) }),
+    );
+  });
 });

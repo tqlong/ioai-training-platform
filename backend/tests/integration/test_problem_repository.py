@@ -261,8 +261,8 @@ def test_changes_requested_successor_is_idempotent_and_preserves_source(
         clock=lambda: NOW,
     )
 
-    first = start(source.revision_id, operation_id="revise-01")
-    replay = start(source.revision_id, operation_id="revise-01")
+    first = start(source.revision_id, expected_version=1, operation_id="revise-01")
+    replay = start(source.revision_id, expected_version=1, operation_id="revise-01")
 
     assert first.revision_id == RevisionId("revision-02")
     assert replay.revision_id == first.revision_id
@@ -340,6 +340,26 @@ def test_publication_switches_snapshot_status_history_and_idempotency_atomically
             request_digest="digest-01",
         )
     assert replay == snapshot
+
+    start = StartSuccessorDraft(
+        unit_of_work_factory=lambda: SqlAlchemyDraftUnitOfWork(session_factory),
+        id_generator=lambda: "revision-02",
+        clock=lambda: NOW,
+    )
+    successor = start(
+        approved.revision_id,
+        expected_version=2,
+        operation_id="revise-published-01",
+    )
+    assert successor.status is EditorialStatus.DRAFT
+    with session_factory() as session:
+        problem = session.get(ProblemModel, "problem-01")
+        assert problem is not None
+        assert problem.current_published_snapshot_id == "snapshot-01"
+        assert (
+            session.scalar(select(func.count()).select_from(PublishedSnapshotModel))
+            == 1
+        )
 
 
 def test_publication_rolls_back_every_visible_effect_on_failure(

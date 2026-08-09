@@ -138,3 +138,10 @@ class PublicationResponse(BaseModel):
     slug: str
     public_url: str
     published_at: datetime
+
+
+class StartRevisionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    source_revision_id: str = Field(min_length=1, max_length=128)
+    expected_version: int = Field(ge=1)
+    operation_id: str = Field(min_length=1, max_length=200)

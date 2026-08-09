@@ -159,7 +159,9 @@ def test_changes_requested_creates_a_new_draft_without_mutating_reviewed_revisio
         clock=lambda: NOW,
     )
 
-    successor = start(reviewed.revision_id, operation_id="revise-01")
+    successor = start(
+        reviewed.revision_id, expected_version=4, operation_id="revise-01"
+    )
 
     assert successor.revision_id == RevisionId("revision-02")
     assert successor.problem_id == reviewed.problem_id
@@ -167,3 +169,21 @@ def test_changes_requested_creates_a_new_draft_without_mutating_reviewed_revisio
     assert successor.version == 1
     assert successor.content == reviewed.content
     assert reviewed.status is EditorialStatus.CHANGES_REQUESTED
+
+
+def test_published_revision_creates_private_successor_with_stable_slug() -> None:
+    published = revision(status=EditorialStatus.PUBLISHED, version=5)
+    work = FakeEditorialWork(published)
+    start = StartSuccessorDraft(
+        unit_of_work_factory=lambda: work,
+        id_generator=lambda: "revision-02",
+        clock=lambda: NOW,
+    )
+
+    successor = start(
+        published.revision_id, expected_version=5, operation_id="revise-published"
+    )
+
+    assert successor.status is EditorialStatus.DRAFT
+    assert successor.slug == published.slug
+    assert published.status is EditorialStatus.PUBLISHED

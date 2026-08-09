@@ -31,6 +31,7 @@ from ...application.problems.editorial import (
     ApproveRevision,
     ListEditorialHistory,
     RequestChanges,
+    StartSuccessorDraft,
     SubmitForReview,
 )
 from ...application.problems.payload import decode_revision_payload
@@ -45,6 +46,7 @@ from .contracts.problems import (
     PreviewDraftRequest,
     PublishRevisionRequest,
     SaveDraftRequest,
+    StartRevisionRequest,
 )
 from .errors import install_error_handlers
 from .routes.health import health_router
@@ -144,6 +146,11 @@ def create_app(
                 id_generator=lambda: str(uuid4()),
                 clock=lambda: datetime.now(UTC),
             ),
+            start_revision=StartSuccessorDraft(
+                unit_of_work_factory=draft_uow,
+                id_generator=lambda: str(uuid4()),
+                clock=lambda: datetime.now(UTC),
+            ),
         )
 
     app = FastAPI(
@@ -206,6 +213,7 @@ class _DefaultAuthorProblemService:
         approve: ApproveRevision,
         history: ListEditorialHistory,
         publish: PublishRevision,
+        start_revision: StartSuccessorDraft,
     ):
         self._create = create
         self._list = list_drafts
@@ -221,6 +229,7 @@ class _DefaultAuthorProblemService:
         }
         self._history = history
         self._publish = publish
+        self._start_revision = start_revision
 
     def create(self):
         return self._create()
@@ -312,6 +321,18 @@ class _DefaultAuthorProblemService:
             note=request.note,
             actor=ActorContext(request.actor_context),
             idempotency_key=request.idempotency_key,
+        )
+
+    def start_revision(self, problem_id: ProblemId, request: StartRevisionRequest):
+        source = self._get_revision(RevisionId(request.source_revision_id))
+        if source.problem_id != problem_id:
+            from ...application.problems.errors import DraftNotFoundError
+
+            raise DraftNotFoundError(source.revision_id)
+        return self._start_revision(
+            source.revision_id,
+            expected_version=request.expected_version,
+            operation_id=request.operation_id,
         )
 
 

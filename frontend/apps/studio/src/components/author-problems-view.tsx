@@ -3,17 +3,45 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 
-import type { AuthorDraftList } from '@ioai/api-client';
+import type { AuthorDraft, AuthorDraftList, StartRevisionRequest } from '@ioai/api-client';
 
-export function AuthorProblemsView({ result }: { result: AuthorDraftList }) {
+import { studioApi } from '../api';
+
+export function AuthorProblemsView({
+  result,
+  startRevision = studioApi.startAuthorRevision,
+  onOpen = (problemId: string) => { window.location.assign(`/author/problems/${problemId}`); },
+}: {
+  result: AuthorDraftList;
+  startRevision?: (problemId: string, request: StartRevisionRequest) => Promise<AuthorDraft>;
+  onOpen?: (problemId: string) => void;
+}) {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
+  const [starting, setStarting] = useState<string | null>(null);
+  const [actionError, setActionError] = useState('');
   const filtered = useMemo(() => result.items.filter((draft) => {
     const needle = search.trim().toLocaleLowerCase();
     const matchesSearch = !needle || draft.problem_id.toLocaleLowerCase().includes(needle) || draft.revision_id.toLocaleLowerCase().includes(needle);
     return matchesSearch && (status === 'ALL' || draft.editorial_status === status);
   }), [result.items, search, status]);
   const setStatusFilter = (next: string) => setStatus(next);
+  const beginRevision = async (item: AuthorDraftList['items'][number]) => {
+    setStarting(item.revision_id);
+    setActionError('');
+    try {
+      await startRevision(item.problem_id, {
+        source_revision_id: item.revision_id,
+        expected_version: item.version,
+        operation_id: globalThis.crypto?.randomUUID?.() ?? `revise-${item.version}`,
+      });
+      onOpen(item.problem_id);
+    } catch {
+      setActionError('A new draft revision could not be started. Reload the list and try again.');
+    } finally {
+      setStarting(null);
+    }
+  };
   return (
     <section aria-labelledby="author-problems-title" className="studio-page">
       <div className="page-heading">
@@ -48,6 +76,7 @@ export function AuthorProblemsView({ result }: { result: AuthorDraftList }) {
           </select>
         </label>
       </div>
+      {actionError && <p role="alert">{actionError}</p>}
 
       {result.count === 0 ? (
         <div className="empty-state">
@@ -79,7 +108,9 @@ export function AuthorProblemsView({ result }: { result: AuthorDraftList }) {
                   <td><code>{draft.revision_id}</code> · v{draft.version}</td>
                   <td><time dateTime={draft.last_saved_at}>{formatDate(draft.last_saved_at)}</time></td>
                   <td>{formatValidation(draft.validation_summary)}</td>
-                  <td><Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link></td>
+                  <td>{['PUBLISHED', 'CHANGES_REQUESTED'].includes(draft.editorial_status)
+                    ? <button disabled={starting !== null} onClick={() => { void beginRevision(draft); }} type="button">{starting === draft.revision_id ? 'Starting draft…' : draft.editorial_status === 'PUBLISHED' ? 'Edit as new draft' : 'Address changes'}</button>
+                    : <Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link>}</td>
                 </tr>
               ))}
             </tbody>

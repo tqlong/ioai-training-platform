@@ -1,5 +1,7 @@
 import type { AuthorDraftList } from '@ioai/api-client';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { AuthorProblemsView } from '../src/components/author-problems-view';
 
@@ -45,5 +47,26 @@ describe('IOAI Studio author problem list', () => {
     expect(screen.getByText('problem-review')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Draft/ }));
     expect(screen.getByText('No matching author problems')).toBeTruthy();
+  });
+
+  it('starts a private successor before editing published content', async () => {
+    const published = {
+      ...result.items[0]!, editorial_status: 'PUBLISHED', version: 4,
+    };
+    const startRevision = vi.fn(async () => ({
+      problem_id: 'problem-1', revision_id: 'revision-2', version: 1,
+      editorial_status: 'DRAFT', slug: null, content: null, metadata: null,
+      response: null, scoring: null,
+    }));
+    const onOpen = vi.fn();
+    render(<AuthorProblemsView result={{ count: 1, items: [published] }} startRevision={startRevision} onOpen={onOpen} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit as new draft' }));
+
+    await waitFor(() => expect(startRevision).toHaveBeenCalledWith(
+      'problem-1',
+      expect.objectContaining({ source_revision_id: 'revision-1', expected_version: 4 }),
+    ));
+    expect(onOpen).toHaveBeenCalledWith('problem-1');
   });
 });

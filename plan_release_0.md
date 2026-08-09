@@ -842,7 +842,7 @@ same transaction as its state change.
   returns focus to its trigger, prevents duplicate submission, and renders
   blockers without implying that Save or Approve published content. Suggested
   commit: `feat(studio): confirm approved publication`.
-- [ ] **R0-07009 — Create draft revisions of published problems from
+- [x] **R0-07009 — Create draft revisions of published problems from
   `AC-R0-014-09` through `AC-R0-014-10`, analysis sections 8.1 and 8.4, and
   design sections 7.2 and 10.2.** Complete the shared successor-revision
   command for published and changes-requested sources, copying content into a

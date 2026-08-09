@@ -11,6 +11,7 @@ from ioai.application.problems.errors import (
     IdempotencyConflictError,
     RevisionConflictError,
     SlugConflictError,
+    SuccessorRevisionError,
 )
 from ioai.application.problems.payload import encode_revision_payload
 from ioai.application.problems.publication import PublishedSnapshot
@@ -36,6 +37,7 @@ from ..contracts.problems import (
     PublicationResponse,
     PublishRevisionRequest,
     SaveDraftRequest,
+    StartRevisionRequest,
     ValidateDraftRequest,
     ValidationIssueResponse,
     ValidationReportResponse,
@@ -78,6 +80,10 @@ class AuthorProblemService(Protocol):
         self, revision_id: RevisionId, request: PublishRevisionRequest
     ) -> PublishedSnapshot: ...
 
+    def start_revision(
+        self, problem_id: ProblemId, request: StartRevisionRequest
+    ) -> ProblemRevision: ...
+
 
 def author_problem_router(service: AuthorProblemService) -> APIRouter:
     router = APIRouter(prefix="/author/problems", tags=["author-problems"])
@@ -115,6 +121,39 @@ def author_problem_router(service: AuthorProblemService) -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"code": "DRAFT_NOT_FOUND", "message": "Draft not found."},
+            ) from error
+
+    @router.post(
+        "/{problem_id}/revisions",
+        response_model=AuthorDraftResponse,
+        status_code=status.HTTP_201_CREATED,
+        responses={404: {"model": ErrorResponse}, 409: {"model": ErrorResponse}},
+    )
+    def start_revision(
+        problem_id: str, request: StartRevisionRequest
+    ) -> AuthorDraftResponse:
+        try:
+            return _draft_response(
+                service.start_revision(ProblemId(problem_id), request)
+            )
+        except RevisionConflictError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "REVISION_CONFLICT",
+                    "message": "A newer revision version exists.",
+                    "current_version": error.current_version,
+                },
+            ) from error
+        except SuccessorRevisionError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "SUCCESSOR_CONFLICT", "message": str(error)},
+            ) from error
+        except DraftNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "DRAFT_NOT_FOUND", "message": "Revision not found."},
             ) from error
 
     return router

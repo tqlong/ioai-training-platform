@@ -287,7 +287,10 @@ class SqlAlchemyEditorialRepository:
         if (
             persisted_source is None
             or persisted_source.editorial_status
-            != EditorialStatus.CHANGES_REQUESTED.value
+            not in {
+                EditorialStatus.CHANGES_REQUESTED.value,
+                EditorialStatus.PUBLISHED.value,
+            }
             or persisted_source.lock_version != source.version
         ):
             if persisted_source is None:

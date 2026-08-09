@@ -102,13 +102,22 @@ class StartSuccessorDraft:
         self._clock = clock
 
     def __call__(
-        self, source_revision_id: RevisionId, *, operation_id: str
+        self,
+        source_revision_id: RevisionId,
+        *,
+        expected_version: int,
+        operation_id: str,
     ) -> ProblemRevision:
         with self._unit_of_work_factory() as unit_of_work:
             source = unit_of_work.drafts.get(source_revision_id)
-            if source.status is not EditorialStatus.CHANGES_REQUESTED:
+            if source.version != expected_version:
+                raise RevisionConflictError(source_revision_id, source.version)
+            if source.status not in {
+                EditorialStatus.CHANGES_REQUESTED,
+                EditorialStatus.PUBLISHED,
+            }:
                 raise SuccessorRevisionError(
-                    "only a changes-requested revision can start this successor flow"
+                    "only published or changes-requested work can start a successor"
                 )
             successor = replace(
                 source,
