@@ -115,4 +115,27 @@ describe('generated vocabulary client', () => {
       expect.objectContaining({ cache: 'no-store' }),
     );
   });
+
+  it('sends versioned editorial commands and reads uncached history', async () => {
+    const fetchFn = vi.fn(async () => Response.json({ items: [] }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    const request = {
+      expected_version: 2, note: 'Approved.', actor_context: 'local-reviewer',
+      operation_id: 'approve-1',
+    };
+
+    await client.transitionAuthorRevision('revision-1', 'approve', request);
+    await client.getEditorialHistory('revision-1');
+
+    expect(fetchFn).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:8000/api/v1/author/revisions/revision-1/approve',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify(request) }),
+    );
+    expect(fetchFn).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:8000/api/v1/author/revisions/revision-1/history',
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
 });

@@ -12,6 +12,9 @@ export type RecordVocabularyProposalRequest = components['schemas']['RecordVocab
 export type ValidationReport = components['schemas']['ValidationReportResponse'];
 export type PreviewDraftRequest = components['schemas']['PreviewDraftRequest'];
 export type PreviewResponse = components['schemas']['PreviewResponse'];
+export type EditorialCommandRequest = components['schemas']['EditorialCommandRequest'];
+export type EditorialHistory = components['schemas']['EditorialHistoryResponse'];
+export type EditorialAction = 'submit-review' | 'request-changes' | 'approve';
 
 export type PublicVocabularyQuery = {
   vocabularyType: string;
@@ -65,6 +68,12 @@ export type ApiClient = {
   ) => Promise<VocabularyProposal>;
   validateAuthorDraft: (revisionId: string, expectedVersion: number) => Promise<ValidationReport>;
   previewAuthorDraft: (revisionId: string, request: PreviewDraftRequest) => Promise<PreviewResponse>;
+  transitionAuthorRevision: (
+    revisionId: string,
+    action: EditorialAction,
+    request: EditorialCommandRequest,
+  ) => Promise<AuthorDraft>;
+  getEditorialHistory: (revisionId: string) => Promise<EditorialHistory>;
 };
 
 export const createApiClient = ({
@@ -144,6 +153,16 @@ export const createApiClient = ({
     async previewAuthorDraft(revisionId, request) {
       return requestJson<PreviewResponse>(fetchFn, `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}/preview`, {
         method: 'POST', body: JSON.stringify(request),
+      });
+    },
+    async transitionAuthorRevision(revisionId, action, request) {
+      return requestJson<AuthorDraft>(fetchFn, `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}/${action}`, {
+        method: 'POST', body: JSON.stringify(request),
+      });
+    },
+    async getEditorialHistory(revisionId) {
+      return requestJson<EditorialHistory>(fetchFn, `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}/history`, {
+        cache: 'no-store',
       });
     },
   };

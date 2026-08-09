@@ -63,6 +63,14 @@ th, td { padding: .85rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
 .validation-path { color: inherit; font-family: monospace; font-size: .875em; }
 .save-status { min-width: 10rem; font-weight: 700; }
 .editor-actions { justify-content: flex-end; position: sticky; bottom: 0; padding: 1rem; background: rgba(248, 250, 252, .96); border-top: 1px solid #cbd5e1; }
+.editorial-review { margin-top: 1.5rem; padding: 1.5rem; border: 2px solid #a5b4fc; background: #eef2ff; }
+.editorial-status { display: inline-block; padding: .2rem .55rem; border: 1px solid #4338ca; border-radius: 999px; background: white; }
+.editorial-decision label { display: block; margin-top: 1rem; font-weight: 700; }
+.editorial-decision textarea { width: min(100%, 42rem); min-height: 6rem; margin-block: .4rem 1rem; padding: .75rem; border: 1px solid #64748b; }
+.editorial-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.editorial-review ol { display: grid; gap: .75rem; padding-left: 1.5rem; }
+.editorial-review li { padding: .75rem; background: white; border-left: .3rem solid #4338ca; }
+.editorial-review li p { margin: .25rem 0; }
 .narrow-page { max-width: 44rem; }
 .section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; align-items: flex-start; }
 .language-toggle { display: flex; gap: .5rem; }

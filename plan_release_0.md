@@ -798,7 +798,7 @@ same transaction as its state change.
   TypeScript client, and add compatibility tests that keep history and draft
   fields out of public schemas. Suggested commit:
   `feat(api): expose editorial review workflow`.
-- [ ] **R0-07005 — Build the Studio review workspace from `AC-R0-014-01`
+- [x] **R0-07005 — Build the Studio review workspace from `AC-R0-014-01`
   through `AC-R0-014-04`, `AC-R0-014-13`, `ui_release_0.md` sections 6.8,
   7, and 9, and design sections 13.4-13.5.** Extend the Review & publish
   section with the existing grouped validation checklist, immutable note/time/

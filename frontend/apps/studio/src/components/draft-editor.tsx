@@ -28,6 +28,7 @@ import {
   type ResourceDraft,
 } from './resource-editor';
 import { ValidationPanel } from './validation-panel';
+import { EditorialReviewWorkspace } from './editorial-review';
 
 type SaveFunction = (
   revisionId: string,
@@ -172,7 +173,7 @@ export function DraftEditor({
       </div>
 
       <nav aria-label="Editor sections" className="editor-sections">
-        {['Basics', 'Content', 'Curriculum', 'Response & scoring', 'Resources'].map((label) => (
+        {['Basics', 'Content', 'Curriculum', 'Response & scoring', 'Resources', 'Review & publish'].map((label) => (
           <a href={`#${label.toLowerCase().replaceAll(/[^a-z]+/g, '-')}`} key={label}>{label}</a>
         ))}
       </nav>
@@ -247,6 +248,15 @@ export function DraftEditor({
       </form>
       {validationFailed && <p role="alert">Validation could not be completed for the current saved version.</p>}
       {validationReport && <ValidationPanel report={validationReport} />}
+      <EditorialReviewWorkspace
+        dirty={isDirty}
+        draft={draft}
+        onDraftChange={(updated) => {
+          setDraft(updated);
+          setValidationReport(null);
+          setValidationFailed(false);
+        }}
+      />
       {recoveryAvailable && <dialog aria-labelledby="recovery-title" open><h2 id="recovery-title">Recover unsaved draft</h2><p>A local recovery copy exists for this revision. Review its target before choosing.</p><button onClick={restoreRecovery} type="button">Restore local copy</button><button onClick={() => { safeRemoveRecovery(recoveryKey); setRecoveryAvailable(false); }} type="button">Discard local copy</button></dialog>}
       {conflict && <dialog aria-labelledby="conflict-title" open><h2 id="conflict-title">Resolve draft conflict</h2><p>The server has a newer revision. Your local recovery copy for version {draft.version} has been retained.</p><button onClick={() => { void keepLocal(); }} type="button">Keep local changes and retry</button><button onClick={() => { void useServer(); }} type="button">Use server version</button><button onClick={() => setConflict(false)} type="button">Review differences before resolving</button></dialog>}
     </section>
