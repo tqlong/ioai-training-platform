@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import unicodedata
 from dataclasses import dataclass
 
 from .errors import (
@@ -11,6 +10,7 @@ from .errors import (
     InvalidVocabularyLabelError,
     InvalidVocabularyStatusError,
 )
+from .normalization import normalize_vocabulary_text
 
 _CANONICAL_CODE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
@@ -82,7 +82,7 @@ class VocabularyRecord:
             cleaned = alias.strip()
             if not cleaned:
                 raise InvalidVocabularyAliasError("aliases must be non-empty strings")
-            normalized = _normalize_search_text(cleaned)
+            normalized = normalize_vocabulary_text(cleaned)
             if normalized in normalized_aliases:
                 raise InvalidVocabularyAliasError(
                     f"duplicate normalized alias: {cleaned}"
@@ -98,7 +98,3 @@ class VocabularyRecord:
             raise InvalidTopicParentError("only TOPIC records can have a parent")
         if self.parent.vocabulary_type.value != "TOPIC":
             raise InvalidTopicParentError("topic parent identity must be TOPIC")
-
-
-def _normalize_search_text(value: str) -> str:
-    return unicodedata.normalize("NFKC", value).casefold().strip()

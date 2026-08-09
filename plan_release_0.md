@@ -443,7 +443,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   source-oriented diagnostics; do not infer values or relationships from
   Markdown layout. Suggested commit:
   `feat(vocabulary): extract canonical source records`.
-- [ ] **R0-05004 — Enforce vocabulary identity, graph, and ambiguity invariants
+- [x] **R0-05004 — Enforce vocabulary identity, graph, and ambiguity invariants
   from R0-010, R0-011, R0-013, R0-015, `AC-R0-011-07` through
   `AC-R0-011-08`, `AC-R0-013-07` through `AC-R0-013-10`, analysis section
   5.2, and design sections 5.1-5.2.** Add failing cases before implementing

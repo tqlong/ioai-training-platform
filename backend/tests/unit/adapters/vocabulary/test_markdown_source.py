@@ -8,12 +8,13 @@ from ioai.adapters.vocabulary.markdown_source import (
     VocabularySourceError,
     parse_vocabulary_markdown,
 )
+from ioai.domain.vocabulary.validation import validate_vocabulary
 
 
 def test_parser_extracts_every_canonical_family_from_vocab_source() -> None:
     source = Path("vocab.md").read_text(encoding="utf-8")
 
-    records = parse_vocabulary_markdown(source)
+    records = validate_vocabulary(parse_vocabulary_markdown(source))
     identities = {
         (record.identity.vocabulary_type.value, record.identity.code): record
         for record in records

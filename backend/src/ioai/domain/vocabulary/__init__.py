@@ -1,5 +1,6 @@
 """Canonical vocabulary domain values and policies."""
 
+from .validation import validate_vocabulary
 from .values import (
     LocalizedLabels,
     VocabularyIdentity,
@@ -14,4 +15,5 @@ __all__ = [
     "VocabularyRecord",
     "VocabularyStatus",
     "VocabularyType",
+    "validate_vocabulary",
 ]

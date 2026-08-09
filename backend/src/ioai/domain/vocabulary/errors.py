@@ -23,3 +23,7 @@ class InvalidVocabularyStatusError(VocabularyDomainError):
 
 class InvalidTopicParentError(VocabularyDomainError):
     """A topic parent reference has an invalid vocabulary type."""
+
+
+class VocabularyValidationError(VocabularyDomainError):
+    """A vocabulary collection violates an identity or graph invariant."""
