@@ -31,7 +31,12 @@ from ioai.application.problems.ports import (
     EditorialRepository,
     PublicationRepository,
 )
-from ioai.application.problems.public_queries import PublishedProblemReader
+from ioai.application.problems.public_queries import (
+    PublicProblemPage,
+    PublicProblemQuery,
+    PublicProblemSort,
+    PublishedProblemReader,
+)
 from ioai.application.problems.publication import ArchivedProblem, PublishedSnapshot
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision, ValidationReport
@@ -40,6 +45,7 @@ from ioai.domain.problems.workflow import (
     EditorialStatus,
     EditorialTransition,
 )
+from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 
 from .problem_model import (
     EditorialTransitionModel,
@@ -55,6 +61,7 @@ from .problem_model import (
     RevisionTopicModel,
     ScoringComponentModel,
 )
+from .vocabulary_model import VocabularyRecordModel
 
 StoredDraftSummary = DraftSummary
 
@@ -140,22 +147,29 @@ class SqlAlchemyPublishedProblemReader(PublishedProblemReader):
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def list_current(self, *, offset: int, limit: int) -> tuple[PublishedSnapshot, ...]:
-        statement = (
-            select(PublishedSnapshotModel)
-            .join(
-                ProblemModel,
-                ProblemModel.current_published_snapshot_id
-                == PublishedSnapshotModel.snapshot_id,
-            )
-            .order_by(
-                PublishedSnapshotModel.published_at.desc(),
-                PublishedSnapshotModel.slug,
-            )
-            .offset(offset)
-            .limit(limit)
+    def list_current(self, query: PublicProblemQuery) -> PublicProblemPage:
+        statement = select(PublishedSnapshotModel).join(
+            ProblemModel,
+            ProblemModel.current_published_snapshot_id
+            == PublishedSnapshotModel.snapshot_id,
         )
-        return tuple(_snapshot_domain(row) for row in self._session.scalars(statement))
+        rows = tuple(self._session.scalars(statement))
+        vocabulary = tuple(
+            self._session.scalars(
+                select(VocabularyRecordModel).where(
+                    VocabularyRecordModel.status == "ACTIVE"
+                )
+            )
+        )
+        matching = [
+            row for row in rows if _matches_public_query(row, query, vocabulary)
+        ]
+        matching.sort(key=lambda row: _public_sort_key(row, query.sort))
+        page_rows = matching[query.offset : query.offset + query.page_size]
+        return PublicProblemPage(
+            snapshots=tuple(_snapshot_domain(row) for row in page_rows),
+            total=len(matching),
+        )
 
     def get_current_by_slug(self, slug: str) -> PublishedSnapshot | None:
         row = self._session.scalar(
@@ -168,6 +182,169 @@ class SqlAlchemyPublishedProblemReader(PublishedProblemReader):
             .where(PublishedSnapshotModel.slug == slug)
         )
         return _snapshot_domain(row) if row is not None else None
+
+
+def _matches_public_query(
+    row: PublishedSnapshotModel,
+    query: PublicProblemQuery,
+    vocabulary: tuple[VocabularyRecordModel, ...],
+) -> bool:
+    payload = row.public_payload
+    metadata = payload.get("metadata")
+    if not isinstance(metadata, dict):
+        return not any(
+            (
+                query.stage,
+                query.competency,
+                query.topic,
+                query.difficulty,
+                query.task_type,
+                query.expected_minutes_min,
+                query.expected_minutes_max,
+                query.compute_tier,
+                query.search,
+            )
+        )
+    scalar_filters = (
+        (query.stage, _identity_code(metadata.get("stage"))),
+        (query.competency, _identity_code(metadata.get("primary_competency"))),
+        (query.difficulty, _identity_code(metadata.get("difficulty"))),
+        (query.task_type, _identity_code(metadata.get("task_type"))),
+        (query.compute_tier, _compute_tier_code(metadata)),
+    )
+    if any(
+        expected is not None and expected != actual
+        for expected, actual in scalar_filters
+    ):
+        return False
+    minutes = metadata.get("expected_minutes")
+    if not isinstance(minutes, int):
+        return False
+    if query.expected_minutes_min is not None and minutes < query.expected_minutes_min:
+        return False
+    if query.expected_minutes_max is not None and minutes > query.expected_minutes_max:
+        return False
+    if query.topic is not None:
+        selected_topics = set(_identity_codes(metadata.get("topics")))
+        accepted_topics = {query.topic}
+        if query.include_subtopics:
+            accepted_topics.update(_topic_descendants(query.topic, vocabulary))
+        if selected_topics.isdisjoint(accepted_topics):
+            return False
+    if query.search is not None and not _matches_search(
+        payload, query.search, vocabulary
+    ):
+        return False
+    return True
+
+
+def _identity_code(value: object) -> str | None:
+    if isinstance(value, list) and len(value) == 2 and isinstance(value[1], str):
+        return value[1]
+    return None
+
+
+def _identity_codes(value: object) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        return ()
+    return tuple(code for item in value if (code := _identity_code(item)) is not None)
+
+
+def _compute_tier_code(metadata: dict[str, object]) -> str | None:
+    resources = metadata.get("resources")
+    if not isinstance(resources, dict):
+        return None
+    return _identity_code(resources.get("compute_tier"))
+
+
+def _topic_descendants(
+    parent_code: str, vocabulary: tuple[VocabularyRecordModel, ...]
+) -> set[str]:
+    children: dict[str, set[str]] = {}
+    for record in vocabulary:
+        if record.vocabulary_type == "TOPIC" and record.parent_code is not None:
+            children.setdefault(record.parent_code, set()).add(record.code)
+    descendants: set[str] = set()
+    pending = list(children.get(parent_code, ()))
+    while pending:
+        code = pending.pop()
+        if code in descendants:
+            continue
+        descendants.add(code)
+        pending.extend(children.get(code, ()))
+    return descendants
+
+
+def _matches_search(
+    payload: dict[str, object],
+    search: str,
+    vocabulary: tuple[VocabularyRecordModel, ...],
+) -> bool:
+    needle = search.casefold()
+    content = payload.get("content")
+    if any(needle in text.casefold() for text in _public_strings(content)):
+        return True
+    metadata = payload.get("metadata")
+    if not isinstance(metadata, dict):
+        return False
+    referenced_codes = {
+        code
+        for code in (
+            _identity_code(metadata.get("primary_competency")),
+            *_identity_codes(metadata.get("secondary_competencies")),
+            *_identity_codes(metadata.get("topics")),
+        )
+        if code is not None
+    }
+    return any(
+        record.code in referenced_codes
+        and any(
+            needle in candidate.casefold()
+            for candidate in (record.label_en, record.label_vi, *record.aliases)
+        )
+        for record in vocabulary
+    )
+
+
+def _public_strings(value: object) -> tuple[str, ...]:
+    if isinstance(value, str):
+        return (value,)
+    if isinstance(value, dict):
+        return tuple(
+            text
+            for key, item in value.items()
+            if not str(key).endswith("_state")
+            for text in _public_strings(item)
+        )
+    if isinstance(value, list):
+        return tuple(text for item in value for text in _public_strings(item))
+    return ()
+
+
+def _public_sort_key(
+    row: PublishedSnapshotModel, sort: PublicProblemSort
+) -> tuple[object, ...]:
+    payload = row.public_payload
+    content = payload.get("content")
+    metadata = payload.get("metadata")
+    content_map = content if isinstance(content, dict) else {}
+    metadata_map = metadata if isinstance(metadata, dict) else {}
+    title = content_map.get("title")
+    title_map = title if isinstance(title, dict) else {}
+    title_en = str(title_map.get("en", "")).casefold()
+    minutes = metadata_map.get("expected_minutes")
+    expected_minutes = minutes if isinstance(minutes, int) else 2**31
+    if sort is PublicProblemSort.NEWEST:
+        return (-row.published_at.timestamp(), row.problem_id)
+    if sort is PublicProblemSort.EXPECTED_TIME:
+        return (expected_minutes, row.problem_id)
+    if sort is PublicProblemSort.TITLE:
+        return (title_en, row.problem_id)
+    editorial_order = metadata_map.get("editorial_order")
+    normalized_order = editorial_order if isinstance(editorial_order, int) else 2**31
+    difficulty = _identity_code(metadata_map.get("difficulty")) or ""
+    difficulty_rank = Release0AvailabilityPolicy().difficulty_rank(difficulty)
+    return (normalized_order, difficulty_rank, row.problem_id)
 
 
 class SqlAlchemyDraftRepository:

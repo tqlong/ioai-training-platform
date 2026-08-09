@@ -939,7 +939,7 @@ observe the required red step before implementation.
   behavior, and the impossibility of draft-revision references with PostgreSQL
   integration tests. Suggested commit:
   `feat(learn): persist attempts and problem feedback`.
-- [ ] **R0-08003 — Implement the published problem-list query from
+- [x] **R0-08003 — Implement the published problem-list query from
   `AC-R0-011-01`, `AC-R0-011-02`, and `AC-R0-011-07` through
   `AC-R0-011-11`.** Extend the application port and PostgreSQL published reader
   with bilingual title/objective/approved-label-and-alias search; canonical

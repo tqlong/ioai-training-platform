@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from enum import StrEnum
 from typing import Protocol, cast
 
 from .errors import PublishedProblemNotFoundError
@@ -17,10 +18,71 @@ class PublicProblemProjection:
     published_at: datetime
 
 
+class PublicProblemSort(StrEnum):
+    EDITORIAL = "EDITORIAL"
+    NEWEST = "NEWEST"
+    EXPECTED_TIME = "EXPECTED_TIME"
+    TITLE = "TITLE"
+
+
+@dataclass(frozen=True, slots=True)
+class PublicProblemQuery:
+    stage: str | None = None
+    competency: str | None = None
+    topic: str | None = None
+    include_subtopics: bool = False
+    difficulty: str | None = None
+    task_type: str | None = None
+    expected_minutes_min: int | None = None
+    expected_minutes_max: int | None = None
+    compute_tier: str | None = None
+    search: str | None = None
+    sort: PublicProblemSort = PublicProblemSort.EDITORIAL
+    page: int = 1
+    page_size: int = 25
+
+    def __post_init__(self) -> None:
+        if self.page < 1:
+            raise ValueError("page must be positive")
+        if self.page_size < 1 or self.page_size > 100:
+            raise ValueError("page size must be between 1 and 100")
+        if self.search is not None:
+            normalized_search = self.search.strip()
+            if not normalized_search or len(normalized_search) > 128:
+                raise ValueError("search must contain between 1 and 128 characters")
+            object.__setattr__(self, "search", normalized_search)
+        if self.expected_minutes_min is not None and self.expected_minutes_min < 1:
+            raise ValueError("minimum expected minutes must be positive")
+        if self.expected_minutes_max is not None and self.expected_minutes_max < 1:
+            raise ValueError("maximum expected minutes must be positive")
+        if (
+            self.expected_minutes_min is not None
+            and self.expected_minutes_max is not None
+            and self.expected_minutes_min > self.expected_minutes_max
+        ):
+            raise ValueError("expected minutes minimum cannot exceed maximum")
+
+    @property
+    def offset(self) -> int:
+        return (self.page - 1) * self.page_size
+
+
+@dataclass(frozen=True, slots=True)
+class PublicProblemPage:
+    snapshots: tuple[PublishedSnapshot, ...]
+    total: int
+
+
+@dataclass(frozen=True, slots=True)
+class PublicProblemProjectionPage:
+    items: tuple[PublicProblemProjection, ...]
+    total: int
+    page: int
+    page_size: int
+
+
 class PublishedProblemReader(Protocol):
-    def list_current(
-        self, *, offset: int, limit: int
-    ) -> tuple[PublishedSnapshot, ...]: ...
+    def list_current(self, query: PublicProblemQuery) -> PublicProblemPage: ...
 
     def get_current_by_slug(self, slug: str) -> PublishedSnapshot | None: ...
 
@@ -29,10 +91,15 @@ class ListPublishedProblems:
     def __init__(self, reader: PublishedProblemReader) -> None:
         self._reader = reader
 
-    def __call__(self, *, offset: int = 0, limit: int = 50):
-        return tuple(
-            project_public_snapshot(snapshot)
-            for snapshot in self._reader.list_current(offset=offset, limit=limit)
+    def __call__(self, query: PublicProblemQuery) -> PublicProblemProjectionPage:
+        page = self._reader.list_current(query)
+        return PublicProblemProjectionPage(
+            items=tuple(
+                project_public_snapshot(snapshot) for snapshot in page.snapshots
+            ),
+            total=page.total,
+            page=query.page,
+            page_size=query.page_size,
         )
 
 

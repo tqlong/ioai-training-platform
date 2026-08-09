@@ -101,3 +101,12 @@ def test_modality_policy_rejects_wrong_composite_type() -> None:
 
     assert decision.is_available is False
     assert decision.reason_code == "INVALID_POLICY_DIMENSION"
+
+
+def test_difficulty_rank_uses_release_curriculum_order() -> None:
+    policy = Release0AvailabilityPolicy()
+
+    assert policy.difficulty_rank("INTRODUCTORY") < policy.difficulty_rank("EASY")
+    assert policy.difficulty_rank("EASY") < policy.difficulty_rank("MEDIUM")
+    assert policy.difficulty_rank("MEDIUM") < policy.difficulty_rank("HARD")
+    assert policy.difficulty_rank("HARD") < policy.difficulty_rank("CHALLENGE")

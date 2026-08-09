@@ -24,6 +24,7 @@ from ioai.adapters.database.problem_repository import (
 )
 from ioai.application.problems.editorial import StartSuccessorDraft
 from ioai.application.problems.errors import RevisionConflictError
+from ioai.application.problems.public_queries import PublicProblemQuery
 from ioai.application.problems.publication import ArchiveProblem, PublishedSnapshot
 from ioai.domain.problems.assessment import (
     Choice,
@@ -340,7 +341,8 @@ def test_publication_switches_snapshot_status_history_and_idempotency_atomically
         assert problem.current_published_snapshot_id == "snapshot-01"
         reader = SqlAlchemyPublishedProblemReader(session)
         assert [
-            item.slug.value for item in reader.list_current(offset=0, limit=10)
+            item.slug.value
+            for item in reader.list_current(PublicProblemQuery(page_size=10)).snapshots
         ] == ["stable-public-url"]
         assert reader.get_current_by_slug("stable-public-url") == snapshot
 
@@ -378,7 +380,7 @@ def test_publication_switches_snapshot_status_history_and_idempotency_atomically
             == 2
         )
         reader = SqlAlchemyPublishedProblemReader(session)
-        assert reader.list_current(offset=0, limit=10) == ()
+        assert reader.list_current(PublicProblemQuery(page_size=10)).snapshots == ()
         assert reader.get_current_by_slug("stable-public-url") is None
 
     with SqlAlchemyDraftUnitOfWork(session_factory) as work:

@@ -33,6 +33,13 @@ class Release0AvailabilityPolicy:
             {"EXACT_MATCH", "UNIT_TESTS", "PARTIAL_TESTS", "RUBRIC_HUMAN"}
         ),
     }
+    _DIFFICULTY_ORDER = (
+        "INTRODUCTORY",
+        "EASY",
+        "MEDIUM",
+        "HARD",
+        "CHALLENGE",
+    )
 
     def evaluate(self, identity: VocabularyIdentity) -> AvailabilityDecision:
         vocabulary_type = identity.vocabulary_type.value
@@ -71,6 +78,13 @@ class Release0AvailabilityPolicy:
                 message="NONE cannot be combined with an actual data modality.",
             )
         return _available()
+
+    def difficulty_rank(self, code: str) -> int:
+        """Return the Release 0 curriculum order for a canonical difficulty."""
+        try:
+            return self._DIFFICULTY_ORDER.index(code)
+        except ValueError:
+            return len(self._DIFFICULTY_ORDER)
 
 
 def _available() -> AvailabilityDecision:
