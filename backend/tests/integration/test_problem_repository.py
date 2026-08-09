@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from dataclasses import replace
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -10,6 +9,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.orm import sessionmaker
+from tests.integration.database_environment import require_test_database_url
 
 from ioai.adapters.database.problem_model import (
     EditorialTransitionModel,
@@ -60,10 +60,7 @@ from ioai.domain.problems.workflow import (
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 from ioai.domain.vocabulary.values import VocabularyIdentity, VocabularyType
 
-DATABASE_URL = os.getenv(
-    "IOAI_TEST_DATABASE_URL",
-    "postgresql+psycopg://ioai:ioai@127.0.0.1:5432/ioai",
-)
+DATABASE_URL = require_test_database_url()
 NOW = datetime(2026, 8, 9, 8, 0, tzinfo=timezone.utc)
 
 

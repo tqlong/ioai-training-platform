@@ -337,9 +337,9 @@ draft.
 
 Manual acceptance does not replace automated gates. Run the Phase 6 baseline:
 
-> **Database safety:** the current migration integration suite downgrades its
-> configured database to `base`. Back up any unique local drafts before running
-> the aggregate gate, or run it against a disposable test database.
+> **Database safety:** run backend tests through `scripts/backend_test.sh`.
+> It uses the isolated `postgres-test` service and `ioai_test` database on port
+> `5433`; destructive integration tests refuse the development `ioai` database.
 
 ```bash
 bash scripts/foundation_quality.sh

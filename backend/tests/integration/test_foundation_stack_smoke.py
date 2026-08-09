@@ -7,13 +7,16 @@ from tests.fixtures.problem_fixtures import draft_problem, published_problem
 from ioai.entrypoints.api.factory import create_app
 
 
-def test_compose_declares_four_services_and_dependency_chain() -> None:
+def test_compose_declares_runtime_and_isolated_test_services() -> None:
     compose_text = Path("docker-compose.yml").read_text()
 
     assert "postgres:" in compose_text
     assert "api:" in compose_text
     assert "learn:" in compose_text
     assert "studio:" in compose_text
+    assert "postgres-test:" in compose_text
+    assert "postgres-test-data:" in compose_text
+    assert "'127.0.0.1:5433:5432'" in compose_text
     assert "depends_on:" in compose_text
     assert "postgres" in compose_text.split("api:")[1]
 

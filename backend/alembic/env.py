@@ -11,14 +11,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ioai.adapters.database import problem_model, vocabulary_model  # noqa: E402, F401
 from ioai.adapters.database.base import Base  # noqa: E402
-from ioai.adapters.database.settings import DatabaseSettings  # noqa: E402
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-TARGET_DB_URL = os.getenv("IOAI_DATABASE_URL", DatabaseSettings.from_env().url)
+TARGET_DB_URL = os.getenv("IOAI_DATABASE_URL") or config.get_main_option(
+    "sqlalchemy.url"
+)
 config.set_main_option("sqlalchemy.url", TARGET_DB_URL)
 target_metadata = Base.metadata
 

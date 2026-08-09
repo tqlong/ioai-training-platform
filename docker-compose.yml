@@ -15,6 +15,23 @@ services:
       timeout: 5s
       retries: 20
 
+  postgres-test:
+    profiles: ["test"]
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ioai_test
+      POSTGRES_PASSWORD: ioai_test
+      POSTGRES_DB: ioai_test
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5433:5432'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ioai_test -d ioai_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   api:
     image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
     working_dir: /app
@@ -81,3 +98,4 @@ services:
 
 volumes:
   postgres-data:
+  postgres-test-data:

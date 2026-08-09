@@ -9,7 +9,7 @@ uv sync --all-groups
 uv run ruff format --check .
 uv run ruff check .
 uv run pyright
-uv run pytest
+bash scripts/backend_test.sh
 
 printf 'Running frontend quality gates\n'
 CI=true pnpm install --frozen-lockfile

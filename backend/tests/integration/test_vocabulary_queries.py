@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import os
-
 import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, update
 from sqlalchemy.orm import sessionmaker
+from tests.integration.database_environment import require_test_database_url
 
 from ioai.adapters.database.vocabulary_model import VocabularyRecordModel
 from ioai.adapters.database.vocabulary_repository import (
@@ -18,10 +17,7 @@ from ioai.application.vocabulary.queries import VocabularyQuery
 from ioai.application.vocabulary.synchronize import SynchronizeVocabulary
 from ioai.domain.vocabulary.values import VocabularyIdentity, VocabularyType
 
-DATABASE_URL = os.getenv(
-    "IOAI_TEST_DATABASE_URL",
-    "postgresql+psycopg://ioai:ioai@127.0.0.1:5432/ioai",
-)
+DATABASE_URL = require_test_database_url()
 
 
 @pytest.fixture

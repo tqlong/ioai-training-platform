@@ -65,7 +65,7 @@ available.
   - `uv run ruff format --check .`
   - `uv run ruff check .`
   - `uv run pyright`
-  - `uv run pytest`
+  - `bash scripts/backend_test.sh` (isolated PostgreSQL test environment)
 - Frontend:
   - `pnpm install --frozen-lockfile`
   - `pnpm lint`
@@ -76,6 +76,7 @@ available.
 - Foundation scripts:
   - `bash scripts/foundation_quality.sh`
   - `bash scripts/foundation_migration_check.sh`
+  - `bash scripts/backend_test.sh`
   - `bash scripts/phase7_quality.sh`
   - `bash scripts/test_editorial_e2e.sh`
   - `bash scripts/public_isolation_check.sh`

@@ -34,6 +34,10 @@
 ## Recovery and maintenance
 
 - `bash scripts/foundation_quality.sh` runs baseline quality gates.
+- `bash scripts/backend_test.sh` starts a profile-scoped PostgreSQL service on
+  `127.0.0.1:5433`, uses the dedicated `ioai_test` database and volume, and
+  runs pytest. Destructive migration tests refuse a database whose name does
+  not end in `_test`; they never fall back to the development `ioai` database.
 - `bash scripts/phase7_quality.sh` stops API/frontend development services,
   runs the complete editorial-publication quality and isolation gates,
   redeploys the database/migrations/backend/frontends, and runs the focused

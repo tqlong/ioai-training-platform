@@ -38,10 +38,12 @@ already running. It covers validate, unsaved preview, submit, request changes,
 successor revision, resubmit, approve, publish confirmation and stable URL, and
 archive. Playwright retains a trace and screenshot on failure.
 
-The PostgreSQL integration suite performs migration downgrade/upgrade checks.
-As with the earlier baseline, do not run it against a database containing the
-only copy of valuable local drafts; take a backup with
-`scripts/db_backup_restore.sh backup` first.
+The PostgreSQL integration suite performs migration downgrade/upgrade checks in
+the profile-scoped `postgres-test` service, using the dedicated `ioai_test`
+database and volume on host port `5433`. The suite requires an explicit
+`IOAI_TEST_DATABASE_URL` whose database name ends in `_test` and refuses the
+development `ioai` database. Use `scripts/backend_test.sh` rather than invoking
+destructive integration tests with an ad hoc database URL.
 
 The final 2026-08-09 cold-stack baseline passed 192 pytest tests, 35 Studio
 component tests, all other frontend package tests, both Next.js production

@@ -40,9 +40,10 @@ backend formatting/lint/type checks and all pytest tests, frontend frozen-lockfi
 installation/lint/type checks/unit and component tests/production builds,
 vocabulary and OpenAPI drift checks, and the Alembic-head check.
 
-PostgreSQL integration tests explicitly downgrade to `base`, upgrade to `head`,
-exercise constraints and normalized repository transactions, then downgrade to
-`base` during teardown. `scripts/dev_redeploy.sh` subsequently recreates and
+PostgreSQL integration tests explicitly downgrade the isolated `ioai_test`
+database to `base`, upgrade to `head`, exercise constraints and normalized
+repository transactions, then downgrade that test database to `base` during
+teardown. `scripts/dev_redeploy.sh` subsequently recreates and
 waits for PostgreSQL, upgrades migrations, synchronizes vocabulary, recreates
 API/Learn/Studio, waits for health, and checks both frontend routes and API
 reads.
@@ -65,9 +66,8 @@ slug ownership, and accessible severity presentation. Regression coverage lives
 in `test_foundation_stack_smoke.py`, the problem domain tests, API-client tests,
 and Studio content/editor/validation component tests.
 
-Current migration integration coverage downgrades the configured test database
-to `base` during teardown. Until Phase 9 isolates that suite in a disposable
-database, do not point the full quality gate at a database containing unique
-local drafts without taking a backup first. The manually verified draft used
-for this hardening pass was restored under its original problem and revision
-identities after the gate.
+Migration integration coverage is isolated in the profile-scoped
+`postgres-test` service and `ioai_test` database on port `5433`. A central
+safety guard rejects missing test configuration and any database name that does
+not end in `_test`, preventing the suite from downgrading the development
+database containing local drafts.

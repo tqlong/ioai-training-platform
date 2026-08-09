@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import os
-
 import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.exc import IntegrityError
+from tests.integration.database_environment import require_test_database_url
 
-DATABASE_URL = os.getenv(
-    "IOAI_TEST_DATABASE_URL",
-    "postgresql+psycopg://ioai:ioai@127.0.0.1:5432/ioai",
-)
+DATABASE_URL = require_test_database_url()
 
 
 def alembic_config() -> Config:
