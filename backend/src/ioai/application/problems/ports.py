@@ -43,3 +43,9 @@ class DraftUnitOfWork(Protocol):
         exc: BaseException | None,
         traceback: TracebackType | None,
     ) -> None: ...
+
+
+class PublishedRevisionSource(Protocol):
+    """Phase 7 boundary for starting an edit without mutating a live snapshot."""
+
+    def revision_base(self, problem_id: ProblemId) -> ProblemRevision: ...

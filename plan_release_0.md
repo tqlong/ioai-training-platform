@@ -603,7 +603,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   add a generic reader usable by public routes. Cover rollback, ordering,
   normalized round trips, and concurrent saves with PostgreSQL tests. Suggested
   commit: `feat(authoring): persist versioned drafts`.
-- [ ] **R0-06008 — Implement draft creation, listing, and reading use cases from
+- [x] **R0-06008 — Implement draft creation, listing, and reading use cases from
   `AC-R0-013-01` through `AC-R0-013-03`, analysis section 7.1, and design
   sections 4.1 and 7.1.** Coordinate injected IDs and clocks to create an
   initial structured draft with no public URL or snapshot, return author list
