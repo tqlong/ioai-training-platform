@@ -2,7 +2,9 @@ from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
 
+from ioai.application.problems.assessment import SubmissionCommand
 from ioai.application.problems.errors import PublishedProblemNotFoundError
+from ioai.application.problems.learner_records import LearnerAttempt, LearnerOutcome
 from ioai.application.problems.public_queries import (
     PublicProblemProjection,
     PublicProblemProjectionPage,
@@ -22,6 +24,7 @@ class FakePublicProblemService:
         self.recommendation_context: RecommendationContext | None = None
         self.has_recommendation = True
         self.has_detail = True
+        self.submission: SubmissionCommand | None = None
 
     def list(self, query: PublicProblemQuery) -> PublicProblemProjectionPage:
         self.query = query
@@ -122,6 +125,22 @@ class FakePublicProblemService:
                 "choices": [{"id": "a", "content": {"en": "0.5", "vi": "0,5"}}],
             },
             published_at=item.published_at,
+        )
+
+    def assess(self, command: SubmissionCommand) -> LearnerAttempt:
+        self.submission = command
+        return LearnerAttempt(
+            attempt_id="attempt-public",
+            snapshot_id="snapshot-private",
+            submission_key=command.submission_key,
+            request_digest="a" * 64,
+            outcome=LearnerOutcome.ACCEPTED_RESULT,
+            result={
+                "score": "1.0",
+                "passed": True,
+                "components": [{"method": "EXACT_MATCH", "score": "1.0"}],
+            },
+            submitted_at=datetime(2026, 8, 9, tzinfo=UTC),
         )
 
 
@@ -227,6 +246,48 @@ def test_public_problem_detail_uses_same_safe_not_found_for_non_public_content()
         "code": "PUBLIC_NOT_FOUND",
         "message": "Problem not found.",
     }
+
+
+def test_public_submission_returns_safe_assessment_result_and_request_id() -> None:
+    service = FakePublicProblemService()
+    client = TestClient(create_app(public_problem_service=service))
+
+    response = client.post(
+        "/api/v1/problems/metrics-basics/submissions",
+        json={
+            "submission_key": "client-key-1",
+            "response": {"type": "QUIZ_SINGLE", "choice_id": "a"},
+        },
+        headers={"X-Request-ID": "submission-request-1"},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-Request-ID"] == "submission-request-1"
+    assert response.json() == {
+        "attempt_id": "attempt-public",
+        "outcome": "ACCEPTED_RESULT",
+        "score": "1.0",
+        "passed": True,
+        "components": [{"method": "EXACT_MATCH", "score": "1.0"}],
+        "message": "Your answer was assessed.",
+    }
+    assert service.submission == SubmissionCommand(
+        "metrics-basics",
+        "client-key-1",
+        {"type": "QUIZ_SINGLE", "choice_id": "a"},
+    )
+
+
+def test_public_submission_rejects_malformed_discriminated_response() -> None:
+    client = TestClient(create_app(public_problem_service=FakePublicProblemService()))
+    response = client.post(
+        "/api/v1/problems/metrics-basics/submissions",
+        json={
+            "submission_key": "client-key-1",
+            "response": {"type": "QUIZ_SINGLE"},
+        },
+    )
+    assert response.status_code == 422
 
 
 def test_public_problem_list_rejects_unknown_and_unavailable_canonical_values() -> None:

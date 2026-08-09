@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from ...adapters.database.problem_repository import (
+    SqlAlchemyAssessmentUnitOfWork,
     SqlAlchemyDraftUnitOfWork,
     SqlAlchemyPublishedProblemReader,
 )
@@ -22,6 +23,7 @@ from ...adapters.database.session import (
 from ...adapters.database.settings import DatabaseSettings
 from ...adapters.database.vocabulary_repository import SqlAlchemyVocabularyRepository
 from ...adapters.vocabulary.runtime import load_generated_vocabulary
+from ...application.problems.assessment import AssessSubmission, SubmissionCommand
 from ...application.problems.authoring import (
     CreateDraft,
     GetDraft,
@@ -240,6 +242,13 @@ class _DefaultPublicProblemService:
     def get(self, slug: str):
         with self._session_factory() as session:
             return GetPublishedProblem(SqlAlchemyPublishedProblemReader(session))(slug)
+
+    def assess(self, command: SubmissionCommand):
+        return AssessSubmission(
+            lambda: SqlAlchemyAssessmentUnitOfWork(self._session_factory),
+            lambda: str(uuid4()),
+            lambda: datetime.now(UTC),
+        )(command)
 
     def recommend(self, context: RecommendationContext):
         with self._session_factory() as session:

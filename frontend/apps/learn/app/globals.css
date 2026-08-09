@@ -149,6 +149,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid #67e8f9; outline-offs
 .response-form small { color: var(--muted); font-weight: 400; }
 .field-error { color: #991b1b; font-weight: 700; }
 .code-response pre { overflow-x: auto; border-radius: 0.45rem; padding: 0.65rem; background: #0f172a; color: white; }
+.submission-error, .assessment-result { margin-top: 0.75rem; border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.8rem; background: white; }
+.submission-error { border-color: #fca5a5; background: #fff7f7; }
+.submission-error button { min-height: 2.75rem; border: 1px solid #991b1b; border-radius: 0.45rem; padding: 0.5rem 0.8rem; background: white; color: #7f1d1d; font: inherit; font-weight: 700; }
 
 @media (max-width: 1023px) {
   .stage-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }

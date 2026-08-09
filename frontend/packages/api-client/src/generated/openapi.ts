@@ -295,6 +295,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/problems/{slug}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Problem */
+        post: operations["submit_problem_api_v1_problems__slug__submissions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/vocabulary": {
         parameters: {
             query?: never;
@@ -458,6 +475,16 @@ export interface components {
             /** Reason Code */
             reason_code: string;
         };
+        /** CodeFunctionSubmission */
+        CodeFunctionSubmission: {
+            /** Code */
+            code: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "CODE_FUNCTION";
+        };
         /** CreateDraftRequest */
         CreateDraftRequest: Record<string, never>;
         /** EditorialCommandRequest */
@@ -523,6 +550,16 @@ export interface components {
             en: string;
             /** Vi */
             vi: string;
+        };
+        /** NumericSubmission */
+        NumericSubmission: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "NUMERIC_ANSWER";
+            /** Value */
+            value: string;
         };
         /** PreviewDraftRequest */
         PreviewDraftRequest: {
@@ -753,6 +790,38 @@ export interface components {
             /** Unit */
             unit?: string | null;
         };
+        /** PublicScoreComponentResponse */
+        PublicScoreComponentResponse: {
+            /** Method */
+            method: string;
+            /** Score */
+            score: string;
+        };
+        /** PublicSubmissionRequest */
+        PublicSubmissionRequest: {
+            /** Response */
+            response: components["schemas"]["QuizSingleSubmission"] | components["schemas"]["QuizMultipleSubmission"] | components["schemas"]["NumericSubmission"] | components["schemas"]["ShortAnswerSubmission"] | components["schemas"]["CodeFunctionSubmission"];
+            /** Submission Key */
+            submission_key: string;
+        };
+        /** PublicSubmissionResponse */
+        PublicSubmissionResponse: {
+            /** Attempt Id */
+            attempt_id: string;
+            /** Components */
+            components?: components["schemas"]["PublicScoreComponentResponse"][] | null;
+            /** Message */
+            message: string;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "ACCEPTED_RESULT" | "PENDING_ASSESSMENT";
+            /** Passed */
+            passed?: boolean | null;
+            /** Score */
+            score?: string | null;
+        };
         /** PublicVocabularyRecord */
         PublicVocabularyRecord: {
             /** Aliases */
@@ -796,6 +865,26 @@ export interface components {
             /** Note */
             note: string;
         };
+        /** QuizMultipleSubmission */
+        QuizMultipleSubmission: {
+            /** Choice Ids */
+            choice_ids: string[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "QUIZ_MULTIPLE";
+        };
+        /** QuizSingleSubmission */
+        QuizSingleSubmission: {
+            /** Choice Id */
+            choice_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "QUIZ_SINGLE";
+        };
         /** RecordVocabularyProposalRequest */
         RecordVocabularyProposalRequest: {
             /** Note */
@@ -829,6 +918,16 @@ export interface components {
             } | null;
             /** Slug */
             slug?: string | null;
+        };
+        /** ShortAnswerSubmission */
+        ShortAnswerSubmission: {
+            /** Text */
+            text: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "SHORT_ANSWER";
         };
         /** StartRevisionRequest */
         StartRevisionRequest: {
@@ -1717,6 +1816,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_problem_api_v1_problems__slug__submissions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicSubmissionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicSubmissionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

@@ -3,6 +3,18 @@ import { describe, expect, it, vi } from 'vitest';
 import { createApiClient } from '../src';
 
 describe('generated vocabulary client', () => {
+  it('submits a discriminated learner answer with its retry key', async () => {
+    const fetchFn = vi.fn(async () => Response.json({ attempt_id: 'attempt-1', outcome: 'ACCEPTED_RESULT', score: '1.0', passed: true, components: [], message: 'Assessed.' }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+    const result = await client.submitPublicProblem('metrics', {
+      submission_key: 'retry-key', response: { type: 'QUIZ_SINGLE', choice_id: 'a' },
+    });
+    expect(result.outcome).toBe('ACCEPTED_RESULT');
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/problems/metrics/submissions',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ submission_key: 'retry-key', response: { type: 'QUIZ_SINGLE', choice_id: 'a' } }) }),
+    );
+  });
   it('gets one typed published problem detail by stable slug', async () => {
     const fetchFn = vi.fn(async () => Response.json({ slug: 'metrics-basics' }));
     const client = createApiClient({

@@ -1045,7 +1045,7 @@ observe the required red step before implementation.
   prematurely granting completion/evidence or exposing answers, hidden tests,
   unpublished explanations, provider errors, or draft identifiers. Suggested
   commit: `feat(scoring): assess release 0 submissions`.
-- [ ] **R0-08014 — Expose and connect learner submissions from
+- [x] **R0-08014 — Expose and connect learner submissions from
   `AC-R0-012-05` through `AC-R0-012-08`.** Add the discriminated, bounded
   `POST /api/v1/problems/{slug}/submissions` contract with a client submission
   key, stable validation/rate/dependency errors, request ID, and safe result or

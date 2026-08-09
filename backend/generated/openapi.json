@@ -331,6 +331,28 @@
         "title": "AvailabilityResponse",
         "type": "object"
       },
+      "CodeFunctionSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "type": {
+            "const": "CODE_FUNCTION",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "code"
+        ],
+        "title": "CodeFunctionSubmission",
+        "type": "object"
+      },
       "CreateDraftRequest": {
         "additionalProperties": false,
         "properties": {},
@@ -515,6 +537,28 @@
           "vi"
         ],
         "title": "LocalizedLabelsResponse",
+        "type": "object"
+      },
+      "NumericSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "const": "NUMERIC_ANSWER",
+            "title": "Type",
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "value"
+        ],
+        "title": "NumericSubmission",
         "type": "object"
       },
       "PreviewDraftRequest": {
@@ -1245,6 +1289,136 @@
         "title": "PublicResponseSchemaResponse",
         "type": "object"
       },
+      "PublicScoreComponentResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method",
+          "score"
+        ],
+        "title": "PublicScoreComponentResponse",
+        "type": "object"
+      },
+      "PublicSubmissionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "response": {
+            "discriminator": {
+              "mapping": {
+                "CODE_FUNCTION": "#/components/schemas/CodeFunctionSubmission",
+                "NUMERIC_ANSWER": "#/components/schemas/NumericSubmission",
+                "QUIZ_MULTIPLE": "#/components/schemas/QuizMultipleSubmission",
+                "QUIZ_SINGLE": "#/components/schemas/QuizSingleSubmission",
+                "SHORT_ANSWER": "#/components/schemas/ShortAnswerSubmission"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/QuizSingleSubmission"
+              },
+              {
+                "$ref": "#/components/schemas/QuizMultipleSubmission"
+              },
+              {
+                "$ref": "#/components/schemas/NumericSubmission"
+              },
+              {
+                "$ref": "#/components/schemas/ShortAnswerSubmission"
+              },
+              {
+                "$ref": "#/components/schemas/CodeFunctionSubmission"
+              }
+            ],
+            "title": "Response"
+          },
+          "submission_key": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Submission Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "submission_key",
+          "response"
+        ],
+        "title": "PublicSubmissionRequest",
+        "type": "object"
+      },
+      "PublicSubmissionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "components": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PublicScoreComponentResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Components"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "ACCEPTED_RESULT",
+              "PENDING_ASSESSMENT"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "outcome",
+          "message"
+        ],
+        "title": "PublicSubmissionResponse",
+        "type": "object"
+      },
       "PublicVocabularyRecord": {
         "additionalProperties": false,
         "properties": {
@@ -1381,6 +1555,53 @@
         "title": "PublishRevisionRequest",
         "type": "object"
       },
+      "QuizMultipleSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "choice_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Choice Ids",
+            "type": "array"
+          },
+          "type": {
+            "const": "QUIZ_MULTIPLE",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "choice_ids"
+        ],
+        "title": "QuizMultipleSubmission",
+        "type": "object"
+      },
+      "QuizSingleSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "choice_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Choice Id",
+            "type": "string"
+          },
+          "type": {
+            "const": "QUIZ_SINGLE",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "choice_id"
+        ],
+        "title": "QuizSingleSubmission",
+        "type": "object"
+      },
       "RecordVocabularyProposalRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1496,6 +1717,28 @@
           "expected_version"
         ],
         "title": "SaveDraftRequest",
+        "type": "object"
+      },
+      "ShortAnswerSubmission": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "type": {
+            "const": "SHORT_ANSWER",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "title": "ShortAnswerSubmission",
         "type": "object"
       },
       "StartRevisionRequest": {
@@ -3068,6 +3311,88 @@
           }
         },
         "summary": "Recommend Problem",
+        "tags": [
+          "public-problems"
+        ]
+      }
+    },
+    "/api/v1/problems/{slug}/submissions": {
+      "post": {
+        "operationId": "submit_problem_api_v1_problems__slug__submissions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicSubmissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSubmissionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Submit Problem",
         "tags": [
           "public-problems"
         ]

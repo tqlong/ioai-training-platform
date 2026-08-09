@@ -4,7 +4,12 @@ from typing import Protocol
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response, status
 
-from ioai.application.problems.errors import PublishedProblemNotFoundError
+from ioai.application.problems.assessment import SubmissionCommand
+from ioai.application.problems.errors import (
+    IdempotencyConflictError,
+    PublishedProblemNotFoundError,
+)
+from ioai.application.problems.learner_records import LearnerAttempt, LearnerOutcome
 from ioai.application.problems.public_queries import (
     PublicProblemProjection,
     PublicProblemProjectionPage,
@@ -34,6 +39,8 @@ from ..contracts.public_problems import (
     PublicProblemRecommendationResponse,
     PublicResourceLimitsResponse,
     PublicResponseSchemaResponse,
+    PublicSubmissionRequest,
+    PublicSubmissionResponse,
 )
 
 
@@ -41,6 +48,8 @@ class PublicProblemService(Protocol):
     def list(self, query: PublicProblemQuery) -> PublicProblemProjectionPage: ...
 
     def get(self, slug: str) -> PublicProblemProjection: ...
+
+    def assess(self, command: SubmissionCommand) -> LearnerAttempt: ...
 
     def recommend(
         self, context: RecommendationContext
@@ -208,6 +217,59 @@ def public_problem_router(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail={"code": "PUBLIC_NOT_FOUND", "message": "Problem not found."},
             ) from error
+
+    @router.post(
+        "/{slug}/submissions",
+        response_model=PublicSubmissionResponse,
+        response_model_exclude_none=True,
+        responses={
+            404: {"model": ErrorResponse},
+            409: {"model": ErrorResponse},
+            422: {"model": ErrorResponse},
+            503: {"model": ErrorResponse},
+        },
+    )
+    def submit_problem(
+        slug: str, request: PublicSubmissionRequest
+    ) -> PublicSubmissionResponse:
+        try:
+            attempt = service.assess(
+                SubmissionCommand(
+                    slug, request.submission_key, request.response.model_dump()
+                )
+            )
+        except PublishedProblemNotFoundError as error:
+            raise HTTPException(
+                status_code=404,
+                detail={"code": "PUBLIC_NOT_FOUND", "message": "Problem not found."},
+            ) from error
+        except IdempotencyConflictError as error:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "code": "SUBMISSION_KEY_CONFLICT",
+                    "message": (
+                        "This submission key was already used for a different answer."
+                    ),
+                },
+            ) from error
+        except ValueError as error:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "INVALID_SUBMISSION", "message": str(error)},
+            ) from error
+        except RuntimeError as error:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "ASSESSMENT_UNAVAILABLE",
+                    "message": (
+                        "Assessment is temporarily unavailable. Retry with the same "
+                        "submission key."
+                    ),
+                },
+            ) from error
+        return _submission_response(attempt)
 
     return router
 
@@ -415,4 +477,32 @@ def _recommendation_response(
         compute_tier_code=value.compute_tier_code,
         label=value.label,
         reason=value.reason,
+    )
+
+
+def _submission_response(attempt: LearnerAttempt) -> PublicSubmissionResponse:
+    if attempt.outcome is LearnerOutcome.PENDING_ASSESSMENT:
+        return PublicSubmissionResponse(
+            attempt_id=attempt.attempt_id,
+            outcome=attempt.outcome.value,
+            message="Your answer is waiting for assessment.",
+        )
+    score = attempt.result.get("score")
+    passed = attempt.result.get("passed")
+    components = attempt.result.get("components")
+    if (
+        not isinstance(score, str)
+        or not isinstance(passed, bool)
+        or not isinstance(components, list)
+    ):
+        raise ValueError("stored assessment result is malformed")
+    return PublicSubmissionResponse.model_validate(
+        {
+            "attempt_id": attempt.attempt_id,
+            "outcome": attempt.outcome.value,
+            "score": score,
+            "passed": passed,
+            "components": components,
+            "message": "Your answer was assessed.",
+        }
     )

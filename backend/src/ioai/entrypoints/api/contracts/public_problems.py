@@ -1,8 +1,71 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+
+class QuizSingleSubmission(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["QUIZ_SINGLE"]
+    choice_id: str = Field(min_length=1, max_length=128)
+
+
+class QuizMultipleSubmission(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["QUIZ_MULTIPLE"]
+    choice_ids: list[str] = Field(min_length=1, max_length=100)
+
+
+class NumericSubmission(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["NUMERIC_ANSWER"]
+    value: str = Field(min_length=1, max_length=256)
+
+
+class ShortAnswerSubmission(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["SHORT_ANSWER"]
+    text: str = Field(min_length=1, max_length=4000)
+
+
+class CodeFunctionSubmission(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: Literal["CODE_FUNCTION"]
+    code: str = Field(min_length=1, max_length=20_000)
+
+
+PublicSubmission = Annotated[
+    QuizSingleSubmission
+    | QuizMultipleSubmission
+    | NumericSubmission
+    | ShortAnswerSubmission
+    | CodeFunctionSubmission,
+    Field(discriminator="type"),
+]
+
+
+class PublicSubmissionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    submission_key: str = Field(min_length=1, max_length=200)
+    response: PublicSubmission
+
+
+class PublicScoreComponentResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    method: str
+    score: str
+
+
+class PublicSubmissionResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    attempt_id: str
+    outcome: Literal["ACCEPTED_RESULT", "PENDING_ASSESSMENT"]
+    score: str | None = None
+    passed: bool | None = None
+    components: list[PublicScoreComponentResponse] | None = None
+    message: str
 
 
 class PublicLocalizedTextResponse(BaseModel):
