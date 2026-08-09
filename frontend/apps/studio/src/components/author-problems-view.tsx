@@ -24,17 +24,44 @@ export function AuthorProblemsView({
   const [starting, setStarting] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
   const [archived, setArchived] = useState<Set<string>>(new Set());
+  const [expandedProblems, setExpandedProblems] = useState<Set<string>>(new Set());
   const [archiveTarget, setArchiveTarget] = useState<AuthorDraftList['items'][number] | null>(null);
   const [archiveNote, setArchiveNote] = useState('');
   const [archiving, setArchiving] = useState(false);
   const archiveTrigger = useRef<HTMLButtonElement | null>(null);
   const archiveNoteInput = useRef<HTMLTextAreaElement>(null);
-  const items = useMemo(() => result.items.map((item) => archived.has(item.problem_id) ? { ...item, editorial_status: 'ARCHIVED' } : item), [archived, result.items]);
-  const filtered = useMemo(() => items.filter((draft) => {
+  const items = useMemo(() => result.items.map((item) => archived.has(item.revision_id) ? { ...item, editorial_status: 'ARCHIVED' } : item), [archived, result.items]);
+  const groups = useMemo(() => {
+    const byProblem = new Map<string, typeof items>();
+    items.forEach((item) => {
+      const revisions = byProblem.get(item.problem_id) ?? [];
+      revisions.push(item);
+      byProblem.set(item.problem_id, revisions);
+    });
+    return Array.from(byProblem, ([problemId, revisions]) => ({
+      problemId,
+      revisions: revisions.sort((left, right) => (
+        Date.parse(right.last_saved_at) - Date.parse(left.last_saved_at)
+        || right.revision_id.localeCompare(left.revision_id)
+      )),
+    })).sort((left, right) => (
+      Date.parse(right.revisions[0]!.last_saved_at) - Date.parse(left.revisions[0]!.last_saved_at)
+      || left.problemId.localeCompare(right.problemId)
+    ));
+  }, [items]);
+  const filtered = useMemo(() => groups.filter((group) => {
     const needle = search.trim().toLocaleLowerCase();
-    const matchesSearch = !needle || draft.problem_id.toLocaleLowerCase().includes(needle) || draft.revision_id.toLocaleLowerCase().includes(needle);
-    return matchesSearch && (status === 'ALL' || draft.editorial_status === status);
-  }), [items, search, status]);
+    const latest = group.revisions[0]!;
+    const matchesSearch = !needle || group.problemId.toLocaleLowerCase().includes(needle)
+      || group.revisions.some((revision) => revision.revision_id.toLocaleLowerCase().includes(needle));
+    return matchesSearch && (status === 'ALL' || latest.editorial_status === status);
+  }), [groups, search, status]);
+  const toggleRevisions = (problemId: string) => setExpandedProblems((current) => {
+    const next = new Set(current);
+    if (next.has(problemId)) next.delete(problemId);
+    else next.add(problemId);
+    return next;
+  });
   const setStatusFilter = (next: string) => setStatus(next);
   const beginRevision = async (item: AuthorDraftList['items'][number]) => {
     setStarting(item.revision_id);
@@ -67,7 +94,7 @@ export function AuthorProblemsView({
         actor_context: 'local-reviewer',
         operation_id: globalThis.crypto?.randomUUID?.() ?? `archive-${archiveTarget.version}`,
       });
-      setArchived((current) => new Set(current).add(archiveTarget.problem_id));
+      setArchived((current) => new Set(current).add(archiveTarget.revision_id));
       setArchiveTarget(null); setArchiveNote('');
     } catch {
       setActionError('The published problem could not be archived. Reload and try again.');
@@ -96,7 +123,7 @@ export function AuthorProblemsView({
       </div>
 
       <div aria-label="Problem status" className="status-tabs" role="group">
-        <button aria-pressed={status === 'ALL'} onClick={() => setStatusFilter('ALL')} type="button">All ({result.count})</button>
+        <button aria-pressed={status === 'ALL'} onClick={() => setStatusFilter('ALL')} type="button">All ({groups.length})</button>
         <button aria-pressed={status === 'DRAFT'} onClick={() => setStatusFilter('DRAFT')} type="button">Draft</button>
         <button aria-pressed={status === 'IN_REVIEW'} onClick={() => setStatusFilter('IN_REVIEW')} type="button">In review</button>
         <button aria-pressed={status === 'CHANGES_REQUESTED'} onClick={() => setStatusFilter('CHANGES_REQUESTED')} type="button">Changes requested</button>
@@ -140,21 +167,33 @@ export function AuthorProblemsView({
                 <th scope="col"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
-              {filtered.map((draft) => (
-                <tr key={draft.revision_id}>
-                  <td><code>{draft.problem_id}</code></td>
-                  <td><span className="status-label">{formatStatus(draft.editorial_status)}</span></td>
-                  <td><code>{draft.revision_id}</code> · v{draft.version}</td>
-                  <td><time dateTime={draft.last_saved_at}>{formatDate(draft.last_saved_at)}</time></td>
-                  <td>{formatValidation(draft.validation_summary)}</td>
-                  <td><div className="row-actions">{['PUBLISHED', 'ARCHIVED', 'CHANGES_REQUESTED'].includes(draft.editorial_status)
-                    ? <button disabled={starting !== null} onClick={() => { void beginRevision(draft); }} type="button">{starting === draft.revision_id ? 'Starting draft…' : draft.editorial_status === 'PUBLISHED' ? 'Edit as new draft' : draft.editorial_status === 'ARCHIVED' ? 'Create new draft' : 'Address changes'}</button>
-                    : <Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link>}
-                    {draft.editorial_status === 'PUBLISHED' && <button onClick={(event) => { archiveTrigger.current = event.currentTarget; setArchiveTarget(draft); window.setTimeout(() => archiveNoteInput.current?.focus(), 0); }} type="button">Archive</button>}</div></td>
-                </tr>
-              ))}
-            </tbody>
+            {filtered.map((group) => {
+              const expanded = expandedProblems.has(group.problemId);
+              const visibleRevisions = expanded ? group.revisions : group.revisions.slice(0, 1);
+              const controlsId = `problem-revisions-${group.problemId}`;
+              return <tbody id={controlsId} key={group.problemId}>
+                {visibleRevisions.map((draft, index) => (
+                  <tr key={draft.revision_id}>
+                    <td><code>{draft.problem_id}</code></td>
+                    <td><span className="status-label">{formatStatus(draft.editorial_status)}</span></td>
+                    <td><code>{draft.revision_id}</code> · v{draft.version}</td>
+                    <td><time dateTime={draft.last_saved_at}>{formatDate(draft.last_saved_at)}</time></td>
+                    <td>{formatValidation(draft.validation_summary)}</td>
+                    <td><div className="row-actions">{['PUBLISHED', 'ARCHIVED', 'CHANGES_REQUESTED'].includes(draft.editorial_status)
+                      ? <button disabled={starting !== null} onClick={() => { void beginRevision(draft); }} type="button">{starting === draft.revision_id ? 'Starting draft…' : draft.editorial_status === 'PUBLISHED' ? 'Edit as new draft' : draft.editorial_status === 'ARCHIVED' ? 'Create new draft' : 'Address changes'}</button>
+                      : <Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link>}
+                      {draft.editorial_status === 'PUBLISHED' && <button onClick={(event) => { archiveTrigger.current = event.currentTarget; setArchiveTarget(draft); window.setTimeout(() => archiveNoteInput.current?.focus(), 0); }} type="button">Archive</button>}
+                      {index === 0 && group.revisions.length > 1 && <button
+                        aria-controls={controlsId}
+                        aria-expanded={expanded}
+                        onClick={() => toggleRevisions(group.problemId)}
+                        type="button"
+                      >{expanded ? 'Hide revision history' : `Show all ${group.revisions.length} revisions`}</button>}
+                    </div></td>
+                  </tr>
+                ))}
+              </tbody>;
+            })}
           </table>
         </div>
       )}

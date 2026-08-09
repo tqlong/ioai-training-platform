@@ -387,6 +387,13 @@ Status | Problem | Stage · Difficulty | Type | Owner | Updated | Validation | A
 
 Default tabs are Drafts, In review, Published, and All. Search covers title, ID, slug, and canonical codes. Row actions are Edit, Preview, Duplicate as draft, and Archive. “New problem” is the only primary action.
 
+Group revisions by stable problem identity. Each problem occupies one row by
+default and shows its latest revision. When more than one revision exists, the
+latest row provides **Show all N revisions**; activating it expands that group
+into N rows without mixing histories from other problems, and a corresponding
+collapse action restores the single latest row. Status filtering uses the
+latest revision while revision-ID search may match any revision in the group.
+
 ## 8. Core interaction rules
 
 - Use visible labels; placeholders are examples, not labels.

@@ -49,6 +49,50 @@ describe('IOAI Studio author problem list', () => {
     expect(screen.getByText('No matching author problems')).toBeTruthy();
   });
 
+  it('collapses each problem to its latest revision and expands its history', () => {
+    const revisions: AuthorDraftList = {
+      count: 3,
+      items: [
+        {
+          ...result.items[0]!,
+          revision_id: 'revision-latest',
+          version: 5,
+          editorial_status: 'ARCHIVED',
+          last_saved_at: '2026-08-09T06:45:53Z',
+        },
+        {
+          ...result.items[0]!,
+          revision_id: 'revision-older',
+          version: 4,
+          editorial_status: 'CHANGES_REQUESTED',
+          last_saved_at: '2026-08-09T06:45:35Z',
+        },
+        {
+          ...result.items[0]!,
+          problem_id: 'problem-2',
+          revision_id: 'revision-other',
+          last_saved_at: '2026-08-09T06:46:00Z',
+        },
+      ],
+    };
+    render(<AuthorProblemsView result={revisions} />);
+
+    expect(screen.getByText('revision-latest', { exact: false })).toBeTruthy();
+    expect(screen.queryByText('revision-older', { exact: false })).toBeNull();
+    expect(screen.getByText('revision-other', { exact: false })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Show all 2 revisions' })
+      .getAttribute('aria-expanded')).toBe('false');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 2 revisions' }));
+
+    expect(screen.getByText('revision-older', { exact: false })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Hide revision history' })
+      .getAttribute('aria-expanded')).toBe('true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hide revision history' }));
+    expect(screen.queryByText('revision-older', { exact: false })).toBeNull();
+  });
+
   it('starts a private successor before editing published content', async () => {
     const published = {
       ...result.items[0]!, editorial_status: 'PUBLISHED', version: 4,
