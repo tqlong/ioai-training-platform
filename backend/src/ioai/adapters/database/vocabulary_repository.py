@@ -6,6 +6,8 @@ from typing import Self
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
+from ioai.application.vocabulary.queries import VocabularyQuery
+from ioai.domain.vocabulary.normalization import normalize_vocabulary_text
 from ioai.domain.vocabulary.values import (
     LocalizedLabels,
     VocabularyIdentity,
@@ -27,6 +29,40 @@ class SqlAlchemyVocabularyRepository:
             VocabularyRecordModel.code,
         )
         return tuple(_to_domain(row) for row in self._session.scalars(statement))
+
+    def get(self, identity: VocabularyIdentity) -> VocabularyRecord | None:
+        key = (identity.vocabulary_type.value, identity.code)
+        row = self._session.get(VocabularyRecordModel, key)
+        return _to_domain(row) if row is not None else None
+
+    def query(self, query: VocabularyQuery) -> tuple[VocabularyRecord, ...]:
+        records = tuple(
+            record
+            for record in self.list_records()
+            if record.identity.vocabulary_type.value == query.vocabulary_type
+        )
+        if query.root_code is not None:
+            records = _select_hierarchy(records, query)
+        if query.search and query.search.strip():
+            needle = normalize_vocabulary_text(query.search)
+            records = tuple(
+                record
+                for record in records
+                if any(
+                    needle in normalize_vocabulary_text(term)
+                    for term in (record.labels.en, record.labels.vi, *record.aliases)
+                )
+            )
+        return records[: query.limit]
+
+    def breadcrumbs(self, identity: VocabularyIdentity) -> tuple[VocabularyRecord, ...]:
+        by_identity = {record.identity: record for record in self.list_records()}
+        current = by_identity.get(identity)
+        path: list[VocabularyRecord] = []
+        while current is not None:
+            path.append(current)
+            current = by_identity.get(current.parent) if current.parent else None
+        return tuple(reversed(path))
 
     def add(self, record: VocabularyRecord) -> None:
         self._session.add(_to_model(record))
@@ -114,3 +150,33 @@ def _to_model(record: VocabularyRecord) -> VocabularyRecordModel:
         ),
         parent_code=record.parent.code if record.parent else None,
     )
+
+
+def _select_hierarchy(
+    records: tuple[VocabularyRecord, ...], query: VocabularyQuery
+) -> tuple[VocabularyRecord, ...]:
+    root_identity = VocabularyIdentity(
+        VocabularyType(query.vocabulary_type), query.root_code or ""
+    )
+    by_identity = {record.identity: record for record in records}
+    root = by_identity.get(root_identity)
+    if root is None:
+        return ()
+    if not query.include_descendants:
+        return (root,)
+
+    children: dict[VocabularyIdentity, list[VocabularyRecord]] = {}
+    for record in records:
+        if record.parent is not None:
+            children.setdefault(record.parent, []).append(record)
+    for siblings in children.values():
+        siblings.sort(key=lambda record: record.identity.code)
+
+    ordered = [root]
+    pending = [root]
+    while pending:
+        parent = pending.pop(0)
+        descendants = children.get(parent.identity, [])
+        ordered.extend(descendants)
+        pending.extend(descendants)
+    return tuple(ordered)

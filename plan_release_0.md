@@ -489,7 +489,7 @@ requirements `R0-010` through `R0-016`, analysis section 5, and design section
   rollback, update, and identity-change behavior with PostgreSQL integration
   tests, then wire the existing deterministic vocabulary seed command to this
   use case. Suggested commit: `feat(vocabulary): synchronize canonical records`.
-- [ ] **R0-05009 — Implement hierarchical and bilingual vocabulary queries from
+- [x] **R0-05009 — Implement hierarchical and bilingual vocabulary queries from
   R0-011, R0-013, `AC-R0-011-07` through `AC-R0-011-08`,
   `AC-R0-013-07` through `AC-R0-013-09`, analysis sections 5.2-5.3 and 9,
   and design sections 5.2 and 6.** Test repository behavior for type-scoped
