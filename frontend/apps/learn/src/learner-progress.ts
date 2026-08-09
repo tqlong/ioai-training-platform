@@ -21,12 +21,14 @@ export type LearnerProgress = {
   currentPath?: { label: string; completed: number; total: number };
   prerequisites: string[];
   suggestedTopics: Array<{ code: string; label: string }>;
+  continuationTransitions: number;
+  lastContinuation?: { from: string; to: string };
 };
 export type ProgressStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 export type ProgressRead = { state: LearnerProgress; available: boolean; corrupt: boolean };
 export type ProgressEvent = { slug: string; title: string; status: TaskStatus; evidence?: LearningEvidence; elapsedSeconds?: number; hintCount?: number };
 
-const empty = (): LearnerProgress => ({ schemaVersion: 1, problems: {}, recentCompleted: [], prerequisites: [], suggestedTopics: [] });
+const empty = (): LearnerProgress => ({ schemaVersion: 1, problems: {}, recentCompleted: [], prerequisites: [], suggestedTopics: [], continuationTransitions: 0 });
 
 export const parseLearnerProgress = (raw: string | null): LearnerProgress | null => {
   if (!raw || raw.length > MAX_BYTES) return null;
@@ -56,6 +58,10 @@ export const parseLearnerProgress = (raw: string | null): LearnerProgress | null
       suggestedTopics: Array.isArray(value.suggestedTopics)
         ? value.suggestedTopics.filter((item): item is { code: string; label: string } => record(item) && short(item.code) && short(item.label)).slice(0, 2)
         : [],
+      continuationTransitions: bounded(value.continuationTransitions, 10_000)
+        ? value.continuationTransitions : 0,
+      lastContinuation: record(value.lastContinuation) && short(value.lastContinuation.from) && short(value.lastContinuation.to)
+        ? { from: value.lastContinuation.from, to: value.lastContinuation.to } : undefined,
     };
   } catch { return null; }
 };
@@ -96,6 +102,19 @@ export const createLearnerProgressAdapter = (storage: ProgressStorage) => ({
       if (encoded.length > MAX_BYTES) return { state: current.state, available: true, corrupt: false };
       storage.setItem(LEARNER_PROGRESS_KEY, encoded);
       window.dispatchEvent(new CustomEvent('ioai-progress', { detail: state }));
+      return { state, available: true, corrupt: false };
+    } catch { return { state: current.state, available: false, corrupt: false }; }
+  },
+  recordTransition(from: string, to: string): ProgressRead {
+    const current = this.read();
+    if (!current.available || !short(from) || !short(to)) return current;
+    const state: LearnerProgress = {
+      ...current.state,
+      continuationTransitions: Math.min(10_000, current.state.continuationTransitions + 1),
+      lastContinuation: { from, to },
+    };
+    try {
+      storage.setItem(LEARNER_PROGRESS_KEY, JSON.stringify(state));
       return { state, available: true, corrupt: false };
     } catch { return { state: current.state, available: false, corrupt: false }; }
   },

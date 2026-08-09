@@ -1075,7 +1075,7 @@ observe the required red step before implementation.
   repeated, unpublished-target, and storage-failure requests create no partial
   or unbounded records and reveal no moderation data. Suggested commit:
   `feat(feedback): accept anonymous problem reports`.
-- [ ] **R0-08017 — Complete the feedback and continue-next UI from
+- [x] **R0-08017 — Complete the feedback and continue-next UI from
   `AC-R0-012-12` through `AC-R0-012-17`.** Put an accessible feedback mechanism
   on every public problem, with visible category/message labels, bounded input,
   keyboard-safe dialog focus/return, and clear success, validation, retry, and

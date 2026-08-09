@@ -39,7 +39,7 @@ describe('permanent learner problem detail', () => {
     expect(screen.getByText('Calculate precision.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Show hint 1' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Your response' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Report a problem' })).toHaveAttribute('href', '#problem-feedback');
+    expect(screen.getByRole('button', { name: 'Report a problem' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to problem library' })).toHaveAttribute('href', '/problems?stage=AI_1_FOUNDATIONS');
     expect(document.body.textContent).not.toContain('revision_id');
   });

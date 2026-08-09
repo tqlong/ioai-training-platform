@@ -38,6 +38,10 @@ describe('versioned anonymous learner progress', () => {
     adapter.record({ slug: 'metrics', title: 'Metrics', status: 'COMPLETED', evidence: 'APPLIED' });
     expect(adapter.read().state.problems.metrics).toEqual({ status: 'COMPLETED', evidence: 'APPLIED' });
     expect(adapter.read().state.recentCompleted).toEqual([{ slug: 'metrics', title: 'Metrics' }]);
+    adapter.recordTransition('metrics', 'next');
+    expect(adapter.read().state).toEqual(expect.objectContaining({
+      continuationTransitions: 1, lastContinuation: { from: 'metrics', to: 'next' },
+    }));
     expect(storage.value).not.toContain('response');
   });
 

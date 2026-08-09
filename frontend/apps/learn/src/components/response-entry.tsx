@@ -14,6 +14,7 @@ type Props = {
   schema: PublicProblemDetail['response_schema'];
   submit?: Submit;
   keyGenerator?: () => string;
+  onResult?: (result: PublicSubmissionResult) => void;
 };
 
 export function ResponseEntry({
@@ -22,6 +23,7 @@ export function ResponseEntry({
   schema,
   submit = (problemSlug, request) => learnApi.submitPublicProblem(problemSlug, request),
   keyGenerator = () => crypto.randomUUID(),
+  onResult,
 }: Props) {
   const [result, setResult] = useState<PublicSubmissionResult>();
   const [error, setError] = useState(false);
@@ -41,6 +43,7 @@ export function ResponseEntry({
         response: answer,
       });
       setResult(assessed);
+      onResult?.(assessed);
       browserProgressAdapter()?.record({
         slug, title,
         status: assessed.outcome === 'ACCEPTED_RESULT' && assessed.passed
