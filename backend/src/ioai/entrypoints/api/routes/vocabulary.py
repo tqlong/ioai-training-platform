@@ -57,7 +57,7 @@ def vocabulary_router(
         )
         with reader_factory() as reader:
             items = [
-                _public_record(item)
+                _public_record(item, availability_policy)
                 for item in QueryVocabulary(reader)(query, active_only=True)
             ]
         return PublicVocabularyResponse(items=items, count=len(items))
@@ -91,14 +91,23 @@ def vocabulary_router(
     return router
 
 
-def _public_record(item: VocabularyQueryItem) -> PublicVocabularyRecord:
+def _public_record(
+    item: VocabularyQueryItem,
+    policy: Release0AvailabilityPolicy,
+) -> PublicVocabularyRecord:
     record = item.record
+    decision = policy.evaluate(record.identity)
     return PublicVocabularyRecord(
         identity=_identity(record.identity),
         labels=LocalizedLabelsResponse(en=record.labels.en, vi=record.labels.vi),
         aliases=list(record.aliases),
         parent_identity=_identity(record.parent) if record.parent else None,
         breadcrumbs=[_identity(ancestor.identity) for ancestor in item.breadcrumbs],
+        availability=AvailabilityResponse(
+            is_available=decision.is_available,
+            reason_code=decision.reason_code,
+            message=decision.message,
+        ),
     )
 
 
@@ -107,16 +116,10 @@ def _author_record(
     policy: Release0AvailabilityPolicy,
 ) -> AuthorVocabularyRecord:
     record = item.record
-    public = _public_record(item)
-    decision = policy.evaluate(record.identity)
+    public = _public_record(item, policy)
     return AuthorVocabularyRecord(
         **public.model_dump(),
         status=record.status.value,
-        availability=AvailabilityResponse(
-            is_available=decision.is_available,
-            reason_code=decision.reason_code,
-            message=decision.message,
-        ),
     )
 
 

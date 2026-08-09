@@ -74,7 +74,7 @@ def test_public_vocabulary_read_returns_active_canonical_projection_only() -> No
     item = payload["items"][0]
     assert set(item["identity"]) == {"vocabulary_type", "code"}
     assert set(item["labels"]) == {"en", "vi"}
-    assert "is_available" not in item
+    assert item["availability"]["is_available"] is True
     assert "status" not in item
     assert "proposal" not in str(payload).lower()
 
@@ -140,7 +140,7 @@ def test_openapi_separates_public_and_author_vocabulary_schemas() -> None:
     assert "/api/v1/author/vocabulary" in schema["paths"]
     public_schema = str(schema["components"]["schemas"]["PublicVocabularyRecord"])
     author_schema = str(schema["components"]["schemas"]["AuthorVocabularyRecord"])
-    assert "availability" not in public_schema
+    assert "availability" in public_schema
     assert "status" not in public_schema
     assert "availability" in author_schema
     assert "VocabularyRecordModel" not in str(schema)

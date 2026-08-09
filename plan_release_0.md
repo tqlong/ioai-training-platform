@@ -968,7 +968,7 @@ observe the required red step before implementation.
   current-problem exclusion without inferring mastery. Return one permanent URL
   and plain-language reason, or a safe empty outcome; regenerate and verify the
   client. Suggested commit: `feat(learn): recommend the next public problem`.
-- [ ] **R0-08006 — Replace the fixture library with URL-owned discovery from
+- [x] **R0-08006 — Replace the fixture library with URL-owned discovery from
   `AC-R0-011-04` through `AC-R0-011-11`.** Connect `/problems` only through the
   generated public client; implement canonical stage selection with enabled
   pilot stages and explained disabled “Coming next” stages, compact search and

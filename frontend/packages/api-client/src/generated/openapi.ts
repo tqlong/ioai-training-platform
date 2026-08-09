@@ -628,6 +628,7 @@ export interface components {
         PublicVocabularyRecord: {
             /** Aliases */
             aliases: string[];
+            availability: components["schemas"]["AvailabilityResponse"];
             /** Breadcrumbs */
             breadcrumbs: components["schemas"]["VocabularyIdentityResponse"][];
             identity: components["schemas"]["VocabularyIdentityResponse"];

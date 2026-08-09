@@ -279,8 +279,8 @@
           "aliases",
           "parent_identity",
           "breadcrumbs",
-          "status",
-          "availability"
+          "availability",
+          "status"
         ],
         "title": "AuthorVocabularyRecord",
         "type": "object"
@@ -874,6 +874,9 @@
             "title": "Aliases",
             "type": "array"
           },
+          "availability": {
+            "$ref": "#/components/schemas/AvailabilityResponse"
+          },
           "breadcrumbs": {
             "items": {
               "$ref": "#/components/schemas/VocabularyIdentityResponse"
@@ -903,7 +906,8 @@
           "labels",
           "aliases",
           "parent_identity",
-          "breadcrumbs"
+          "breadcrumbs",
+          "availability"
         ],
         "title": "PublicVocabularyRecord",
         "type": "object"

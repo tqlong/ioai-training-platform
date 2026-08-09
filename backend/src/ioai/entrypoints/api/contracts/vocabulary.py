@@ -33,11 +33,11 @@ class PublicVocabularyRecord(BaseModel):
     aliases: list[str]
     parent_identity: VocabularyIdentityResponse | None
     breadcrumbs: list[VocabularyIdentityResponse]
+    availability: AvailabilityResponse
 
 
 class AuthorVocabularyRecord(PublicVocabularyRecord):
     status: str
-    availability: AvailabilityResponse
 
 
 class PublicVocabularyResponse(BaseModel):

@@ -43,7 +43,7 @@ def test_public_vocabulary_schema_does_not_expose_author_fields() -> None:
     openapi = app.openapi()
 
     public_schema = openapi["components"]["schemas"]["PublicVocabularyRecord"]
-    assert "availability" not in public_schema["properties"]
+    assert "availability" in public_schema["properties"]
     assert "status" not in public_schema["properties"]
 
 
