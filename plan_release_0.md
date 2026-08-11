@@ -1151,7 +1151,7 @@ observe the required red step before implementation.
   generated TypeScript types, and prove contract drift. Private rubric fields,
   receipt digests, hidden answers, and decision internals must not leak.
   Suggested commit: `feat(api): expose manual assessment contracts`.
-- [ ] **R0-08109 — Build the Studio assessment queue.** Add
+- [x] **R0-08109 — Build the Studio assessment queue.** Add
   `/author/assessments` with distinct Assessment queue navigation,
   pending/history views, filters, oldest-pending ordering, accessible rubric
   controls, optional criterion/overall feedback, confirmation, conflict

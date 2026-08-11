@@ -15,6 +15,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <nav aria-label="Primary">
             <Link href="/author/problems">IOAI Studio</Link>
             <span>•</span>
+            <Link href="/author/assessments">Assessment queue</Link>
+            <span>•</span>
             <Link href="/">Home</Link>
           </nav>
         </header>
