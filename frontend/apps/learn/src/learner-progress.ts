@@ -118,6 +118,21 @@ export const createLearnerProgressAdapter = (storage: ProgressStorage) => ({
       return { state, available: true, corrupt: false };
     } catch { return { state: current.state, available: false, corrupt: false }; }
   },
+  reconcile(event: ProgressEvent): ProgressRead {
+    const current = this.read();
+    if (!current.available || !short(event.slug) || !short(event.title)) return current;
+    const previous = current.state.problems[event.slug];
+    const problems = { ...current.state.problems, [event.slug]: { ...previous, status: event.status } };
+    const recentCompleted = event.status === 'COMPLETED'
+      ? [{ slug: event.slug, title: event.title }, ...current.state.recentCompleted.filter(item => item.slug !== event.slug)].slice(0, 3)
+      : current.state.recentCompleted.filter(item => item.slug !== event.slug);
+    const state = { ...current.state, problems, recentCompleted };
+    try {
+      storage.setItem(LEARNER_PROGRESS_KEY, JSON.stringify(state));
+      window.dispatchEvent(new CustomEvent('ioai-progress', { detail: state }));
+      return { state, available: true, corrupt: false };
+    } catch { return { state: current.state, available: false, corrupt: false }; }
+  },
 });
 
 export const browserProgressAdapter = () => {

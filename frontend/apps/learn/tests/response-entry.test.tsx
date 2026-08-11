@@ -22,6 +22,8 @@ it('retries safely with one key and renders actionable assessment feedback', asy
   await waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
   expect(submit.mock.calls[0][1].submission_key).toBe('stable-key');
   expect(submit.mock.calls[1][1].submission_key).toBe('stable-key');
+  expect(submit.mock.calls[0][1].receipt).toBe('stable-key');
+  expect(submit.mock.calls[1][1].receipt).toBe('stable-key');
 });
 
 it('renders pending assessment without claiming completion', async () => {

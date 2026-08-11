@@ -1158,7 +1158,7 @@ observe the required red step before implementation.
   recovery, decision history, and append-only correction UI. Keep editorial
   review terminology separate. Suggested commit:
   `feat(studio): build assessment queue`.
-- [ ] **R0-08110 — Add learner submission history and result pages.** Maintain
+- [x] **R0-08110 — Add learner submission history and result pages.** Maintain
   at most the latest 100 receipt-backed records on the current device and add
   `/submissions` plus `/submissions/[attempt_id]`. Refresh status securely,
   display the submitted answer and learner-safe rubric result, and reconcile

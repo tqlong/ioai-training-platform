@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 
 import { learnApi } from '../api';
 import { browserProgressAdapter } from '../learner-progress';
+import { recordSubmission } from '../submission-history';
 import { ResponseForm, type LearnerResponse } from './response-form';
 
 type Submit = (slug: string, request: PublicSubmissionRequest) => Promise<PublicSubmissionResult>;
@@ -30,20 +31,24 @@ export function ResponseEntry({
   const [pending, setPending] = useState(false);
   const response = useRef<LearnerResponse>();
   const submissionKey = useRef<string>();
+  const receipt = useRef<string>();
 
   const send = async (answer: LearnerResponse) => {
     if (pending) return;
     response.current = answer;
     submissionKey.current ??= keyGenerator();
+    receipt.current ??= keyGenerator();
     setPending(true);
     setError(false);
     try {
       const assessed = await submit(slug, {
         submission_key: submissionKey.current,
+        receipt: receipt.current,
         response: answer,
       });
       setResult(assessed);
       onResult?.(assessed);
+      recordSubmission(assessed, { receipt: receipt.current, slug, title });
       browserProgressAdapter()?.record({
         slug, title,
         status: assessed.outcome === 'ACCEPTED_RESULT' && assessed.passed
