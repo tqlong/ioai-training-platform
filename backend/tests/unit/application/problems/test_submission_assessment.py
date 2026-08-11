@@ -150,7 +150,24 @@ def test_human_rubric_stays_pending_without_completion_or_evidence() -> None:
                 "accepted_keywords": [],
                 "rubric_guidance": "Review.",
             },
-            [{"method": "RUBRIC_HUMAN", "weight": "1.0", "configuration": None}],
+            [
+                {
+                    "method": "RUBRIC_HUMAN",
+                    "weight": "1.0",
+                    "configuration": {
+                        "criteria": [
+                            {
+                                "id": "reasoning",
+                                "maximum_points": "1",
+                                "levels": [
+                                    {"id": "not-yet", "points": "0"},
+                                    {"id": "complete", "points": "1"},
+                                ],
+                            }
+                        ],
+                    },
+                }
+            ],
         )
     )
     result = use_case(
@@ -159,7 +176,38 @@ def test_human_rubric_stays_pending_without_completion_or_evidence() -> None:
         )
     )
     assert result.outcome is LearnerOutcome.PENDING_ASSESSMENT
-    assert result.result == {"status": "PENDING_ASSESSMENT"}
+    assert result.result == {
+        "status": "PENDING_ASSESSMENT",
+        "components": [],
+        "automated_score": "0.0",
+    }
+
+
+def test_mixed_scoring_runs_and_stores_automated_components_before_review() -> None:
+    use_case, _ = assessor(
+        snapshot(
+            {"type": "QUIZ_SINGLE", "choices": [], "correct_choice_id": "a"},
+            [
+                {"method": "EXACT_MATCH", "weight": "0.4", "configuration": None},
+                {
+                    "method": "RUBRIC_HUMAN",
+                    "weight": "0.6",
+                    "configuration": {"criteria": [{"id": "reasoning"}]},
+                },
+            ],
+        )
+    )
+
+    result = use_case(
+        SubmissionCommand("metrics", "key", {"type": "QUIZ_SINGLE", "choice_id": "a"})
+    )
+
+    assert result.outcome is LearnerOutcome.PENDING_ASSESSMENT
+    assert result.result == {
+        "status": "PENDING_ASSESSMENT",
+        "automated_score": "0.4",
+        "components": [{"method": "EXACT_MATCH", "score": "1.0", "weight": "0.4"}],
+    }
 
 
 def test_code_scoring_uses_injected_evaluator_and_decimal_safe_weighting() -> None:

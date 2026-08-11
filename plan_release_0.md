@@ -1126,7 +1126,7 @@ observe the required red step before implementation.
   Protect snapshot binding and optimistic concurrency with PostgreSQL
   constraints and test upgrade plus safe downgrade. Suggested commit:
   `feat(db): persist manual assessments`.
-- [ ] **R0-08105 — Create pending assessments at submission.** Store the
+- [x] **R0-08105 — Create pending assessments at submission.** Store the
   validated answer against the current publication snapshot, execute automated
   components once, and retain their results while human components remain
   pending. Return a receipt-protected stable result path; idempotent retries

@@ -21,6 +21,7 @@ class SubmissionCommand:
     slug: str
     submission_key: str
     response: dict[str, object]
+    receipt: str | None = None
 
     def __post_init__(self) -> None:
         if not self.slug.strip() or len(self.slug) > 128:
@@ -29,6 +30,10 @@ class SubmissionCommand:
             raise ValueError("submission key must be bounded")
         if len(json.dumps(self.response, ensure_ascii=False).encode()) > 64_000:
             raise ValueError("response must be at most 64000 bytes")
+        if self.receipt is not None and (
+            not self.receipt.strip() or len(self.receipt) > 200
+        ):
+            raise ValueError("submission receipt must be bounded")
 
 
 class AssessmentUnitOfWork(Protocol):
@@ -96,13 +101,17 @@ class AssessSubmission:
                 command.response, response, scoring, resources
             )
             attempt = LearnerAttempt(
-                self._id_generator(),
-                snapshot.snapshot_id,
-                command.submission_key,
-                digest,
-                outcome,
-                result,
-                self._clock(),
+                attempt_id=self._id_generator(),
+                snapshot_id=snapshot.snapshot_id,
+                submission_key=command.submission_key,
+                request_digest=digest,
+                outcome=outcome,
+                result=result,
+                submitted_at=self._clock(),
+                receipt_digest=sha256(
+                    (command.receipt or command.submission_key).encode()
+                ).hexdigest(),
+                response=command.response,
             )
             work.records.add_attempt(attempt)
             return attempt
@@ -117,20 +126,33 @@ class AssessSubmission:
         components = scoring.get("components")
         if not isinstance(components, list) or not components:
             raise ValueError("published scoring configuration is malformed")
-        if any(
+        has_human = any(
             isinstance(item, dict) and item.get("method") == "RUBRIC_HUMAN"
             for item in components
-        ):
-            return LearnerOutcome.PENDING_ASSESSMENT, {"status": "PENDING_ASSESSMENT"}
+        )
         results: list[dict[str, object]] = []
         total = Decimal("0")
         for raw in components:
             component = _mapping(raw, "scoring component")
             method = str(component.get("method", ""))
             weight = _decimal(component.get("weight"), "scoring weight")
+            if method == "RUBRIC_HUMAN":
+                continue
             score = self._component_score(method, submitted, response, limits)
             total += score * weight
-            results.append({"method": method, "score": _decimal_text(score)})
+            item: dict[str, object] = {
+                "method": method,
+                "score": _decimal_text(score),
+            }
+            if has_human:
+                item["weight"] = _decimal_text(weight)
+            results.append(item)
+        if has_human:
+            return LearnerOutcome.PENDING_ASSESSMENT, {
+                "status": "PENDING_ASSESSMENT",
+                "automated_score": _decimal_text(total),
+                "components": results,
+            }
         return LearnerOutcome.ACCEPTED_RESULT, {
             "score": _decimal_text(total),
             "passed": total == Decimal("1"),
@@ -206,7 +228,11 @@ def _exact_match(
 
 def _digest(command: SubmissionCommand) -> str:
     canonical = json.dumps(
-        {"slug": command.slug, "response": command.response},
+        {
+            "slug": command.slug,
+            "response": command.response,
+            "receipt": command.receipt or command.submission_key,
+        },
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
