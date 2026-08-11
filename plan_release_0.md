@@ -1165,7 +1165,7 @@ observe the required red step before implementation.
   local task status after decisions or corrections. Clearing browser storage
   makes anonymous history unrecoverable. Suggested commit:
   `feat(learn): add submission history`.
-- [ ] **R0-08111 — Verify and baseline Phase 8.1.** Cover mixed scoring,
+- [x] **R0-08111 — Verify and baseline Phase 8.1.** Cover mixed scoring,
   threshold boundaries, pending/failed/passed states, corrections, receipt
   rejection, concurrency, publication isolation, accessibility, responsive
   layouts, and local-storage failure. Add `manual_R0_P8_1.md` and the critical

@@ -54,7 +54,7 @@ services:
       retries: 20
 
   learn:
-    image: node:22-alpine
+    image: node:22-bookworm
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     working_dir: /app
     volumes:
@@ -75,7 +75,7 @@ services:
       retries: 10
 
   studio:
-    image: node:22-alpine
+    image: node:22-bookworm
     user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     working_dir: /app
     volumes:

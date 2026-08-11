@@ -14,4 +14,10 @@ printf 'ok'
 printf '\nStudio route\n'
 curl -fsS -o /dev/null http://127.0.0.1:3001/author/problems
 printf 'ok'
+printf '\nLearner submission history route\n'
+curl -fsS -o /dev/null http://127.0.0.1:3000/submissions
+printf 'ok'
+printf '\nStudio assessment queue route\n'
+curl -fsS -o /dev/null http://127.0.0.1:3001/author/assessments
+printf 'ok'
 printf '\nAll checks passed\n'

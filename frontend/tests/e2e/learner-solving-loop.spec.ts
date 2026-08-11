@@ -2,6 +2,7 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 
 const apiBase = process.env.API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1';
 const learnBase = process.env.LEARN_BASE_URL ?? 'http://127.0.0.1:3000';
+const studioBase = process.env.STUDIO_BASE_URL ?? 'http://127.0.0.1:3001';
 
 test.describe.serial('Release 0 learner solving loop', () => {
   let problems: Record<string, string>;
@@ -70,6 +71,87 @@ test.describe.serial('Release 0 learner solving loop', () => {
     }
   });
 
+  test('assesses and corrects a pending answer through Studio and device history', async ({ page }) => {
+    await solve(page, problems.short, async () => page.getByRole('textbox', { name: 'Short answer' }).fill('Reasoned answer for manual review'), 'waiting for assessment');
+    await page.goto(`${studioBase}/author/assessments`);
+    await page.getByRole('textbox', { name: 'Problem slug' }).fill(problems.short);
+    await page.getByRole('link', { name: /Learner e2e SHORT_ANSWER/ }).last().click();
+    await page.getByRole('radio', { name: /Complete — 1 points/ }).check();
+    page.once('dialog', dialog => dialog.accept());
+    await page.getByRole('button', { name: 'Complete assessment' }).click();
+    await expect(page.getByText('Assessment saved.')).toBeVisible();
+
+    await page.goto(`${learnBase}/submissions`);
+    await page.getByRole('link', { name: /Learner e2e SHORT_ANSWER/ }).click();
+    await expect(page.getByText('Passed', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Rubric result' })).toBeVisible();
+
+    await page.goto(`${studioBase}/author/assessments`);
+    await page.getByRole('combobox', { name: 'Status' }).selectOption('ASSESSED');
+    await page.getByRole('textbox', { name: 'Problem slug' }).fill(problems.short);
+    await page.getByRole('link', { name: /Learner e2e SHORT_ANSWER/ }).click();
+    await page.getByRole('radio', { name: /Not yet — 0 points/ }).check();
+    await page.getByRole('textbox', { name: 'Correction reason' }).fill('Corrected rubric selection.');
+    page.once('dialog', dialog => dialog.accept());
+    await page.getByRole('button', { name: 'Save correction' }).click();
+    await expect(page.getByText('Assessment saved.')).toBeVisible();
+    await expect(page.getByText(/Version 1/)).toBeVisible();
+    await expect(page.getByText(/Version 2/)).toBeVisible();
+
+    await page.goto(`${learnBase}/submissions`);
+    await page.getByRole('link', { name: /Learner e2e SHORT_ANSWER/ }).click();
+    await expect(page.getByText('Assessed — not yet passed')).toBeVisible();
+  });
+
+  test('opens a prefetched warm problem detail within 500 ms without vocabulary fan-out', async ({ page }) => {
+    const libraryUrl = `${learnBase}/problems?stage=AI_1_FOUNDATIONS&q=Learner%20e2e&sort=NEWEST`;
+    await page.goto(`${learnBase}/problems/${problems.single}`);
+    await expect(page.getByRole('heading', { name: /Learner e2e/i })).toBeVisible();
+    await page.goto(libraryUrl);
+    const problemLink = page.locator(`a[href^="/problems/${problems.single}?"]`).first();
+    await expect(problemLink).toBeVisible();
+    await page.waitForTimeout(500);
+
+    let vocabularyRequests = 0;
+    page.on('request', (request) => {
+      if (request.url().includes('/api/v1/vocabulary')) vocabularyRequests += 1;
+    });
+    await page.evaluate((slug) => {
+      const state = window as typeof window & {
+        ioaiDetailVisible?: Promise<number>;
+      };
+      state.ioaiDetailVisible = new Promise((resolve) => {
+        let startedAt: number | undefined;
+        const observer = new MutationObserver(() => {
+          if (startedAt === undefined) return;
+          const heading = document.querySelector('main h1');
+          if (heading?.textContent?.includes('Learner e2e')) {
+            observer.disconnect();
+            resolve(performance.now() - startedAt);
+          }
+        });
+        document.addEventListener('click', (event) => {
+          const link = event.target instanceof Element
+            ? event.target.closest(`a[href*="/problems/${slug}"]`)
+            : null;
+          if (!link) return;
+          startedAt = performance.now();
+          observer.observe(document.body, { childList: true, subtree: true });
+        }, { once: true });
+      });
+    }, problems.single);
+    await problemLink.click();
+    await page.waitForURL(new RegExp(`/problems/${problems.single}(?:\\?|$)`));
+    await expect(page.locator('main').getByRole('heading', { name: /Learner e2e/i }))
+      .toBeVisible();
+    const clickToDetailMs = await page.evaluate(() => (
+      window as typeof window & { ioaiDetailVisible: Promise<number> }
+    ).ioaiDetailVisible);
+
+    expect(vocabularyRequests).toBe(0);
+    expect(clickToDetailMs).toBeLessThan(500);
+  });
+
   test('keeps solving usable when storage and a submission dependency fail', async ({ page }) => {
     await page.addInitScript(() => {
       Object.defineProperty(Storage.prototype, 'getItem', { value: () => { throw new Error('denied'); } });
@@ -112,7 +194,7 @@ async function publish(request: APIRequestContext, slug: string, type: string): 
     problem_id: created.problem_id, expected_version: created.version, client_save_key: `save-${slug}`, slug,
     content: { title: localized(`Learner e2e ${type}`, `Bài e2e ${type}`), summary: localized('Solve the published task.', 'Giải bài đã xuất bản.'), objectives: [localized('Calculate the correct response.', 'Tính đáp án đúng.')], blocks: [{ kind: 'STATEMENT', content: localized('Provide the correct response.', 'Cung cấp đáp án đúng.'), order: 1, reveal_order: null }] },
     metadata: { stage: ['PATHWAY_STAGE', 'AI_1_FOUNDATIONS'], difficulty: ['DIFFICULTY', 'EASY'], primary_competency: ['COMPETENCY', 'EVAL_METRICS'], secondary_competencies: [], task_type: ['TASK_TYPE', type], topics: [['TOPIC', 'EVAL_CONFUSION_MATRIX']], prerequisites: [], modalities: [['DATA_MODALITY', 'NONE']], expected_minutes: 10, resources: { compute_tier: ['COMPUTE_TIER', 'NONE'], runtime_class: ['RUNTIME_CLASS', 'INSTANT'], cpu_cores: 0, ram_mb: 0, gpu_count: 0, gpu_vram_mb: 0, storage_mb: 0, runtime_seconds: 0, network_policy: 'DENIED' } },
-    response, scoring: { response_type: type, components: [{ method: type === 'SHORT_ANSWER' || type === 'CODE_FUNCTION' ? 'RUBRIC_HUMAN' : 'EXACT_MATCH', weight: '1.0', configuration: null }] },
+    response, scoring: { response_type: type, pass_threshold: '1.0', components: [{ method: type === 'SHORT_ANSWER' || type === 'CODE_FUNCTION' ? 'RUBRIC_HUMAN' : 'EXACT_MATCH', weight: '1.0', configuration: type === 'SHORT_ANSWER' || type === 'CODE_FUNCTION' ? { criteria: [{ id: 'correctness', title: localized('Correctness', 'Tính đúng'), description: localized('Produces a correct and well-reasoned response.', 'Tạo câu trả lời đúng và có lập luận.'), maximum_points: '1', levels: [{ id: 'not-yet', label: localized('Not yet', 'Chưa đạt'), description: localized('The response is not yet correct.', 'Câu trả lời chưa đúng.'), points: '0' }, { id: 'complete', label: localized('Complete', 'Hoàn thành'), description: localized('The response is correct.', 'Câu trả lời đúng.'), points: '1' }] }], reviewer_guidance: 'Review the response.', exemplar: null } : null }] },
   } });
   expect(save.ok(), await save.text()).toBeTruthy();
   await command(request, created.revision_id, 'submit-review', 2, `review-${slug}`);
