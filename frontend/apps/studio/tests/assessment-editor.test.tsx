@@ -64,4 +64,18 @@ describe('response and scoring editor', () => {
     expect(screen.getByRole('alert').textContent).toContain('must total exactly 1.0');
     expect(value.scoringValid).toBe(false);
   });
+
+  it('requires structured point levels for human scoring and exposes the threshold', () => {
+    let value = emptyAssessmentDraft('SHORT_ANSWER');
+    const { rerender } = render(<AssessmentEditor onChange={next => { value = next; }} value={value} />);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Scoring method 1' }), { target: { value: 'RUBRIC_HUMAN' } });
+    rerender(<AssessmentEditor onChange={next => { value = next; }} value={value} />);
+
+    expect(screen.getByRole('group', { name: 'Human assessment rubric' })).toBeTruthy();
+    expect(screen.getByRole('spinbutton', { name: 'Pass threshold' })).toHaveProperty('value', '1.0');
+    expect(screen.getAllByRole('group', { name: /Performance level/ })).toHaveLength(2);
+    expect(value.scoring.components[0]?.configuration).toMatchObject({
+      criteria: [{ maximum_points: '1', levels: [{ points: '0' }, { points: '1' }] }],
+    });
+  });
 });

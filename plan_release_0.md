@@ -1113,7 +1113,7 @@ observe the required red step before implementation.
   incomplete rubric, but validation and publication must reject it. Begin with
   failing domain tests. Suggested commit:
   `feat(scoring): model structured human rubrics`.
-- [ ] **R0-08103 — Build structured rubric authoring.** Replace the generic
+- [x] **R0-08103 — Build structured rubric authoring.** Replace the generic
   human-scoring configuration field with accessible criterion and
   performance-level editors, optional private guidance/exemplar fields, exact
   score summaries, English-required/Vietnamese-optional text, and the
