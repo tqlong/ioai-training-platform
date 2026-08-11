@@ -248,7 +248,10 @@ def public_problem_router(
         try:
             attempt = service.assess(
                 SubmissionCommand(
-                    slug, request.submission_key, request.response.model_dump()
+                    slug,
+                    request.submission_key,
+                    request.response.model_dump(),
+                    request.receipt,
                 )
             )
         except PublishedProblemNotFoundError as error:
@@ -282,7 +285,7 @@ def public_problem_router(
                     ),
                 },
             ) from error
-        return _submission_response(attempt)
+        return _submission_response(attempt, receipt=request.receipt)
 
     @router.post(
         "/{slug}/feedback",
@@ -403,7 +406,11 @@ def _detail_response(item: PublicProblemProjection) -> PublicProblemDetailRespon
         title=_localized(content.get("title")),
         summary=_localized(content.get("summary")),
         objective=_localized(objective),
-        blocks=[_content_block(value) for value in block_items],
+        blocks=[
+            _content_block(value)
+            for value in block_items
+            if _has_public_block_content(value)
+        ],
         stage_code=_identity_code(metadata.get("stage")),
         difficulty_code=_identity_code(metadata.get("difficulty")),
         primary_competency_code=_identity_code(metadata.get("primary_competency")),
@@ -453,6 +460,15 @@ def _content_block(value: object) -> PublicContentBlockResponse:
     )
 
 
+def _has_public_block_content(value: object) -> bool:
+    if not isinstance(value, dict):
+        return True
+    content = value.get("content")
+    if not isinstance(content, dict):
+        return True
+    return any(str(content.get(language, "")).strip() for language in ("en", "vi"))
+
+
 def _prerequisite(value: object) -> PublicPrerequisiteResponse:
     if not isinstance(value, dict):
         raise ValueError("published prerequisite is malformed")
@@ -471,8 +487,11 @@ def _prerequisite(value: object) -> PublicPrerequisiteResponse:
 def _localized(value: object) -> PublicLocalizedTextResponse:
     if not isinstance(value, dict):
         raise ValueError("published localized content is malformed")
+    english = str(value.get("en", ""))
+    vietnamese = str(value.get("vi", ""))
     return PublicLocalizedTextResponse(
-        en=str(value.get("en", "")), vi=str(value.get("vi", ""))
+        en=english,
+        vi=vietnamese if vietnamese.strip() else english,
     )
 
 
@@ -566,10 +585,22 @@ def _recommendation_response(
     )
 
 
-def _submission_response(attempt: LearnerAttempt) -> PublicSubmissionResponse:
+def _submission_response(
+    attempt: LearnerAttempt,
+    *,
+    receipt: str | None = None,
+    include_submitted_response: bool = False,
+) -> PublicSubmissionResponse:
+    common = {
+        "attempt_id": attempt.attempt_id,
+        "receipt": receipt,
+        "result_url": f"/submissions/{attempt.attempt_id}",
+        "submitted_at": attempt.submitted_at,
+        "submitted_response": attempt.response if include_submitted_response else None,
+    }
     if attempt.outcome is LearnerOutcome.PENDING_ASSESSMENT:
         return PublicSubmissionResponse(
-            attempt_id=attempt.attempt_id,
+            **common,
             outcome=attempt.outcome.value,
             message="Your answer is waiting for assessment.",
         )
@@ -583,12 +614,14 @@ def _submission_response(attempt: LearnerAttempt) -> PublicSubmissionResponse:
     ):
         raise ValueError("stored assessment result is malformed")
     return PublicSubmissionResponse.model_validate(
-        {
-            "attempt_id": attempt.attempt_id,
+        common
+        | {
             "outcome": attempt.outcome.value,
             "score": score,
             "passed": passed,
             "components": components,
+            "criteria": attempt.result.get("criteria"),
+            "overall_feedback": attempt.result.get("overall_feedback"),
             "message": "Your answer was assessed.",
         }
     )

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -49,6 +49,7 @@ PublicSubmission = Annotated[
 class PublicSubmissionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     submission_key: str = Field(min_length=1, max_length=200)
+    receipt: str = Field(min_length=16, max_length=200)
     response: PublicSubmission
 
 
@@ -56,15 +57,34 @@ class PublicScoreComponentResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     method: str
     score: str
+    weight: str | None = None
+
+
+class PublicCriterionResultResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    component_index: int
+    criterion_id: str
+    title: dict[str, Any] | None = None
+    level_id: str
+    level_label: dict[str, Any] | None = None
+    points: str
+    maximum_points: str
+    feedback: str | None = None
 
 
 class PublicSubmissionResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     attempt_id: str
+    receipt: str | None = None
+    result_url: str
+    submitted_at: datetime
     outcome: Literal["ACCEPTED_RESULT", "PENDING_ASSESSMENT"]
     score: str | None = None
     passed: bool | None = None
     components: list[PublicScoreComponentResponse] | None = None
+    criteria: list[PublicCriterionResultResponse] | None = None
+    overall_feedback: str | None = None
+    submitted_response: dict[str, Any] | None = None
     message: str
 
 

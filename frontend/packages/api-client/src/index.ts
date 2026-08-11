@@ -26,6 +26,9 @@ export type PublicSubmissionResult = components['schemas']['PublicSubmissionResp
 export type PublicFeedbackRequest = components['schemas']['PublicFeedbackRequest'];
 export type PublicFeedbackReceipt = components['schemas']['PublicFeedbackReceipt'];
 export type PublicProblemRecommendation = components['schemas']['PublicProblemRecommendationResponse'];
+export type AssessmentList = components['schemas']['AssessmentListResponse'];
+export type AssessmentDetail = components['schemas']['AssessmentDetailResponse'];
+export type AssessmentDecisionRequest = components['schemas']['AssessmentDecisionRequest'];
 export type EditorialAction = 'submit-review' | 'request-changes' | 'approve';
 
 export type PublicVocabularyQuery = {
@@ -88,6 +91,7 @@ export type ApiClient = {
   listPublicProblems: (query?: PublicProblemQuery) => Promise<PublicProblemList>;
   getPublicProblem: (slug: string) => Promise<PublicProblemDetail>;
   submitPublicProblem: (slug: string, request: PublicSubmissionRequest) => Promise<PublicSubmissionResult>;
+  getPublicSubmission: (attemptId: string, receipt: string) => Promise<PublicSubmissionResult>;
   submitPublicFeedback: (slug: string, request: PublicFeedbackRequest) => Promise<PublicFeedbackReceipt>;
   getPublicRecommendation: (
     slug: string,
@@ -126,6 +130,9 @@ export type ApiClient = {
     problemId: string,
     request: ArchiveProblemRequest,
   ) => Promise<ArchiveProblemResult>;
+  listAuthorAssessments: (query?: { status?: 'PENDING' | 'ASSESSED' | 'ALL'; problem?: string; limit?: number; offset?: number }) => Promise<AssessmentList>;
+  getAuthorAssessment: (attemptId: string) => Promise<AssessmentDetail>;
+  decideAuthorAssessment: (attemptId: string, request: AssessmentDecisionRequest) => Promise<AssessmentDetail>;
 };
 
 export const createApiClient = ({
@@ -193,6 +200,13 @@ export const createApiClient = ({
         fetchFn,
         `${normalizedBaseUrl}/problems/${encodeURIComponent(slug)}/submissions`,
         { method: 'POST', body: JSON.stringify(request) },
+      );
+    },
+    async getPublicSubmission(attemptId, receipt) {
+      return requestJson<PublicSubmissionResult>(
+        fetchFn,
+        `${normalizedBaseUrl}/submissions/${encodeURIComponent(attemptId)}`,
+        { cache: 'no-store', headers: { 'x-submission-receipt': receipt } },
       );
     },
     async submitPublicFeedback(slug, request) {
@@ -297,6 +311,21 @@ export const createApiClient = ({
         method: 'POST', body: JSON.stringify(request),
       });
     },
+    async listAuthorAssessments(query = {}) {
+      const parameters = new URLSearchParams();
+      if (query.status) parameters.set('status', query.status);
+      if (query.problem) parameters.set('problem', query.problem);
+      if (query.limit !== undefined) parameters.set('limit', String(query.limit));
+      if (query.offset !== undefined) parameters.set('offset', String(query.offset));
+      const suffix = parameters.size ? `?${parameters.toString()}` : '';
+      return requestJson<AssessmentList>(fetchFn, `${normalizedBaseUrl}/author/assessments${suffix}`, { cache: 'no-store' });
+    },
+    async getAuthorAssessment(attemptId) {
+      return requestJson<AssessmentDetail>(fetchFn, `${normalizedBaseUrl}/author/assessments/${encodeURIComponent(attemptId)}`, { cache: 'no-store' });
+    },
+    async decideAuthorAssessment(attemptId, request) {
+      return requestJson<AssessmentDetail>(fetchFn, `${normalizedBaseUrl}/author/assessments/${encodeURIComponent(attemptId)}/decisions`, { method: 'POST', body: JSON.stringify(request) });
+    },
   };
 };
 
@@ -318,7 +347,7 @@ const requestJson = async <Result>(
 ): Promise<Result> => {
   const response = await fetchFn(url, {
     ...init,
-    headers: { accept: 'application/json', 'content-type': 'application/json' },
+    headers: { accept: 'application/json', 'content-type': 'application/json', ...init?.headers },
   });
   const payload: unknown = await response.json();
   if (!response.ok) throw toApiError(payload, response.status);

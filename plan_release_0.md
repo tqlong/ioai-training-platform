@@ -1144,7 +1144,7 @@ observe the required red step before implementation.
   threshold. Append immutable decisions; corrections require a reason and the
   expected current decision identity, retain history, and reject stale writes.
   Suggested commit: `feat(assessment): resolve rubric decisions`.
-- [ ] **R0-08108 — Expose contracts and regenerate the client.** Extend public
+- [x] **R0-08108 — Expose contracts and regenerate the client.** Extend public
   submission responses with a stable result path and private receipt, add
   receipt-protected result retrieval, and add author queue/detail/decision
   endpoints. Define stable safe errors, update deterministic OpenAPI and

@@ -4,6 +4,57 @@
  */
 
 export interface paths {
+    "/api/v1/author/assessments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Assessments */
+        get: operations["list_assessments_api_v1_author_assessments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/author/assessments/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Assessment */
+        get: operations["get_assessment_api_v1_author_assessments__attempt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/author/assessments/{attempt_id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide */
+        post: operations["decide_api_v1_author_assessments__attempt_id__decisions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/author/problems": {
         parameters: {
             query?: never;
@@ -329,6 +380,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/submissions/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Submission */
+        get: operations["get_submission_api_v1_submissions__attempt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/vocabulary": {
         parameters: {
             query?: never;
@@ -406,6 +474,89 @@ export interface components {
             problem_id: string;
             /** Slug */
             slug: string;
+        };
+        /** AssessmentDecisionRequest */
+        AssessmentDecisionRequest: {
+            /** Correction Reason */
+            correction_reason?: string | null;
+            /** Expected Decision Id */
+            expected_decision_id?: string | null;
+            /** Overall Feedback */
+            overall_feedback?: string | null;
+            /** Selections */
+            selections: components["schemas"]["AssessmentSelectionRequest"][];
+        };
+        /** AssessmentDetailResponse */
+        AssessmentDetailResponse: {
+            /** Attempt Id */
+            attempt_id: string;
+            /** Decision History */
+            decision_history?: {
+                [key: string]: unknown;
+            }[];
+            /** Latest Decision */
+            latest_decision?: {
+                [key: string]: unknown;
+            } | null;
+            /** Scoring */
+            scoring: {
+                [key: string]: unknown;
+            };
+            /** Slug */
+            slug: string;
+            /** Status */
+            status: string;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /** Submitted Response */
+            submitted_response: {
+                [key: string]: unknown;
+            };
+            /** Title */
+            title: {
+                [key: string]: unknown;
+            };
+        };
+        /** AssessmentListItemResponse */
+        AssessmentListItemResponse: {
+            /** Attempt Id */
+            attempt_id: string;
+            /** Score */
+            score?: string | null;
+            /** Slug */
+            slug: string;
+            /** Status */
+            status: string;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /** Title */
+            title: {
+                [key: string]: unknown;
+            };
+        };
+        /** AssessmentListResponse */
+        AssessmentListResponse: {
+            /** Items */
+            items: components["schemas"]["AssessmentListItemResponse"][];
+            /** Next Offset */
+            next_offset?: number | null;
+        };
+        /** AssessmentSelectionRequest */
+        AssessmentSelectionRequest: {
+            /** Component Index */
+            component_index: number;
+            /** Criterion Id */
+            criterion_id: string;
+            /** Feedback */
+            feedback?: string | null;
+            /** Level Id */
+            level_id: string;
         };
         /** AuthorDraftListItemResponse */
         AuthorDraftListItemResponse: {
@@ -628,6 +779,29 @@ export interface components {
             /** Reveal Order */
             reveal_order?: number | null;
         };
+        /** PublicCriterionResultResponse */
+        PublicCriterionResultResponse: {
+            /** Component Index */
+            component_index: number;
+            /** Criterion Id */
+            criterion_id: string;
+            /** Feedback */
+            feedback?: string | null;
+            /** Level Id */
+            level_id: string;
+            /** Level Label */
+            level_label?: {
+                [key: string]: unknown;
+            } | null;
+            /** Maximum Points */
+            maximum_points: string;
+            /** Points */
+            points: string;
+            /** Title */
+            title?: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** PublicFeedbackReceipt */
         PublicFeedbackReceipt: {
             /** Message */
@@ -832,9 +1006,13 @@ export interface components {
             method: string;
             /** Score */
             score: string;
+            /** Weight */
+            weight?: string | null;
         };
         /** PublicSubmissionRequest */
         PublicSubmissionRequest: {
+            /** Receipt */
+            receipt: string;
             /** Response */
             response: components["schemas"]["QuizSingleSubmission"] | components["schemas"]["QuizMultipleSubmission"] | components["schemas"]["NumericSubmission"] | components["schemas"]["ShortAnswerSubmission"] | components["schemas"]["CodeFunctionSubmission"];
             /** Submission Key */
@@ -846,6 +1024,8 @@ export interface components {
             attempt_id: string;
             /** Components */
             components?: components["schemas"]["PublicScoreComponentResponse"][] | null;
+            /** Criteria */
+            criteria?: components["schemas"]["PublicCriterionResultResponse"][] | null;
             /** Message */
             message: string;
             /**
@@ -853,10 +1033,25 @@ export interface components {
              * @enum {string}
              */
             outcome: "ACCEPTED_RESULT" | "PENDING_ASSESSMENT";
+            /** Overall Feedback */
+            overall_feedback?: string | null;
             /** Passed */
             passed?: boolean | null;
+            /** Receipt */
+            receipt?: string | null;
+            /** Result Url */
+            result_url: string;
             /** Score */
             score?: string | null;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /** Submitted Response */
+            submitted_response?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** PublicVocabularyRecord */
         PublicVocabularyRecord: {
@@ -1057,6 +1252,133 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_assessments_api_v1_author_assessments_get: {
+        parameters: {
+            query?: {
+                status?: string;
+                problem?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_assessment_api_v1_author_assessments__attempt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentDetailResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_api_v1_author_assessments__attempt_id__decisions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssessmentDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentDetailResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_drafts_api_v1_author_problems_get: {
         parameters: {
             query?: {
@@ -1985,6 +2307,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_submission_api_v1_submissions__attempt_id__get: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-submission-receipt": string;
+            };
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicSubmissionResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

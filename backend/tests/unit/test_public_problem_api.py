@@ -99,7 +99,13 @@ class FakePublicProblemService:
                         "content": {"en": "Find precision.", "vi": "Tìm precision."},
                         "order": 1,
                         "reveal_order": None,
-                    }
+                    },
+                    {
+                        "kind": "EXAMPLE",
+                        "content": {"en": "", "vi": ""},
+                        "order": 2,
+                        "reveal_order": None,
+                    },
                 ],
             },
             metadata={
@@ -213,6 +219,52 @@ def test_public_problem_list_returns_typed_safe_page() -> None:
     assert service.query is not None and service.query.page == 2
 
 
+def test_public_problem_list_falls_back_to_english_for_pending_vietnamese_text() -> (
+    None
+):
+    service = FakePublicProblemService()
+    original_list = service.list
+
+    def list_with_pending_translation(
+        query: PublicProblemQuery,
+    ) -> PublicProblemProjectionPage:
+        page = original_list(query)
+        item = page.items[0]
+        return PublicProblemProjectionPage(
+            items=(
+                PublicProblemProjection(
+                    slug=item.slug,
+                    content={
+                        **item.content,
+                        "title": {"en": "Metrics", "vi": ""},
+                        "objectives": [{"en": "Calculate metrics", "vi": ""}],
+                    },
+                    metadata=item.metadata,
+                    response_schema=item.response_schema,
+                    published_at=item.published_at,
+                ),
+            ),
+            total=page.total,
+            page=page.page,
+            page_size=page.page_size,
+        )
+
+    service.list = list_with_pending_translation  # type: ignore[method-assign]
+    client = TestClient(create_app(public_problem_service=service))
+
+    response = client.get("/api/v1/problems")
+
+    assert response.status_code == 200
+    assert response.json()["items"][0]["title"] == {
+        "en": "Metrics",
+        "vi": "Metrics",
+    }
+    assert response.json()["items"][0]["objective"] == {
+        "en": "Calculate metrics",
+        "vi": "Calculate metrics",
+    }
+
+
 def test_public_problem_detail_returns_explicit_safe_projection() -> None:
     client = TestClient(create_app(public_problem_service=FakePublicProblemService()))
 
@@ -225,6 +277,7 @@ def test_public_problem_detail_returns_explicit_safe_projection() -> None:
     assert body["title"] == {"en": "Metrics", "vi": "Độ đo"}
     assert body["objective"]["en"] == "Calculate metrics"
     assert body["blocks"][0]["kind"] == "STATEMENT"
+    assert len(body["blocks"]) == 1
     assert body["prerequisites"] == [
         {
             "relationship": "RECOMMENDED",
@@ -275,6 +328,7 @@ def test_public_submission_returns_safe_assessment_result_and_request_id() -> No
         "/api/v1/problems/metrics-basics/submissions",
         json={
             "submission_key": "client-key-1",
+            "receipt": "private-receipt-1234567890",
             "response": {"type": "QUIZ_SINGLE", "choice_id": "a"},
         },
         headers={"X-Request-ID": "submission-request-1"},
@@ -284,6 +338,9 @@ def test_public_submission_returns_safe_assessment_result_and_request_id() -> No
     assert response.headers["X-Request-ID"] == "submission-request-1"
     assert response.json() == {
         "attempt_id": "attempt-public",
+        "receipt": "private-receipt-1234567890",
+        "result_url": "/submissions/attempt-public",
+        "submitted_at": "2026-08-09T00:00:00Z",
         "outcome": "ACCEPTED_RESULT",
         "score": "1.0",
         "passed": True,
@@ -294,6 +351,7 @@ def test_public_submission_returns_safe_assessment_result_and_request_id() -> No
         "metrics-basics",
         "client-key-1",
         {"type": "QUIZ_SINGLE", "choice_id": "a"},
+        "private-receipt-1234567890",
     )
 
 

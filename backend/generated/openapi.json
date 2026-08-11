@@ -62,6 +62,245 @@
         "title": "ArchiveProblemResponse",
         "type": "object"
       },
+      "AssessmentDecisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "correction_reason": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correction Reason"
+          },
+          "expected_decision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Decision Id"
+          },
+          "overall_feedback": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Feedback"
+          },
+          "selections": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentSelectionRequest"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Selections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "selections"
+        ],
+        "title": "AssessmentDecisionRequest",
+        "type": "object"
+      },
+      "AssessmentDetailResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "decision_history": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Decision History",
+            "type": "array"
+          },
+          "latest_decision": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Decision"
+          },
+          "scoring": {
+            "additionalProperties": true,
+            "title": "Scoring",
+            "type": "object"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "submitted_response": {
+            "additionalProperties": true,
+            "title": "Submitted Response",
+            "type": "object"
+          },
+          "title": {
+            "additionalProperties": true,
+            "title": "Title",
+            "type": "object"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "slug",
+          "title",
+          "status",
+          "submitted_at",
+          "submitted_response",
+          "scoring"
+        ],
+        "title": "AssessmentDetailResponse",
+        "type": "object"
+      },
+      "AssessmentListItemResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "title": {
+            "additionalProperties": true,
+            "title": "Title",
+            "type": "object"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "slug",
+          "title",
+          "status",
+          "submitted_at"
+        ],
+        "title": "AssessmentListItemResponse",
+        "type": "object"
+      },
+      "AssessmentListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentListItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "AssessmentListResponse",
+        "type": "object"
+      },
+      "AssessmentSelectionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "component_index": {
+            "minimum": 0.0,
+            "title": "Component Index",
+            "type": "integer"
+          },
+          "criterion_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Criterion Id",
+            "type": "string"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback"
+          },
+          "level_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Level Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "component_index",
+          "criterion_id",
+          "level_id"
+        ],
+        "title": "AssessmentSelectionRequest",
+        "type": "object"
+      },
       "AuthorDraftListItemResponse": {
         "additionalProperties": false,
         "properties": {
@@ -726,6 +965,75 @@
         "title": "PublicContentBlockResponse",
         "type": "object"
       },
+      "PublicCriterionResultResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "component_index": {
+            "title": "Component Index",
+            "type": "integer"
+          },
+          "criterion_id": {
+            "title": "Criterion Id",
+            "type": "string"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback"
+          },
+          "level_id": {
+            "title": "Level Id",
+            "type": "string"
+          },
+          "level_label": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level Label"
+          },
+          "maximum_points": {
+            "title": "Maximum Points",
+            "type": "string"
+          },
+          "points": {
+            "title": "Points",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "component_index",
+          "criterion_id",
+          "level_id",
+          "points",
+          "maximum_points"
+        ],
+        "title": "PublicCriterionResultResponse",
+        "type": "object"
+      },
       "PublicFeedbackReceipt": {
         "additionalProperties": false,
         "properties": {
@@ -1353,6 +1661,17 @@
           "score": {
             "title": "Score",
             "type": "string"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
           }
         },
         "required": [
@@ -1365,6 +1684,12 @@
       "PublicSubmissionRequest": {
         "additionalProperties": false,
         "properties": {
+          "receipt": {
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "Receipt",
+            "type": "string"
+          },
           "response": {
             "discriminator": {
               "mapping": {
@@ -1404,6 +1729,7 @@
         },
         "required": [
           "submission_key",
+          "receipt",
           "response"
         ],
         "title": "PublicSubmissionRequest",
@@ -1430,6 +1756,20 @@
             ],
             "title": "Components"
           },
+          "criteria": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PublicCriterionResultResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Criteria"
+          },
           "message": {
             "title": "Message",
             "type": "string"
@@ -1442,6 +1782,17 @@
             "title": "Outcome",
             "type": "string"
           },
+          "overall_feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Feedback"
+          },
           "passed": {
             "anyOf": [
               {
@@ -1453,6 +1804,21 @@
             ],
             "title": "Passed"
           },
+          "receipt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt"
+          },
+          "result_url": {
+            "title": "Result Url",
+            "type": "string"
+          },
           "score": {
             "anyOf": [
               {
@@ -1463,10 +1829,29 @@
               }
             ],
             "title": "Score"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "submitted_response": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted Response"
           }
         },
         "required": [
           "attempt_id",
+          "result_url",
+          "submitted_at",
           "outcome",
           "message"
         ],
@@ -2038,6 +2423,215 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/author/assessments": {
+      "get": {
+        "operationId": "list_assessments_api_v1_author_assessments_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "PENDING",
+              "pattern": "^(PENDING|ASSESSED|ALL)$",
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "problem",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Problem"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Assessments",
+        "tags": [
+          "author-assessments"
+        ]
+      }
+    },
+    "/api/v1/author/assessments/{attempt_id}": {
+      "get": {
+        "operationId": "get_assessment_api_v1_author_assessments__attempt_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Assessment",
+        "tags": [
+          "author-assessments"
+        ]
+      }
+    },
+    "/api/v1/author/assessments/{attempt_id}/decisions": {
+      "post": {
+        "operationId": "decide_api_v1_author_assessments__attempt_id__decisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentDecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide",
+        "tags": [
+          "author-assessments"
+        ]
+      }
+    },
     "/api/v1/author/problems": {
       "get": {
         "operationId": "list_drafts_api_v1_author_problems_get",
@@ -3541,6 +4135,69 @@
         "summary": "Submit Problem",
         "tags": [
           "public-problems"
+        ]
+      }
+    },
+    "/api/v1/submissions/{attempt_id}": {
+      "get": {
+        "operationId": "get_submission_api_v1_submissions__attempt_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-submission-receipt",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 16,
+              "title": "X-Submission-Receipt",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSubmissionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Submission",
+        "tags": [
+          "public-submissions"
         ]
       }
     },

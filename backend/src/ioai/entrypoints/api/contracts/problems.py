@@ -160,3 +160,48 @@ class ArchiveProblemResponse(BaseModel):
     problem_id: str
     slug: str
     archived_at: datetime
+
+
+class AssessmentSelectionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    component_index: int = Field(ge=0)
+    criterion_id: str = Field(min_length=1, max_length=64)
+    level_id: str = Field(min_length=1, max_length=64)
+    feedback: str | None = Field(default=None, max_length=2000)
+
+
+class AssessmentDecisionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    selections: list[AssessmentSelectionRequest] = Field(min_length=1, max_length=100)
+    expected_decision_id: str | None = Field(default=None, max_length=128)
+    overall_feedback: str | None = Field(default=None, max_length=2000)
+    correction_reason: str | None = Field(default=None, max_length=2000)
+
+
+class AssessmentListItemResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    attempt_id: str
+    slug: str
+    title: dict[str, Any]
+    status: str
+    submitted_at: datetime
+    score: str | None = None
+
+
+class AssessmentListResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    items: list[AssessmentListItemResponse]
+    next_offset: int | None = None
+
+
+class AssessmentDetailResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    attempt_id: str
+    slug: str
+    title: dict[str, Any]
+    status: str
+    submitted_at: datetime
+    submitted_response: dict[str, Any]
+    scoring: dict[str, Any]
+    latest_decision: dict[str, Any] | None = None
+    decision_history: list[dict[str, Any]] = Field(default_factory=list)

@@ -12,6 +12,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from ...adapters.database.problem_repository import (
     SqlAlchemyAssessmentUnitOfWork,
     SqlAlchemyDraftUnitOfWork,
+    SqlAlchemyManualAssessmentUnitOfWork,
     SqlAlchemyPublishedProblemReader,
 )
 from ...adapters.database.proposal_repository import SqlAlchemyProposalUnitOfWork
@@ -45,6 +46,13 @@ from ...application.problems.feedback import (
     RecordProblemFeedback,
     SubmitFeedbackCommand,
 )
+from ...application.problems.manual_assessment import (
+    AssessmentSelection,
+    GetLearnerSubmission,
+    GetManualAssessment,
+    ListManualAssessments,
+    ResolveManualAssessment,
+)
 from ...application.problems.payload import decode_revision_payload
 from ...application.problems.public_queries import (
     GetPublishedProblem,
@@ -63,6 +71,7 @@ from ...domain.problems.workflow import ActorContext, EditorialStatus
 from ...domain.vocabulary.availability import Release0AvailabilityPolicy
 from .contracts.problems import (
     ArchiveProblemRequest,
+    AssessmentDecisionRequest,
     EditorialCommandRequest,
     PreviewDraftRequest,
     PublishRevisionRequest,
@@ -71,6 +80,11 @@ from .contracts.problems import (
 )
 from .errors import install_error_handlers
 from .routes.health import health_router
+from .routes.manual_assessments import (
+    ManualAssessmentService,
+    author_assessment_router,
+    public_submission_router,
+)
 from .routes.problems import (
     AuthorProblemService,
     author_problem_router,
@@ -92,6 +106,7 @@ def create_app(
     proposal_service: ProposalService | None = None,
     author_problem_service: AuthorProblemService | None = None,
     public_problem_service: PublicProblemService | None = None,
+    manual_assessment_service: ManualAssessmentService | None = None,
 ) -> FastAPI:
     resolved_settings = settings or ApiSettings.from_env()
     resolved_probe = readiness_probe
@@ -99,6 +114,7 @@ def create_app(
     resolved_proposal_service = proposal_service
     resolved_author_problem_service = author_problem_service
     resolved_public_problem_service = public_problem_service
+    resolved_manual_assessment_service = manual_assessment_service
     db_settings = DatabaseSettings.from_env()
     engine = build_engine(db_settings)
     session_factory = build_session_factory(engine)
@@ -184,6 +200,10 @@ def create_app(
 
     if resolved_public_problem_service is None:
         resolved_public_problem_service = _DefaultPublicProblemService(session_factory)
+    if resolved_manual_assessment_service is None:
+        resolved_manual_assessment_service = _DefaultManualAssessmentService(
+            session_factory
+        )
 
     app = FastAPI(
         title=resolved_settings.project_name,
@@ -220,6 +240,14 @@ def create_app(
         public_problem_router(
             resolved_public_problem_service, load_generated_vocabulary()
         ),
+        prefix=resolved_settings.api_prefix,
+    )
+    app.include_router(
+        public_submission_router(resolved_manual_assessment_service),
+        prefix=resolved_settings.api_prefix,
+    )
+    app.include_router(
+        author_assessment_router(resolved_manual_assessment_service),
         prefix=resolved_settings.api_prefix,
     )
     install_error_handlers(app, request_id_header=resolved_settings.request_id_header)
@@ -269,6 +297,45 @@ class _DefaultPublicProblemService:
             reader = SqlAlchemyPublishedProblemReader(session)
             GetPublishedProblem(reader)(context.current_slug or "")
             return RecommendNextProblem(reader)(context)
+
+
+class _DefaultManualAssessmentService:
+    def __init__(self, session_factory) -> None:
+        def factory():
+            return SqlAlchemyManualAssessmentUnitOfWork(session_factory)
+
+        self._list = ListManualAssessments(factory)
+        self._get = GetManualAssessment(factory)
+        self._get_submission = GetLearnerSubmission(factory)
+        self._resolve = ResolveManualAssessment(
+            factory, lambda: str(uuid4()), lambda: datetime.now(UTC)
+        )
+
+    def list_assessments(self, *, status, problem, limit, offset):
+        return self._list(status=status, problem=problem, limit=limit, offset=offset)
+
+    def get_assessment(self, attempt_id):
+        return self._get(attempt_id)
+
+    def get_submission(self, attempt_id, receipt):
+        return self._get_submission(attempt_id, receipt)
+
+    def decide(self, attempt_id: str, request: AssessmentDecisionRequest):
+        return self._resolve(
+            attempt_id,
+            tuple(
+                AssessmentSelection(
+                    item.component_index,
+                    item.criterion_id,
+                    item.level_id,
+                    item.feedback,
+                )
+                for item in request.selections
+            ),
+            expected_decision_id=request.expected_decision_id,
+            overall_feedback=request.overall_feedback,
+            correction_reason=request.correction_reason,
+        )
 
 
 class _DefaultAuthorProblemService:

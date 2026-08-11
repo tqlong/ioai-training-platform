@@ -19,12 +19,12 @@ describe('generated vocabulary client', () => {
     const fetchFn = vi.fn(async () => Response.json({ attempt_id: 'attempt-1', outcome: 'ACCEPTED_RESULT', score: '1.0', passed: true, components: [], message: 'Assessed.' }));
     const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
     const result = await client.submitPublicProblem('metrics', {
-      submission_key: 'retry-key', response: { type: 'QUIZ_SINGLE', choice_id: 'a' },
+      submission_key: 'retry-key', receipt: 'private-receipt-1234', response: { type: 'QUIZ_SINGLE', choice_id: 'a' },
     });
     expect(result.outcome).toBe('ACCEPTED_RESULT');
     expect(fetchFn).toHaveBeenCalledWith(
       'http://localhost:8000/api/v1/problems/metrics/submissions',
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ submission_key: 'retry-key', response: { type: 'QUIZ_SINGLE', choice_id: 'a' } }) }),
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ submission_key: 'retry-key', receipt: 'private-receipt-1234', response: { type: 'QUIZ_SINGLE', choice_id: 'a' } }) }),
     );
   });
   it('gets one typed published problem detail by stable slug', async () => {
