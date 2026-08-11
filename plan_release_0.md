@@ -1119,7 +1119,7 @@ observe the required red step before implementation.
   score summaries, English-required/Vietnamese-optional text, and the
   configurable pass threshold. Preserve autosave and learner preview behavior.
   Suggested commit: `feat(studio): add rubric authoring`.
-- [ ] **R0-08104 — Persist reviewable submissions and assessment decisions.**
+- [x] **R0-08104 — Persist reviewable submissions and assessment decisions.**
   Add an Alembic migration for the bounded validated answer, receipt digest,
   stored automated component results, immutable decision versions, criterion
   selections, optional learner feedback, correction reason, and timestamps.

@@ -22,6 +22,11 @@ from ioai.application.problems.learner_records import (
     LearnerOutcome,
     ProblemFeedback,
 )
+from ioai.application.problems.manual_assessment import (
+    AssessmentDecision,
+    AssessmentRecord,
+    ManualAssessmentUnitOfWork,
+)
 from ioai.application.problems.payload import (
     decode_revision_payload,
     encode_revision_payload,
@@ -50,6 +55,7 @@ from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 from ioai.domain.vocabulary.values import VocabularyIdentity, VocabularyType
 
 from .problem_model import (
+    AssessmentDecisionModel,
     EditorialTransitionModel,
     IdempotencyRecordModel,
     LearnerAttemptModel,
@@ -81,6 +87,8 @@ class SqlAlchemyLearnerRecordRepository:
                 snapshot_id=attempt.snapshot_id,
                 submission_key=attempt.submission_key,
                 request_digest=attempt.request_digest,
+                receipt_digest=attempt.receipt_digest,
+                response=attempt.response,
                 outcome=attempt.outcome.value,
                 result=attempt.result,
                 submitted_at=attempt.submitted_at,
@@ -103,6 +111,8 @@ class SqlAlchemyLearnerRecordRepository:
             snapshot_id=row.snapshot_id,
             submission_key=row.submission_key,
             request_digest=row.request_digest,
+            receipt_digest=row.receipt_digest,
+            response=row.response,
             outcome=LearnerOutcome(row.outcome),
             result=row.result,
             submitted_at=row.submitted_at,
@@ -141,6 +151,153 @@ class SqlAlchemyLearnerRecordRepository:
             message=row.message,
             submitted_at=row.submitted_at,
         )
+
+
+class SqlAlchemyManualAssessmentRepository:
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def list_records(
+        self, *, status: str, problem: str | None, limit: int, offset: int
+    ) -> tuple[AssessmentRecord, ...]:
+        statement = select(LearnerAttemptModel)
+        if status == "PENDING":
+            statement = statement.where(
+                LearnerAttemptModel.outcome == LearnerOutcome.PENDING_ASSESSMENT.value
+            )
+        elif status == "ASSESSED":
+            statement = statement.where(
+                LearnerAttemptModel.outcome == LearnerOutcome.ACCEPTED_RESULT.value
+            )
+        if problem:
+            statement = statement.join(
+                PublishedSnapshotModel,
+                PublishedSnapshotModel.snapshot_id == LearnerAttemptModel.snapshot_id,
+            ).where(PublishedSnapshotModel.slug == problem)
+        rows = self._session.scalars(
+            statement.order_by(
+                LearnerAttemptModel.submitted_at.asc(), LearnerAttemptModel.attempt_id
+            )
+            .offset(offset)
+            .limit(limit)
+        ).all()
+        return tuple(self._record(row) for row in rows)
+
+    def get_record(
+        self, attempt_id: str, *, lock: bool = False
+    ) -> AssessmentRecord | None:
+        statement = select(LearnerAttemptModel).where(
+            LearnerAttemptModel.attempt_id == attempt_id
+        )
+        if lock:
+            statement = statement.with_for_update()
+        row = self._session.scalar(statement)
+        return self._record(row) if row is not None else None
+
+    def get_by_receipt(
+        self, attempt_id: str, receipt_digest: str
+    ) -> AssessmentRecord | None:
+        row = self._session.scalar(
+            select(LearnerAttemptModel).where(
+                LearnerAttemptModel.attempt_id == attempt_id,
+                LearnerAttemptModel.receipt_digest == receipt_digest,
+            )
+        )
+        return self._record(row) if row is not None else None
+
+    def add_decision(self, decision: AssessmentDecision) -> None:
+        self._session.add(
+            AssessmentDecisionModel(
+                decision_id=decision.decision_id,
+                attempt_id=decision.attempt_id,
+                version=decision.version,
+                selections=list(decision.selections),
+                result=decision.result,
+                overall_feedback=decision.overall_feedback,
+                correction_reason=decision.correction_reason,
+                decided_at=decision.decided_at,
+            )
+        )
+
+    def complete_attempt(self, attempt_id: str, result: dict[str, object]) -> None:
+        self._session.execute(
+            update(LearnerAttemptModel)
+            .where(LearnerAttemptModel.attempt_id == attempt_id)
+            .values(outcome=LearnerOutcome.ACCEPTED_RESULT.value, result=result)
+        )
+
+    def _record(self, row: LearnerAttemptModel) -> AssessmentRecord:
+        snapshot = self._session.get(PublishedSnapshotModel, row.snapshot_id)
+        if snapshot is None:
+            raise RuntimeError("assessment snapshot is missing")
+        decision_rows = tuple(
+            self._session.scalars(
+                select(AssessmentDecisionModel)
+                .where(AssessmentDecisionModel.attempt_id == row.attempt_id)
+                .order_by(AssessmentDecisionModel.version.asc())
+            )
+        )
+        decisions = tuple(
+            AssessmentDecision(
+                decision_id=item.decision_id,
+                attempt_id=item.attempt_id,
+                version=item.version,
+                selections=tuple(item.selections),
+                result=item.result,
+                overall_feedback=item.overall_feedback,
+                correction_reason=item.correction_reason,
+                decided_at=item.decided_at,
+            )
+            for item in decision_rows
+        )
+        content = snapshot.public_payload.get("content")
+        title = content.get("title", {}) if isinstance(content, dict) else {}
+        return AssessmentRecord(
+            attempt=LearnerAttempt(
+                attempt_id=row.attempt_id,
+                snapshot_id=row.snapshot_id,
+                submission_key=row.submission_key,
+                request_digest=row.request_digest,
+                outcome=LearnerOutcome(row.outcome),
+                result=row.result,
+                submitted_at=row.submitted_at,
+                receipt_digest=row.receipt_digest,
+                response=row.response,
+            ),
+            slug=snapshot.slug,
+            title=title if isinstance(title, dict) else {},
+            snapshot_payload=snapshot.public_payload,
+            latest_decision=decisions[-1] if decisions else None,
+            decision_history=decisions,
+        )
+
+
+class SqlAlchemyManualAssessmentUnitOfWork(ManualAssessmentUnitOfWork):
+    def __init__(self, session_factory: sessionmaker[Session]) -> None:
+        self._session_factory = session_factory
+        self._session: Session | None = None
+        self._assessments: SqlAlchemyManualAssessmentRepository | None = None
+
+    @property
+    def assessments(self) -> SqlAlchemyManualAssessmentRepository:
+        if self._assessments is None:
+            raise RuntimeError("unit of work must be entered before repository access")
+        return self._assessments
+
+    def __enter__(self) -> Self:
+        self._session = self._session_factory()
+        self._assessments = SqlAlchemyManualAssessmentRepository(self._session)
+        return self
+
+    def __exit__(self, exc_type, exc, traceback) -> None:
+        if self._session is None:
+            return
+        try:
+            self._session.commit() if exc_type is None else self._session.rollback()
+        finally:
+            self._session.close()
+            self._session = None
+            self._assessments = None
 
 
 class SqlAlchemyAssessmentUnitOfWork(AssessmentUnitOfWork):
@@ -1046,13 +1203,21 @@ def _replace_associations(session: Session, revision: ProblemRevision) -> None:
             )
         )
     if revision.scoring is not None:
+        scoring_payload = encode_revision_payload(None, None, None, revision.scoring)[
+            "scoring"
+        ]
+        if not isinstance(scoring_payload, dict) or not isinstance(
+            scoring_payload.get("components"), list
+        ):
+            raise RuntimeError("scoring encoding unexpectedly returned no components")
+        encoded_components = scoring_payload["components"]
         session.add_all(
             ScoringComponentModel(
                 revision_id=revision_id,
                 method=item.method.value,
                 weight=item.weight,
                 position=position,
-                configuration=item.configuration,
+                configuration=encoded_components[position].get("configuration"),
             )
             for position, item in enumerate(revision.scoring.components)
         )

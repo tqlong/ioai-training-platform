@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from typing import Protocol
@@ -49,6 +49,8 @@ class LearnerAttempt:
     outcome: LearnerOutcome
     result: dict[str, object]
     submitted_at: datetime
+    receipt_digest: str = "0" * 64
+    response: dict[str, object] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -63,6 +65,12 @@ class LearnerAttempt:
             _require_identifier(self.submission_key, "submission key", MAX_KEY_LENGTH),
         )
         object.__setattr__(self, "request_digest", _require_digest(self.request_digest))
+        object.__setattr__(self, "receipt_digest", _require_digest(self.receipt_digest))
+        encoded_response = json.dumps(
+            self.response, ensure_ascii=False, separators=(",", ":")
+        ).encode()
+        if len(encoded_response) > 64_000:
+            raise ValueError("response must be at most 64000 bytes")
         if len(self.result) > MAX_RESULT_FIELDS:
             raise ValueError(f"result must contain at most {MAX_RESULT_FIELDS} fields")
         encoded_result = json.dumps(

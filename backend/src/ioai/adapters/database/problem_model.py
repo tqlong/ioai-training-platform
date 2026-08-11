@@ -214,7 +214,7 @@ class ScoringComponentModel(Base):
     method: Mapped[str] = mapped_column(String(32), nullable=False)
     weight: Mapped[Decimal] = mapped_column(Numeric(8, 7), nullable=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
-    configuration: Mapped[str | None] = mapped_column(Text)
+    configuration: Mapped[dict[str, object] | str | None] = mapped_column(JSONB)
 
 
 class EditorialTransitionModel(Base):
@@ -321,6 +321,12 @@ class LearnerAttemptModel(Base):
             "jsonb_typeof(result) = 'object' AND octet_length(result::text) <= 16384",
             name="bounded_result",
         ),
+        CheckConstraint(
+            "jsonb_typeof(response) = 'object' "
+            "AND octet_length(response::text) <= 64000",
+            name="bounded_response",
+        ),
+        CheckConstraint("length(receipt_digest) = 64", name="receipt_digest"),
         UniqueConstraint(
             "snapshot_id",
             "submission_key",
@@ -336,9 +342,37 @@ class LearnerAttemptModel(Base):
     )
     submission_key: Mapped[str] = mapped_column(String(200), nullable=False)
     request_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    receipt_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    response: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     outcome: Mapped[str] = mapped_column(String(32), nullable=False)
     result: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
+class AssessmentDecisionModel(Base):
+    """Append-only human assessment result and correction history."""
+
+    __tablename__ = "assessment_decision"
+    __table_args__ = (
+        CheckConstraint("version >= 1", name="positive_version"),
+        CheckConstraint("jsonb_typeof(selections) = 'array'", name="selection_array"),
+        CheckConstraint("jsonb_typeof(result) = 'object'", name="result_object"),
+        UniqueConstraint("attempt_id", "version", name="uq_assessment_version"),
+        Index("ix_assessment_decision_attempt", "attempt_id", "version"),
+    )
+
+    decision_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    attempt_id: Mapped[str] = mapped_column(
+        ForeignKey("learner_attempt.attempt_id", ondelete="RESTRICT"), nullable=False
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    selections: Mapped[list[dict[str, object]]] = mapped_column(JSONB, nullable=False)
+    result: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    overall_feedback: Mapped[str | None] = mapped_column(Text)
+    correction_reason: Mapped[str | None] = mapped_column(Text)
+    decided_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
 
