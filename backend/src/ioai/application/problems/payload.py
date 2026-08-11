@@ -7,11 +7,14 @@ from ioai.domain.problems.assessment import (
     Choice,
     CodeFunctionResponse,
     CodeTestCase,
+    HumanRubric,
     NumericResponse,
     QuizMultipleResponse,
     QuizSingleResponse,
     ResponseConfiguration,
     ResponseType,
+    RubricCriterion,
+    RubricLevel,
     ScoringComponent,
     ScoringMethod,
     ScoringScheme,
@@ -25,6 +28,7 @@ from ioai.domain.problems.content import (
     ProblemContent,
     TranslationState,
 )
+from ioai.domain.problems.errors import InvalidAssessmentConfigurationError
 from ioai.domain.problems.metadata import (
     CurriculumMetadata,
     ExpectedMinutes,
@@ -305,11 +309,14 @@ def _encode_scoring(value: ScoringScheme | None) -> dict[str, object] | None:
         return None
     return {
         "response_type": value.response_type.value,
+        "pass_threshold": str(value.pass_threshold),
         "components": [
             {
                 "method": item.method.value,
                 "weight": str(item.weight),
-                "configuration": item.configuration,
+                "configuration": _encode_rubric(item.configuration)
+                if isinstance(item.configuration, HumanRubric)
+                else item.configuration,
             }
             for item in value.components
         ],
@@ -325,10 +332,67 @@ def _decode_scoring(value: dict[str, Any] | None) -> ScoringScheme | None:
             ScoringComponent(
                 ScoringMethod(item["method"]),
                 Decimal(item["weight"]),
-                item.get("configuration"),
+                _decode_rubric(item.get("configuration"))
+                if ScoringMethod(item["method"]) is ScoringMethod.RUBRIC_HUMAN
+                else item.get("configuration"),
             )
             for item in value["components"]
         ),
+        Decimal(value.get("pass_threshold", "1.0")),
+    )
+
+
+def _encode_rubric(value: HumanRubric) -> dict[str, object]:
+    return {
+        "criteria": [
+            {
+                "id": criterion.id,
+                "title": _encode_localized(criterion.title),
+                "description": _encode_localized(criterion.description),
+                "maximum_points": str(criterion.maximum_points),
+                "levels": [
+                    {
+                        "id": level.id,
+                        "label": _encode_localized(level.label),
+                        "description": _encode_localized(level.description),
+                        "points": str(level.points),
+                    }
+                    for level in criterion.levels
+                ],
+            }
+            for criterion in value.criteria
+        ],
+        "reviewer_guidance": value.reviewer_guidance,
+        "exemplar": value.exemplar,
+    }
+
+
+def _decode_rubric(value: object) -> HumanRubric:
+    if not isinstance(value, dict):
+        raise InvalidAssessmentConfigurationError(
+            "RUBRIC_HUMAN requires a structured rubric"
+        )
+    return HumanRubric(
+        criteria=tuple(
+            RubricCriterion(
+                id=str(criterion["id"]),
+                title=_decode_localized(criterion["title"]),
+                description=_decode_localized(criterion["description"]),
+                maximum_points=Decimal(criterion["maximum_points"]),
+                levels=tuple(
+                    RubricLevel(
+                        id=str(level["id"]),
+                        label=_decode_localized(level["label"]),
+                        description=_decode_localized(level["description"]),
+                        points=Decimal(level["points"]),
+                    )
+                    for level in criterion["levels"]
+                ),
+            )
+            for criterion in value.get("criteria", [])
+        ),
+        reviewer_guidance=value.get("reviewer_guidance"),
+        exemplar=value.get("exemplar"),
     )
 
 

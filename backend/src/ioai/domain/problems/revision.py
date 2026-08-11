@@ -5,7 +5,12 @@ from enum import StrEnum
 
 from ioai.domain.vocabulary.availability import Release0AvailabilityPolicy
 
-from .assessment import CodeFunctionResponse, ResponseConfiguration, ScoringScheme
+from .assessment import (
+    CodeFunctionResponse,
+    HumanRubric,
+    ResponseConfiguration,
+    ScoringScheme,
+)
 from .content import ProblemContent
 from .errors import InvalidProblemContentError
 from .identity import ProblemId, RevisionId, StableSlug
@@ -186,6 +191,45 @@ class ProblemRevision:
             )
         if isinstance(self.response, CodeFunctionResponse):
             self._validate_code_function(errors, self.response)
+        for component_index, component in enumerate(self.scoring.components):
+            if not isinstance(component.configuration, HumanRubric):
+                continue
+            for criterion_index, criterion in enumerate(
+                component.configuration.criteria
+            ):
+                required = (
+                    ("title", criterion.title.en),
+                    ("description", criterion.description.en),
+                )
+                for field, value in required:
+                    if not value:
+                        errors.append(
+                            ValidationIssue(
+                                code="RUBRIC_ENGLISH_REQUIRED",
+                                section=ValidationSection.ASSESSMENT,
+                                field_path=(
+                                    f"scoring.components.{component_index}.rubric."
+                                    f"criteria.{criterion_index}.{field}.en"
+                                ),
+                                message="Complete the required English rubric text.",
+                                severity=ValidationSeverity.ERROR,
+                            )
+                        )
+                for level_index, level in enumerate(criterion.levels):
+                    if level.label.en and level.description.en:
+                        continue
+                    errors.append(
+                        ValidationIssue(
+                            code="RUBRIC_ENGLISH_REQUIRED",
+                            section=ValidationSection.ASSESSMENT,
+                            field_path=(
+                                f"scoring.components.{component_index}.rubric.criteria."
+                                f"{criterion_index}.levels.{level_index}"
+                            ),
+                            message="Complete the required English rubric level text.",
+                            severity=ValidationSeverity.ERROR,
+                        )
+                    )
         if (
             self.metadata is not None
             and self.metadata.task_type.code != self.response.response_type.value

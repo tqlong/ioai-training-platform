@@ -171,15 +171,115 @@ class ScoringMethod(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class RubricLevel:
+    id: str
+    label: LocalizedText
+    description: LocalizedText
+    points: Decimal
+
+    def __post_init__(self) -> None:
+        if not _IDENTIFIER.fullmatch(self.id):
+            raise InvalidAssessmentConfigurationError(
+                "rubric level id must be a bounded stable identifier"
+            )
+        if not self.points.is_finite() or self.points < 0:
+            raise InvalidAssessmentConfigurationError(
+                "rubric level points must be finite and non-negative"
+            )
+
+
+@dataclass(frozen=True, slots=True)
+class RubricCriterion:
+    id: str
+    title: LocalizedText
+    description: LocalizedText
+    maximum_points: Decimal
+    levels: tuple[RubricLevel, ...]
+
+    def __post_init__(self) -> None:
+        if not _IDENTIFIER.fullmatch(self.id):
+            raise InvalidAssessmentConfigurationError(
+                "rubric criterion id must be a bounded stable identifier"
+            )
+        if not self.maximum_points.is_finite() or self.maximum_points <= 0:
+            raise InvalidAssessmentConfigurationError(
+                "rubric criterion maximum points must be finite and positive"
+            )
+        if len(self.levels) < 2:
+            raise InvalidAssessmentConfigurationError(
+                "rubric criterion requires at least two performance levels"
+            )
+        ids = {level.id for level in self.levels}
+        points = {level.points for level in self.levels}
+        if len(ids) != len(self.levels) or len(points) != len(self.levels):
+            raise InvalidAssessmentConfigurationError(
+                "rubric level ids and points must be unique within a criterion"
+            )
+        if any(level.points > self.maximum_points for level in self.levels):
+            raise InvalidAssessmentConfigurationError(
+                "rubric level points cannot exceed the criterion maximum"
+            )
+        if Decimal("0") not in points or self.maximum_points not in points:
+            raise InvalidAssessmentConfigurationError(
+                "rubric levels must include zero and maximum points"
+            )
+
+
+@dataclass(frozen=True, slots=True)
+class HumanRubric:
+    criteria: tuple[RubricCriterion, ...]
+    reviewer_guidance: str | None = None
+    exemplar: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.criteria:
+            raise InvalidAssessmentConfigurationError(
+                "a human rubric requires at least one criterion"
+            )
+        ids = {criterion.id for criterion in self.criteria}
+        if len(ids) != len(self.criteria):
+            raise InvalidAssessmentConfigurationError(
+                "rubric criterion ids must be unique"
+            )
+        for field_name in ("reviewer_guidance", "exemplar"):
+            raw = getattr(self, field_name)
+            normalized = raw.strip() if raw else None
+            if normalized is not None and len(normalized) > 100_000:
+                raise InvalidAssessmentConfigurationError(
+                    f"rubric {field_name.replace('_', ' ')} is too long"
+                )
+            object.__setattr__(self, field_name, normalized)
+
+    @property
+    def maximum_points(self) -> Decimal:
+        return sum(
+            (criterion.maximum_points for criterion in self.criteria),
+            start=Decimal("0"),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class ScoringComponent:
     method: ScoringMethod
     weight: Decimal
-    configuration: str | None = None
+    configuration: HumanRubric | str | None = None
 
     def __post_init__(self) -> None:
         if not self.weight.is_finite() or self.weight <= 0:
             raise InvalidAssessmentConfigurationError(
                 "scoring component weight must be finite and positive"
+            )
+        if self.method is ScoringMethod.RUBRIC_HUMAN and not isinstance(
+            self.configuration, HumanRubric
+        ):
+            raise InvalidAssessmentConfigurationError(
+                "RUBRIC_HUMAN requires a structured rubric"
+            )
+        if self.method is not ScoringMethod.RUBRIC_HUMAN and isinstance(
+            self.configuration, HumanRubric
+        ):
+            raise InvalidAssessmentConfigurationError(
+                "a structured rubric is valid only for RUBRIC_HUMAN"
             )
 
 
@@ -210,6 +310,7 @@ _METHODS_BY_RESPONSE: dict[ResponseType, frozenset[ScoringMethod]] = {
 class ScoringScheme:
     response_type: ResponseType
     components: tuple[ScoringComponent, ...]
+    pass_threshold: Decimal = Decimal("1.0")
 
     def __post_init__(self) -> None:
         if not self.components:
@@ -228,6 +329,14 @@ class ScoringScheme:
         if self.total_weight != Decimal("1.0"):
             raise InvalidAssessmentConfigurationError(
                 "scoring component weights must total exactly 1.0"
+            )
+        if (
+            not self.pass_threshold.is_finite()
+            or self.pass_threshold < 0
+            or self.pass_threshold > 1
+        ):
+            raise InvalidAssessmentConfigurationError(
+                "pass threshold must be between 0 and 1"
             )
 
     @property

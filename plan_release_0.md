@@ -1106,7 +1106,7 @@ observe the required red step before implementation.
   snapshot isolation, and mixed scoring. Update the UI/design documents and
   requirement traceability before implementation. Suggested commit:
   `docs(assessment): specify manual assessment workflow`.
-- [ ] **R0-08102 — Model structured rubrics and pass thresholds.** Add stable
+- [x] **R0-08102 — Model structured rubrics and pass thresholds.** Add stable
   criteria and performance levels with exact points, decimal-safe rubric
   normalization, private reviewer guidance/exemplars, and a scoring-scheme pass
   threshold from `0` through `1` that defaults to `1.0`. Drafts may save an

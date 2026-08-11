@@ -8,10 +8,13 @@ from ioai.domain.problems.assessment import (
     Choice,
     CodeFunctionResponse,
     CodeTestCase,
+    HumanRubric,
     NumericResponse,
     QuizMultipleResponse,
     QuizSingleResponse,
     ResponseType,
+    RubricCriterion,
+    RubricLevel,
     ScoringComponent,
     ScoringMethod,
     ScoringScheme,
@@ -137,3 +140,76 @@ def test_scoring_method_must_apply_to_response_type() -> None:
         )
     with pytest.raises(InvalidAssessmentConfigurationError, match="positive"):
         ScoringComponent(ScoringMethod.EXACT_MATCH, Decimal("0"))
+
+
+def test_human_scoring_requires_a_structured_point_level_rubric() -> None:
+    criterion = RubricCriterion(
+        id="reasoning",
+        title=LocalizedText(en="Reasoning", vi="", vi_state="PENDING"),
+        description=LocalizedText(
+            en="Explains why precision uses predicted positives.",
+            vi="",
+            vi_state="PENDING",
+        ),
+        maximum_points=Decimal("2"),
+        levels=(
+            RubricLevel(
+                "not-yet",
+                LocalizedText(en="Not yet", vi="", vi_state="PENDING"),
+                LocalizedText(
+                    en="Does not explain the denominator.",
+                    vi="",
+                    vi_state="PENDING",
+                ),
+                Decimal("0"),
+            ),
+            RubricLevel(
+                "complete",
+                LocalizedText(en="Complete", vi="", vi_state="PENDING"),
+                LocalizedText(
+                    en="Correctly explains the denominator.",
+                    vi="",
+                    vi_state="PENDING",
+                ),
+                Decimal("2"),
+            ),
+        ),
+    )
+    rubric = HumanRubric((criterion,), reviewer_guidance="Check the reasoning.")
+    component = ScoringComponent(ScoringMethod.RUBRIC_HUMAN, Decimal("1.0"), rubric)
+
+    assert rubric.maximum_points == Decimal("2")
+    assert component.configuration is rubric
+
+    with pytest.raises(InvalidAssessmentConfigurationError, match="structured rubric"):
+        ScoringComponent(ScoringMethod.RUBRIC_HUMAN, Decimal("1.0"), None)
+
+
+def test_rubric_levels_include_unique_zero_and_maximum_points() -> None:
+    text = LocalizedText(en="Observable result", vi="", vi_state="PENDING")
+
+    with pytest.raises(InvalidAssessmentConfigurationError, match="zero and maximum"):
+        RubricCriterion(
+            "criterion",
+            text,
+            text,
+            Decimal("2"),
+            (
+                RubricLevel("partial", text, text, Decimal("1")),
+                RubricLevel("full", text, text, Decimal("2")),
+            ),
+        )
+
+
+def test_scoring_threshold_defaults_to_one_and_accepts_decimal_boundary() -> None:
+    component = ScoringComponent(ScoringMethod.EXACT_MATCH, Decimal("1.0"))
+
+    assert ScoringScheme(
+        ResponseType.QUIZ_SINGLE, (component,)
+    ).pass_threshold == Decimal("1.0")
+    assert ScoringScheme(
+        ResponseType.QUIZ_SINGLE, (component,), Decimal("0.75")
+    ).pass_threshold == Decimal("0.75")
+
+    with pytest.raises(InvalidAssessmentConfigurationError, match="pass threshold"):
+        ScoringScheme(ResponseType.QUIZ_SINGLE, (component,), Decimal("1.01"))
