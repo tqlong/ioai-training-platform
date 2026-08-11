@@ -184,3 +184,16 @@ def test_correction_is_append_only_and_requires_current_identity_and_reason() ->
     assert corrected.version == 2
     assert corrected.result["passed"] is False
     assert len(work.assessments.decisions) == 2
+
+
+def test_rejects_incomplete_or_unknown_rubric_selections() -> None:
+    work = Work(pending_record())
+    resolve = ResolveManualAssessment(lambda: work, lambda: "decision", lambda: NOW)
+
+    with pytest.raises(ValueError, match="every rubric criterion"):
+        resolve("attempt-1", ())
+    with pytest.raises(ValueError, match="selected rubric level"):
+        resolve(
+            "attempt-1",
+            (AssessmentSelection(1, "reasoning", "unknown-level"),),
+        )

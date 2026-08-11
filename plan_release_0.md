@@ -1138,7 +1138,7 @@ observe the required red step before implementation.
   the exact snapshot rubric. Do not expose draft or superseded publication
   content. Suggested commit:
   `feat(assessment): query author assessment queue`.
-- [ ] **R0-08107 — Resolve and correct manual assessments.** Require one
+- [x] **R0-08107 — Resolve and correct manual assessments.** Require one
   published performance-level selection per criterion, normalize human points,
   combine them with stored automated results, and apply the snapshot pass
   threshold. Append immutable decisions; corrections require a reason and the
