@@ -1132,7 +1132,7 @@ observe the required red step before implementation.
   pending. Return a receipt-protected stable result path; idempotent retries
   must return the same attempt without rerunning scoring. Suggested commit:
   `feat(assessment): queue human-scored submissions`.
-- [ ] **R0-08106 — Implement assessment queue queries.** Add application and
+- [x] **R0-08106 — Implement assessment queue queries.** Add application and
   repository queries for oldest pending submissions and assessed history, with
   bounded offset pagination, problem/status filtering, stable ordering, and
   the exact snapshot rubric. Do not expose draft or superseded publication

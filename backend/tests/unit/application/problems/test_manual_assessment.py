@@ -7,6 +7,7 @@ from ioai.application.problems.manual_assessment import (
     AssessmentConflictError,
     AssessmentRecord,
     AssessmentSelection,
+    ListManualAssessments,
     ResolveManualAssessment,
 )
 
@@ -21,6 +22,15 @@ class Records:
     def get_record(self, attempt_id, lock=False):
         del lock
         return self.record if attempt_id == self.record.attempt.attempt_id else None
+
+    def list_records(self, *, status, problem, limit, offset):
+        self.list_query = {
+            "status": status,
+            "problem": problem,
+            "limit": limit,
+            "offset": offset,
+        }
+        return (self.record,)
 
     def add_decision(self, decision):
         self.decisions.append(decision)
@@ -125,6 +135,24 @@ def test_resolves_mixed_score_against_snapshot_rubric_and_threshold() -> None:
     assert decision.result["score"] == "1.0"
     assert decision.result["passed"] is True
     assert work.assessments.record.attempt.outcome is LearnerOutcome.ACCEPTED_RESULT
+
+
+def test_lists_bounded_filtered_assessments_through_the_repository_port() -> None:
+    work = Work(pending_record())
+
+    records = ListManualAssessments(lambda: work)(
+        status="PENDING", problem="precision", limit=25, offset=10
+    )
+
+    assert records == (work.assessments.record,)
+    assert work.assessments.list_query == {
+        "status": "PENDING",
+        "problem": "precision",
+        "limit": 25,
+        "offset": 10,
+    }
+    with pytest.raises(ValueError, match="pagination"):
+        ListManualAssessments(lambda: work)(limit=101)
 
 
 def test_correction_is_append_only_and_requires_current_identity_and_reason() -> None:
