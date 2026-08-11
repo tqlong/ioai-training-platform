@@ -85,7 +85,8 @@ Learner UI:
 Author Studio:
 
 ```text
-[IOAI Studio]  Problems  Review queue  Vocabulary       [Development only]
+[IOAI Studio]  Problems  Editorial review  Assessment queue  Vocabulary
+                                                        [Development only]
 ```
 
 The two headers should use visibly different labels and accent colors so an author cannot mistake a draft preview for the public product.
@@ -310,6 +311,13 @@ The selected canonical task type determines the response form:
 
 Scoring components use canonical methods and must total `1.0`. The editor displays both component weights and their sum. For the pilot, prefer `EXACT_MATCH`, `UNIT_TESTS`, `PARTIAL_TESTS`, or `RUBRIC_HUMAN`.
 
+The scoring scheme has a pass threshold from `0` through `1`, defaulting to
+`1.0`. Every `RUBRIC_HUMAN` component requires a structured point-level rubric.
+Each criterion has stable identity, English-required and Vietnamese-optional
+learner text, positive maximum points, and at least a zero and maximum
+performance level. Reviewer guidance and exemplars are visibly private and
+never appear in public problem responses.
+
 ### 6.6 Section 4 — Curriculum metadata
 
 Required single-select fields:
@@ -393,6 +401,16 @@ latest row provides **Show all N revisions**; activating it expands that group
 into N rows without mixing histories from other problems, and a corresponding
 collapse action restores the single latest row. Status filtering uses the
 latest revision while revision-ID search may match any revision in the group.
+
+### 7.1 Manual assessment queue
+
+Route: `/author/assessments`
+
+Default to oldest pending answers. Provide Pending and Assessed history views,
+bounded paging, and problem/status filtering. The detail route shows the exact
+published answer and rubric, requires one performance-level choice per
+criterion, and accepts optional criterion and overall learner feedback.
+Corrections append a new decision, require a reason, and never erase history.
 
 ## 8. Core interaction rules
 

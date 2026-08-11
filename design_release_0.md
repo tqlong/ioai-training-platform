@@ -1291,9 +1291,35 @@ Retry policy is explicit at each port; generic HTTP retries are not applied to
 non-idempotent commands without an idempotency key (`R0-012`, `R0-013`, `R0-014`,
 analysis sections 6-10).
 
-## 16. Design baseline and traceability
+## 16. Manual assessment architecture
 
-### 16.1 Requirement-to-design matrix
+Published scoring payloads carry a decimal `pass_threshold` and structured
+rubrics inside `RUBRIC_HUMAN` components. Rubric criteria and performance levels
+use stable IDs and exact decimal point strings. Reviewer guidance and exemplars
+remain in the immutable snapshot for Studio but are removed from learner result
+projections.
+
+Submission commands include independent idempotency and private receipt values.
+PostgreSQL stores the validated bounded response, one-way receipt digest, and
+automated component results against the publication snapshot. Automated
+components execute once; a pending human assessment never reruns them.
+
+Assessment decisions are append-only versions. The application use case locks
+the attempt, validates selections against its snapshot rubric, normalizes human
+points, combines stored weighted results, and applies the snapshot threshold.
+Corrections require the current decision ID and a reason. Public retrieval uses
+`GET /api/v1/submissions/{attempt_id}` plus a receipt header; invalid credentials
+return uniform not-found. Studio uses `/api/v1/author/assessments` list, detail,
+and decision commands.
+
+The Learn application owns a bounded device-local index of receipt references
+and exposes `/submissions` plus `/submissions/[attempt_id]`. It is not an account
+or cross-device identity. The Studio exposes `/author/assessments`, clearly
+separate from editorial review (`R0-017`).
+
+## 17. Design baseline and traceability
+
+### 17.1 Requirement-to-design matrix
 
 | Requirement group | Design evidence | Implementation proof deferred |
 | --- | --- | --- |
@@ -1304,8 +1330,9 @@ analysis sections 6-10).
 | R0-014 editorial publication | Sections 3-4, 7, 9-11, and 13 define revision/snapshot model, status commands, atomic publication, stable slugs, and isolation | Phase 6/7 workflow, persistence, contract, and E2E tests |
 | R0-015 quality and operations | Sections 1-2, 8-11, 14-15 define dependency direction, errors, transactions, privacy, Compose, observability, health, backup, and testing | Phase 4/7 quality, migration, operations, and CI checks |
 | R0-016 governance | This section and decision-index updates preserve requirement/analysis/design traceability | Review at every later design or implementation change |
+| R0-017 manual assessment | Section 16 defines rubric snapshots, receipt privacy, mixed scoring, append-only decisions, and device-local history | Phase 8.1 domain, migration, API, component, and E2E tests |
 
-### 16.2 Analysis-to-design matrix
+### 17.2 Analysis-to-design matrix
 
 | Analysis section | Design sections | Design conclusion |
 | --- | --- | --- |
@@ -1319,7 +1346,7 @@ analysis sections 6-10).
 | 10 risk/verification | 8, 10-11, 14-15 | Contract drift, PostgreSQL, accessibility, E2E, observability, backup, and leak tests |
 | 11 open decisions | 1, 8, 10, 14-15 | Resolved READ COMMITTED/row-lock policy; remaining deployment/tool choices recorded explicitly |
 
-### 16.3 Deferred proof and open implementation choices
+### 17.3 Deferred proof and open implementation choices
 
 Design establishes behavior and boundaries but does not claim implementation
 proof. Phase 4+ must prove the design with real artifacts and tests, especially:
@@ -1339,7 +1366,7 @@ retention remain operational/tooling choices. They require an ADR or concrete
 implementation design before use and cannot weaken accepted requirements or
 introduce deferred features (`R0-015`, analysis section 11.2).
 
-### 16.4 Baseline decision
+### 17.4 Baseline decision
 
 The design contains no authentication, accounts, hosted notebooks, GPU or
 distributed execution, semantic retrieval, document ingestion, LLM generation,

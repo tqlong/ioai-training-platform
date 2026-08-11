@@ -1098,6 +1098,84 @@ observe the required red step before implementation.
   every exact skip or failure. Suggested commit:
   `feat(learn): baseline the learner solving loop`.
 
+## Phase 8.1 — Manual assessment and learner submission history
+
+- [x] **R0-08101 — Specify the manual-assessment workflow.** Add Release 0
+  stories and acceptance criteria for structured rubric authoring, pending
+  assessment, corrections, learner submission history, receipt privacy,
+  snapshot isolation, and mixed scoring. Update the UI/design documents and
+  requirement traceability before implementation. Suggested commit:
+  `docs(assessment): specify manual assessment workflow`.
+- [ ] **R0-08102 — Model structured rubrics and pass thresholds.** Add stable
+  criteria and performance levels with exact points, decimal-safe rubric
+  normalization, private reviewer guidance/exemplars, and a scoring-scheme pass
+  threshold from `0` through `1` that defaults to `1.0`. Drafts may save an
+  incomplete rubric, but validation and publication must reject it. Begin with
+  failing domain tests. Suggested commit:
+  `feat(scoring): model structured human rubrics`.
+- [ ] **R0-08103 — Build structured rubric authoring.** Replace the generic
+  human-scoring configuration field with accessible criterion and
+  performance-level editors, optional private guidance/exemplar fields, exact
+  score summaries, English-required/Vietnamese-optional text, and the
+  configurable pass threshold. Preserve autosave and learner preview behavior.
+  Suggested commit: `feat(studio): add rubric authoring`.
+- [ ] **R0-08104 — Persist reviewable submissions and assessment decisions.**
+  Add an Alembic migration for the bounded validated answer, receipt digest,
+  stored automated component results, immutable decision versions, criterion
+  selections, optional learner feedback, correction reason, and timestamps.
+  Protect snapshot binding and optimistic concurrency with PostgreSQL
+  constraints and test upgrade plus safe downgrade. Suggested commit:
+  `feat(db): persist manual assessments`.
+- [ ] **R0-08105 — Create pending assessments at submission.** Store the
+  validated answer against the current publication snapshot, execute automated
+  components once, and retain their results while human components remain
+  pending. Return a receipt-protected stable result path; idempotent retries
+  must return the same attempt without rerunning scoring. Suggested commit:
+  `feat(assessment): queue human-scored submissions`.
+- [ ] **R0-08106 — Implement assessment queue queries.** Add application and
+  repository queries for oldest pending submissions and assessed history, with
+  bounded offset pagination, problem/status filtering, stable ordering, and
+  the exact snapshot rubric. Do not expose draft or superseded publication
+  content. Suggested commit:
+  `feat(assessment): query author assessment queue`.
+- [ ] **R0-08107 — Resolve and correct manual assessments.** Require one
+  published performance-level selection per criterion, normalize human points,
+  combine them with stored automated results, and apply the snapshot pass
+  threshold. Append immutable decisions; corrections require a reason and the
+  expected current decision identity, retain history, and reject stale writes.
+  Suggested commit: `feat(assessment): resolve rubric decisions`.
+- [ ] **R0-08108 — Expose contracts and regenerate the client.** Extend public
+  submission responses with a stable result path and private receipt, add
+  receipt-protected result retrieval, and add author queue/detail/decision
+  endpoints. Define stable safe errors, update deterministic OpenAPI and
+  generated TypeScript types, and prove contract drift. Private rubric fields,
+  receipt digests, hidden answers, and decision internals must not leak.
+  Suggested commit: `feat(api): expose manual assessment contracts`.
+- [ ] **R0-08109 — Build the Studio assessment queue.** Add
+  `/author/assessments` with distinct Assessment queue navigation,
+  pending/history views, filters, oldest-pending ordering, accessible rubric
+  controls, optional criterion/overall feedback, confirmation, conflict
+  recovery, decision history, and append-only correction UI. Keep editorial
+  review terminology separate. Suggested commit:
+  `feat(studio): build assessment queue`.
+- [ ] **R0-08110 — Add learner submission history and result pages.** Maintain
+  at most the latest 100 receipt-backed records on the current device and add
+  `/submissions` plus `/submissions/[attempt_id]`. Refresh status securely,
+  display the submitted answer and learner-safe rubric result, and reconcile
+  local task status after decisions or corrections. Clearing browser storage
+  makes anonymous history unrecoverable. Suggested commit:
+  `feat(learn): add submission history`.
+- [ ] **R0-08111 — Verify and baseline Phase 8.1.** Cover mixed scoring,
+  threshold boundaries, pending/failed/passed states, corrections, receipt
+  rejection, concurrency, publication isolation, accessibility, responsive
+  layouts, and local-storage failure. Add `manual_R0_P8_1.md` and the critical
+  author-publish -> learner-submit -> author-assess -> learner-result ->
+  correction Playwright flow. Update fixtures to use intentional structured
+  rubrics and fail rollout preflight if legacy published human rubrics or
+  unresolved legacy attempts remain. Run and record every affected quality
+  gate. Suggested commit:
+  `test(assessment): baseline manual assessment workflow`.
+
 ## Phase 9 — Integration and system verification
 
 - [ ] **R0-090 — Harden migration integration tests.** Verify a clean PostgreSQL

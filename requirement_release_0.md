@@ -929,9 +929,105 @@ Then deterministic contract generation and drift checks fail if the committed
 client and server contract disagree.
 ```
 
-## 15. Requirements baseline review
+## 15. Manual assessment stories
 
-### 15.1 Coverage and source traceability
+### R0-017-01 — Author a structured human rubric
+
+As an author, I want every human-scored component to have an explicit rubric so
+that reviewers assess the published task consistently.
+
+```text
+AC-R0-017-01
+Given a scoring component uses RUBRIC_HUMAN
+When the author validates or publishes the revision
+Then it contains at least one stable criterion with English learner-visible
+text, positive maximum points, and at least two exact-point performance levels
+including zero and the criterion maximum.
+
+AC-R0-017-02
+Given a scoring scheme is edited
+When no pass threshold is supplied
+Then the threshold is exactly 1.0, while an author may configure any
+decimal-safe value from 0 through 1.
+
+AC-R0-017-03
+Given a human rubric contains reviewer guidance or an exemplar
+When a public problem or learner result is returned
+Then those private fields are omitted, while the immutable published snapshot
+retains the rubric used for assessment.
+```
+
+### R0-017-02 — Assess and correct a learner submission
+
+As a Studio operator, I want an assessment queue and rubric-bound decision so
+that pending answers receive consistent results.
+
+```text
+AC-R0-017-04
+Given a submission mixes automated and human scoring components
+When it is accepted
+Then the validated answer and automated component results are stored once
+against the current published snapshot and the attempt remains pending.
+
+AC-R0-017-05
+Given pending assessments exist
+When the assessment queue opens
+Then it defaults to oldest pending first and supports bounded pagination plus
+problem and pending/assessed status filters.
+
+AC-R0-017-06
+Given an operator assesses an answer
+When one published performance level is selected for every criterion
+Then the server normalizes criterion points, combines stored component results,
+applies the snapshot pass threshold, and records an immutable decision.
+
+AC-R0-017-07
+Given an assessed answer needs correction
+When a correction supplies the current decision identity and a reason
+Then a new decision supersedes the old one without erasing history; stale
+concurrent corrections are rejected.
+```
+
+### R0-017-03 — Revisit anonymous submissions
+
+As an anonymous learner, I want device-local submission history and permanent
+result links so that I can return after manual assessment.
+
+```text
+AC-R0-017-08
+Given a learner submits an answer
+When the attempt is stored
+Then the API returns an opaque private receipt and a stable result path, stores
+only the receipt digest, and never places the receipt in a URL.
+
+AC-R0-017-09
+Given a valid attempt identity and private receipt
+When the learner requests the result
+Then the response contains only that submitted answer, current safe score,
+learner-visible criterion results, optional reviewer feedback, and timestamps.
+
+AC-R0-017-10
+Given a receipt is missing or invalid
+When a result is requested
+Then the API returns a uniform safe not-found response without disclosing
+whether the attempt exists.
+
+AC-R0-017-11
+Given this browser has recorded submissions
+When the learner opens submission history
+Then at most the latest 100 device-local receipt references are shown with
+status and links; clearing browser storage makes them unrecoverable in Release 0.
+
+AC-R0-017-12
+Given a pending result becomes assessed or corrected
+When the device refreshes it
+Then passed attempts contribute COMPLETED and other attempts contribute
+ATTEMPTED without inferring MASTERED.
+```
+
+## 16. Requirements baseline review
+
+### 16.1 Coverage and source traceability
 
 The following matrix is the Phase 1 baseline. Later analysis, design, and
 implementation artifacts must retain these IDs rather than replacing them with
@@ -946,13 +1042,15 @@ unstable component or endpoint names.
 | R0-014 editorial publication | `master_plan.md` release boundaries; `ui_release_0.md` section 6.8 | Domain workflow tests, repository isolation tests, and author E2E |
 | R0-015 quality and operations | `code_standard.md`, `AGENTS.md`, `ui_release_0.md` section 8 | CI, migration, accessibility, performance, security, and operations checks |
 | R0-016 baseline governance | `plan_release_0.md` and all governing documents | Traceability review and change-control records |
+| R0-017 manual assessment | `master_plan.md` Release 0 and `ui_release_0.md` sections 6.5 and 7.1 | Rubric, queue, receipt-security, history, and E2E tests |
 
 Acceptance criteria are numbered continuously within each story group:
 `AC-R0-011-01` through `AC-R0-011-16`, `AC-R0-012-01` through
 `AC-R0-012-17`, `AC-R0-013-01` through `AC-R0-013-21`, `AC-R0-014-01`
-through `AC-R0-014-16`, and `AC-R0-015-01` through `AC-R0-015-19`.
+through `AC-R0-014-16`, `AC-R0-015-01` through `AC-R0-015-19`, and
+`AC-R0-017-01` through `AC-R0-017-12`.
 
-### 15.2 Resolved scope choices
+### 16.2 Resolved scope choices
 
 - Release 0 enables `QUIZ_SINGLE`, `QUIZ_MULTIPLE`, `NUMERIC_ANSWER`,
   `SHORT_ANSWER`, and `CODE_FUNCTION` only. `CODE_DEBUGGING` and
@@ -967,20 +1065,20 @@ through `AC-R0-014-16`, and `AC-R0-015-01` through `AC-R0-015-19`.
   records for attempts and feedback are bounded operational records, not an
   identity system.
 
-### 15.3 Deferred stories and implementation decisions
+### 16.3 Deferred stories and implementation decisions
 
 The following are intentionally deferred and must not be inferred as Release 0
 requirements: accounts and authentication, saved cross-device progress,
 leaderboards, contests, social features, GPU or hosted execution, semantic
 retrieval, document ingestion, LLM generation, embeddings, broad analytics, and
-the task types not listed in 15.2.
+the task types not listed in 16.2.
 
 The exact retention period and provider for backups, the final browser version
 window, and the concrete observability sink remain implementation decisions for
 the Phase 3/4 design and operations work. They cannot weaken the measurable
 requirements in R0-015 or the public/draft isolation rules.
 
-### 15.4 Contradiction record
+### 16.4 Contradiction record
 
 The master plan names seven lightweight task types for a later public-learning
 release, while the Release 0 UI response section names five. The narrower,
