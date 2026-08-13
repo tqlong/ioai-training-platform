@@ -107,6 +107,16 @@ Release 0.
   clearing ignored `.next` outputs and running production builds; its exit trap
   restores those services. PostgreSQL tests use only `ioai_test`; Compose and
   recovery use only their reserved projects and disposable volumes.
+- The final Phase 9 baseline was run on Linux on 2026-08-14 with
+  `bash scripts/release0_verification.sh all`. It passed in 1,275.54 seconds.
+  Host commands used Node 18.19.1, pnpm 10.16.0, uv 0.12.3, and Python 3.12.3;
+  Compose used the committed Node 22, Python 3.12, and PostgreSQL 16 images.
+  Playwright was 1.55.0. The run passed 218 backend unit tests, 290 total
+  PostgreSQL-backed backend tests, 104 frontend tests, all browser/system
+  matrices, the clean/persisted Compose lifecycle, and the backup/restore
+  rehearsal. The captured local console log was
+  `/tmp/ioai-r0-phase9-final-pass.log`; this machine-local file is not a
+  durable CI artifact.
 - `.github/workflows/release-0-ci.yml` runs the five modes as explicit Linux
   jobs with Node 22.20.0, pnpm 10.16.0, uv 0.12.3, Playwright 1.55.0, and the
   matching Firefox/WebKit container. Browser, Compose, and recovery reports are

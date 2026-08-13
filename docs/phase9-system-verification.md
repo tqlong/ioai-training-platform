@@ -394,3 +394,89 @@ retroactive test-driven development.
   and diff checks passed. Compose, recovery, and browser sub-gates retain their
   direct R0-09009 through R0-09014 evidence and will be rerun together by the
   clean aggregate baseline in `R0-09016`.
+
+### `R0-09016`
+
+- The authoritative `bash scripts/release0_verification.sh all` run completed
+  on Linux on 2026-08-14 in 1,275.54 seconds with no required gate skipped. It
+  installed only from committed `uv.lock` and `pnpm-lock.yaml`, passed Ruff and
+  Pyright, passed 218 backend unit tests, passed all 290 backend tests against
+  isolated PostgreSQL in 171.15 seconds, passed all 104 frontend tests, passed
+  ESLint/strict TypeScript, verified deterministic vocabulary/OpenAPI/client
+  generation, scanned the learner production build for private markers, and
+  built both Next.js applications.
+- Deployed checks passed API-client compatibility, structured-log redaction,
+  dependency interruption/recovery, 4/4 accessibility/responsive cases, 21/21
+  learner browser and abuse cases, 8/8 author desktop/mobile groups, and 7/7
+  manual-assessment desktop/mobile groups. The cold broadband profile with 135
+  public records measured 816 ms for meaningful library content and 315 ms for
+  usable detail, within the 2,000/3,000 ms budgets.
+- The clean-source Compose rehearsal installed frozen dependencies into a
+  temporary export of committed `HEAD`, migrated an empty volume through all
+  eight revisions, imported 343 canonical records, preserved exact
+  vocabulary/problem/revision/snapshot/attempt/feedback/decision counts after a
+  full stop/restart, failed safely on an injected unknown migration, recovered
+  readiness, and removed only its reserved project.
+- The recovery rehearsal matched deterministic full-row digests for one
+  Alembic head, 343 vocabulary records, one problem, two revisions, six
+  editorial transitions, two snapshots, one learner attempt, one feedback
+  record, and two assessment decisions. It restored only to the guarded
+  `ioai_restore_verify` target and removed the target and isolated volume.
+- Three aggregate-run defects were fixed from observed red regressions: browser
+  cleanup now waits for Learn/Studio readiness (`58f7311`), editorial decisions
+  no longer wait on a non-critical history refresh (`e54e932`), and editorial
+  notes cannot be edited during an in-flight transition (`96e14fe`). The latter
+  two fixes raised the Studio suite from 39 to 41 behavior tests.
+
+## Final criterion audit
+
+| Criterion | Final status and current evidence |
+| --- | --- |
+| `AC-R0-015-01` | Pass for automated scope: axe A/AA scans, roles/names, announcements, validation focus, and modal keyboard/focus behavior. Physical screen-reader traversal remains an explicit observed-pilot check. |
+| `AC-R0-015-02` | Pass for automated and representative grayscale scope: detectable contrast and text/shape-backed meaning. Pilot-display grayscale confirmation remains explicit. |
+| `AC-R0-015-03` | Pass: Learn and Studio routes at 360/768/1024/1440 px, card/table transition, 200% zoom, reflow, and no unintended page overflow. Physical-touch accuracy remains an observed-pilot check. |
+| `AC-R0-015-04` | Pass: cold library meaningful content in 816 ms with 135 public records; no private marker or account handshake. |
+| `AC-R0-015-05` | Pass: cold permanent detail usable in 315 ms and pending feedback does not block learning content. |
+| `AC-R0-015-06` | Pass for the declared deterministic matrix: bundled Chromium 140, Firefox 141, WebKit 26, Pixel 7, and iPhone 15 profiles. Branded/physical current-stable devices remain explicit limitations. |
+| `AC-R0-015-07` | Pass: domain/model constraints, PostgreSQL integrity, append-only decisions, and public/assessment query indexes are exercised by the 290-test database suite. |
+| `AC-R0-015-08` | Pass: empty-database eight-revision migration, 343-record idempotent canonical sync, safe downgrade coverage, and clean Compose migration. |
+| `AC-R0-015-09` | Pass: migration/publication/transaction rollback, rejected-command non-mutation, and dependency interruption/recovery. |
+| `AC-R0-015-10` | Pass: adversarial public isolation, learner author-route 404 guard, current-snapshot reads, and clean topology proof. |
+| `AC-R0-015-11` | Pass: runtime loopback PostgreSQL/API/Studio bindings are verified and documented as exposure controls rather than authorization. |
+| `AC-R0-015-12` | Pass: bounded anonymous persistence, explicit non-credentialed CORS, proxy separation, and structured-log allowlisting. |
+| `AC-R0-015-13` | Pass: adversarial response/error and structured-log scans expose no private values or infrastructure detail. |
+| `AC-R0-015-14` | Pass: guarded logical backup/restore produced matching full-row digests. Provider, retention, off-host schedule, and browser-local progress recovery remain deployment limitations. |
+| `AC-R0-015-15` | Pass: request IDs propagate through bounded request and operation completion events with duration, outcome, canonical reference, digest, and redaction proof. |
+| `AC-R0-015-16` | Pass: liveness/readiness separation, database and exact Alembic-head probes, Compose readiness dependencies, forced outage recovery, and failed-migration blocking. |
+| `AC-R0-015-17` | Pass locally: one frozen/pinned entrypoint completed all five modes. The matching GitHub workflow is defined; a GitHub-hosted run has not yet been observed. |
+| `AC-R0-015-18` | Pass for Phase 9 changes: each behavior defect above has recorded red then green evidence; verification-only work does not claim retroactive TDD. |
+| `AC-R0-015-19` | Pass: vocabulary, OpenAPI, generated TypeScript, wrapper compatibility, running API contracts, and repeated deterministic generation all passed in the aggregate. |
+
+## Final cross-system invariant audit
+
+| Requirement | Current system evidence | Status |
+| --- | --- | --- |
+| `R0-011` learner discovery | Real PostgreSQL/API filtering and pagination; bilingual/hierarchical URL restoration; permanent URLs; responsive library; production performance and public-build isolation | Pass |
+| `R0-012` solving loop | All five response families, snapshot-bound results, pending/manual feedback, device-local progress/storage failure, feedback, history, and one continuation across the browser matrix | Pass |
+| `R0-013` authoring | Structured bilingual/canonical drafting, save/recovery/conflict, validation focus, unsaved learner preview, and local Studio boundary across desktop/mobile projects | Pass |
+| `R0-014` publication | Review notes, changes successor, approval, atomic publish isolation, stable public slug, private successor, archive, and republish across three desktop engines | Pass |
+| `R0-017` manual assessment | Published rubric snapshot, opaque receipt, oldest-first queue, decision/correction, mixed scoring, redaction, unavailable storage, keyboard and responsive paths | Pass |
+
+## Final environment, artifacts, and limitations
+
+- Environment: Linux host with Python 3.12.3, Node 18.19.1, pnpm 10.16.0, and
+  uv 0.12.3; committed Compose images supplied Node 22, Python 3.12, and
+  PostgreSQL 16. Playwright 1.55.0 used its matching Noble container for
+  Firefox and WebKit. CI separately pins Node 22.20.0.
+- Exact command: `bash scripts/release0_verification.sh all`. Local output was
+  captured at `/tmp/ioai-r0-phase9-final-pass.log`. Playwright screenshots,
+  traces, and HTML reports use ignored `test-results/` and
+  `playwright-report/`; CI uploads those directories even on failure.
+- No automated gate was skipped. Unavailable evidence is deliberately outside
+  the automated claim: physical screen readers, physical touch devices,
+  branded current-stable browser installations, pilot-display confirmation,
+  and macOS/Windows Docker Desktop behavior.
+- A GitHub-hosted execution of the committed workflow has not been observed in
+  this local run. Backup provider, retention, off-host scheduling, and recovery
+  objectives remain deployment decisions. Device-local progress and receipt
+  indexes are intentionally outside PostgreSQL backup recovery.

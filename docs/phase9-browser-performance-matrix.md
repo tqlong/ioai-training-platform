@@ -79,3 +79,23 @@ and WebKit, and storage-disabled keyboard/responsive use in both mobile profiles
 The R0-09012 run passed 3/3 Chromium cases in 16.5 seconds, the Firefox/WebKit
 critical paths in 24.4 seconds, mobile Chrome in 6.2 seconds, and mobile Safari
 in 7.3 seconds.
+
+## R0-09016 aggregate execution record
+
+On 2026-08-14, `bash scripts/release0_verification.sh all` reran the complete
+configured matrix without a browser skip. The deployed accessibility suite
+passed 4/4 in 48.2 seconds. Learner journeys passed 8/8 in Chromium/mobile
+Chrome in 27.8 seconds and 12/12 in Firefox/WebKit/mobile Safari in 49.8
+seconds; the abuse boundary passed 1/1 in 3.0 seconds. With 135 public records,
+the cold production profile measured 816 ms to meaningful library content and
+315 ms to usable permanent detail.
+
+The author system passed 4/4 Chromium cases in 44.7 seconds, both complete
+Firefox/WebKit lifecycles in 49.4 seconds, mobile Chrome in 4.9 seconds, and
+mobile Safari in 6.1 seconds. Manual assessment passed 3/3 Chromium cases in
+18.6 seconds, both critical Firefox/WebKit paths in 23.7 seconds, mobile Chrome
+in 6.1 seconds, and mobile Safari in 7.0 seconds.
+
+These results validate Playwright's pinned bundled engines and emulated Pixel 7
+and iPhone 15 profiles. They do not replace branded current-stable browser,
+physical-device touch, or pilot-display checks.

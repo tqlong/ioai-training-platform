@@ -1360,7 +1360,7 @@ not claim retroactive red-green evidence.
   and make unavailable browser/platform jobs explicit rather than silently
   skipped (`AC-R0-015-17` through `AC-R0-015-19`). Suggested commit:
   `ci(verification): run release 0 integration and system gates`.
-- [ ] **R0-09016 — Baseline Phase 9 with criterion-level evidence.** Run the
+- [x] **R0-09016 — Baseline Phase 9 with criterion-level evidence.** Run the
   entire pipeline from a clean checkout, then update the traceability matrix and
   operator/developer documentation with exact commands, environment, browser
   matrix, timings, pass/fail/skip results, known limitations, and artifact
