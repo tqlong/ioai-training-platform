@@ -42,6 +42,24 @@ def test_compose_configures_explicit_local_cors_origins() -> None:
     assert "IOAI_ALLOWED_ORIGINS: '*'" not in api_service
 
 
+def test_compose_dependencies_wait_for_api_readiness() -> None:
+    compose_text = Path("docker-compose.yml").read_text()
+    api_service = compose_text.split("\n  api:\n", maxsplit=1)[1].split(
+        "\n  learn:\n", maxsplit=1
+    )[0]
+    learn_service = compose_text.split("\n  learn:\n", maxsplit=1)[1].split(
+        "\n  studio:\n", maxsplit=1
+    )[0]
+    studio_service = compose_text.split("\n  studio:\n", maxsplit=1)[1].split(
+        "\nvolumes:", maxsplit=1
+    )[0]
+
+    assert "/health/ready" in api_service
+    assert "condition: service_healthy" in learn_service
+    assert "condition: service_healthy" in studio_service
+    assert Path("scripts/health_dependency_check.sh").is_file()
+
+
 def test_studio_uses_compose_api_service_for_server_side_requests() -> None:
     compose_text = Path("docker-compose.yml").read_text()
     studio_service = compose_text.split("\n  studio:\n", maxsplit=1)[1].split(

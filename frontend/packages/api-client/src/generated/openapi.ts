@@ -1116,6 +1116,15 @@ export interface components {
              */
             type: "QUIZ_SINGLE";
         };
+        /** ReadinessResponse */
+        ReadinessResponse: {
+            /** Database */
+            database: string;
+            /** Schema */
+            schema: string;
+            /** Status */
+            status: string;
+        };
         /** RecordVocabularyProposalRequest */
         RecordVocabularyProposalRequest: {
             /** Note */
@@ -2425,9 +2434,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: string | boolean;
-                    };
+                    "application/json": components["schemas"]["ReadinessResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessResponse"];
                 };
             };
         };

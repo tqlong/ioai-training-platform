@@ -1271,7 +1271,7 @@ not claim retroactive red-green evidence.
   notes, receipts, credentials, SQL, filesystem paths, object keys, and provider
   details in success and failure logs (`AC-R0-015-13` and `AC-R0-015-15`).
   Suggested commit: `feat(observability): add safe release 0 request events`.
-- [ ] **R0-09008 — Separate and verify liveness, readiness, and dependency
+- [x] **R0-09008 — Separate and verify liveness, readiness, and dependency
   failure behavior.** Test liveness independently of PostgreSQL, and make
   readiness fail closed with a safe machine-readable response and non-success
   status when PostgreSQL is unavailable or Alembic is not at head. Verify

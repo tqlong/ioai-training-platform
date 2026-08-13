@@ -184,3 +184,24 @@ retroactive test-driven development.
   `scripts/observability_check.sh` passed. The final runtime log contained the
   structured request event and no supplied query value; Uvicorn access logging
   is disabled to prevent an unstructured query-string leak.
+
+### `R0-09008`
+
+- Red observed: degraded readiness returned HTTP 200, no adapter checked the
+  database Alembic version, Compose API health used liveness, and Learn/Studio
+  waited only for API process startup. Further regression tests showed probe
+  exceptions could escape and OpenAPI omitted the readiness 503 contract.
+- Added a dependency-readiness value contract and PostgreSQL adapter that
+  requires both a successful connection and an exact match between
+  `alembic_version` and repository heads. Missing/outdated schemas return safe
+  `database=ready, schema=outdated`; connection or probe failures return safe
+  `database=unavailable, schema=unknown`; neither exposes infrastructure detail.
+- `/health/live` remains database-independent and status 200. `/health/ready`
+  now returns 200 only for a current dependency state and 503 otherwise, with
+  both responses in OpenAPI. Compose probes readiness and Learn/Studio require
+  an API-healthy condition before starting.
+- Twenty focused health, real-PostgreSQL schema, factory, and Compose tests
+  passed with Ruff, Pyright, shell/config checks. A migration-aware redeploy
+  returned every service healthy and `scripts/health_dependency_check.sh`
+  confirmed API/FE readiness, live=200/readiness=503 while PostgreSQL was paused,
+  and readiness recovery after PostgreSQL resumed.

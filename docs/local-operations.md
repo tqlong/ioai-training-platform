@@ -57,6 +57,10 @@ Release 0.
   answers, notes, receipts, credentials, SQL, object keys, and raw exception
   details are excluded. Uvicorn access logging is disabled to avoid raw-query
   duplication; use the structured request event for correlation.
+- `bash scripts/health_dependency_check.sh` verifies API liveness and dependency
+  readiness separately, probes Learn and Studio, briefly pauses only the
+  development PostgreSQL container, confirms a safe readiness 503 while
+  liveness remains 200, resumes PostgreSQL, and requires readiness recovery.
 - Public canonical vocabulary is available from `GET /api/v1/vocabulary` with a
   required `vocabulary_type`; author-safe values and availability are available
   from `GET /api/v1/author/vocabulary`.

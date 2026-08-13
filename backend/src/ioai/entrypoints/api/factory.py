@@ -18,10 +18,10 @@ from ...adapters.database.problem_repository import (
     SqlAlchemyPublishedProblemReader,
 )
 from ...adapters.database.proposal_repository import SqlAlchemyProposalUnitOfWork
+from ...adapters.database.readiness import check_database_readiness
 from ...adapters.database.session import (
     build_engine,
     build_session_factory,
-    check_connection,
 )
 from ...adapters.database.settings import DatabaseSettings
 from ...adapters.database.vocabulary_repository import SqlAlchemyVocabularyRepository
@@ -73,6 +73,7 @@ from ...application.problems.recommendations import (
     RecommendationContext,
     RecommendNextProblem,
 )
+from ...application.readiness import DependencyReadiness
 from ...application.vocabulary.proposals import RecordVocabularyProposal
 from ...domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ...domain.problems.revision import ProblemRevision
@@ -104,7 +105,7 @@ from .routes.public_problems import PublicProblemService, public_problem_router
 from .routes.vocabulary import VocabularyReaderFactory, vocabulary_router
 from .settings import ApiSettings
 
-ReadinessProbe = Callable[[], bool]
+ReadinessProbe = Callable[[], bool | DependencyReadiness]
 
 
 def create_app(
@@ -131,11 +132,8 @@ def create_app(
     session_factory = build_session_factory(engine)
     if readiness_probe is None:
 
-        def default_probe() -> bool:
-            try:
-                return check_connection(db_settings.url)
-            except Exception:
-                return False
+        def default_probe() -> DependencyReadiness:
+            return check_database_readiness(db_settings.url)
 
         resolved_probe = default_probe
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-printf 'API health\n'
+printf 'API liveness\n'
 curl -fsS http://127.0.0.1:8000/health/live
+printf '\nAPI dependency readiness\n'
 curl -fsS http://127.0.0.1:8000/health/ready
 printf '\nPublic canonical vocabulary\n'
 curl -fsS 'http://127.0.0.1:8000/api/v1/vocabulary?vocabulary_type=PATHWAY_STAGE&limit=2'
