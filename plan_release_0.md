@@ -1292,7 +1292,7 @@ not claim retroactive red-green evidence.
   scrolling. Document manual screen-reader, grayscale, and interaction checks
   that automation cannot prove (`AC-R0-015-01` through `AC-R0-015-03`).
   Suggested commit: `test(a11y): verify release 0 routes and breakpoints`.
-- [ ] **R0-09010 — Extend the learner critical journey across supported
+- [x] **R0-09010 — Extend the learner critical journey across supported
   browsers and performance budgets.** Reuse and harden
   `learner-solving-loop.spec.ts` to cover enabled stage selection, bilingual
   search/hierarchical filters and URL restoration, permanent/direct URLs, all

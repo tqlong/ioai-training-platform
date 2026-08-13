@@ -36,9 +36,9 @@ retroactive test-driven development.
 | `AC-R0-015-01` | Deployed axe A/AA scans across six Learn/Studio surfaces; role/name, validation focus, repeated-control, announcement, and dialog keyboard/focus tests | Physical screen-reader and full keyboard traversal are documented observed-pilot checks, not silently treated as passes | `R0-09009` complete; limitation audited by `R0-09016` |
 | `AC-R0-015-02` | Detectable axe contrast checks plus text/border/shape-backed state assertions and representative grayscale inspection | Reconfirm grayscale and focus presentation on the pilot display | `R0-09009` complete; limitation audited by `R0-09016` |
 | `AC-R0-015-03` | Learner library/detail and Studio editor/assessment route checks at 360, 768, 1024, and 1440 px, including card/table switch, reflow, 200% text zoom, and page-overflow assertions | Cross-browser journey widths remain in `R0-09010`–`R0-09012`; physical touch remains an observed-pilot check | `R0-09009` complete; `R0-09010`–`R0-09012` |
-| `AC-R0-015-04` | A local warmed detail-navigation regression | Representative production-build library FCP under the documented broadband profile and no draft/account payload | `R0-09010` |
-| `AC-R0-015-05` | Detail navigation and non-blocking component behavior | Representative permanent-detail usability budget and unrelated-reading proof | `R0-09010` |
-| `AC-R0-015-06` | Chromium desktop Playwright project | Documented Chromium, Firefox, WebKit, and available mobile-equivalent matrix | `R0-09010`–`R0-09012` |
+| `AC-R0-015-04` | Cold production library rendered meaningful content in 1,233 ms with 216 public records under the documented 40 ms/10 Mbps profile; initial HTML excluded the private marker/internal fields and browser traffic had no account handshake | Repeat in final clean baseline | `R0-09010` complete; `R0-09016` |
+| `AC-R0-015-05` | Cold permanent detail was usable in 316 ms; pending feedback left unrelated objective content readable | Repeat in final clean baseline | `R0-09010` complete; `R0-09016` |
+| `AC-R0-015-06` | Learner matrix passed bundled Chromium 140, Firefox 141, WebKit 26, Pixel 7 mobile-Chrome, and iPhone 15 mobile-Safari profiles | Author and assessment matrices remain; branded current-stable browser/device checks depend on available pilot environments | `R0-09010` complete; `R0-09011`–`R0-09012`, `R0-09016` |
 | `AC-R0-015-07` | Domain invariants, SQLAlchemy model checks, PostgreSQL constraints, append-only assessment history, and verified public/assessment index plans | API-level persistence coverage remains | `R0-09002` complete; `R0-09003` |
 | `AC-R0-015-08` | Complete linear empty-database chain, idempotent 343-record canonical sync, representative safe downgrades through manual assessment, and a new forward-only Phase 9 index migration | Clean deployment rehearsal remains | `R0-09002` complete; `R0-09013` |
 | `AC-R0-015-09` | Transactional migration-DDL rollback, unit-of-work and atomic publication rollback, plus real HTTP rejected-command non-mutation assertions | Dependency interruption/recovery remains | `R0-09002`–`R0-09003` complete; `R0-09008` |
@@ -230,3 +230,28 @@ retroactive test-driven development.
   human-assisted screen-reader, grayscale, physical-keyboard, and touch checks.
   Representative grayscale pages were inspected; unavailable desktop screen
   reader and physical-touch evidence is explicit rather than silently passed.
+
+### `R0-09010`
+
+- Red observed: the first mobile-Chrome learner journey incorrectly expected a
+  desktop table; the new bilingual filter path initially ignored the mobile
+  filter sheet and selected a hidden desktop result. The first matrix also
+  proved Firefox/WebKit executables and host libraries were unavailable rather
+  than silently skipping them.
+- Hardened the existing learner workflow for its real card/table and filter-
+  sheet interactions. The matrix covers all five response families, automated
+  and pending feedback, exactly one continuation, submission history, English/
+  Vietnamese search, hierarchical ancestor filtering with explicit descendants,
+  query restoration, permanent/direct URLs, corrupt/unavailable storage,
+  dependency failure, anonymous feedback limits, and draft/archived isolation.
+- Added Playwright projects for Chromium 140.0.7339.16, Firefox 141.0, WebKit
+  26.0, Pixel 7 mobile Chromium, and iPhone 15 mobile WebKit. The host passed
+  8/8 Chromium cases in 30.3 seconds; the pinned matching Playwright container
+  passed 12/12 Firefox/WebKit cases in 50.3 seconds; the abuse check passed 1/1.
+- `scripts/learner_system_check.sh` then stopped mounted frontend writers,
+  produced a Learn production build, launched it on loopback port 3100, and
+  applied a cold 40 ms/10 Mbps down/5 Mbps up profile. Against 216 published
+  records, meaningful library content appeared in 1,233 ms (budget 2,000 ms)
+  and permanent detail became usable in 316 ms (budget 3,000 ms). Initial HTML
+  excluded the private draft marker/internal draft fields, no account handshake
+  occurred, and pending feedback did not block reading.

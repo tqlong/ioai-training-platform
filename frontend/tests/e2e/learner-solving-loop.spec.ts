@@ -15,6 +15,7 @@ test.describe.serial('Release 0 learner solving loop', () => {
       numeric: await publish(request, `${prefix}-numeric`, 'NUMERIC_ANSWER'),
       short: await publish(request, `${prefix}-short`, 'SHORT_ANSWER'),
       code: await publish(request, `${prefix}-code`, 'CODE_FUNCTION'),
+      archived: await publish(request, `${prefix}-archived`, 'QUIZ_SINGLE', true),
     };
     const draft = await request.post(`${apiBase}/author/problems`, { data: {} });
     expect(draft.ok()).toBeTruthy();
@@ -23,7 +24,11 @@ test.describe.serial('Release 0 learner solving loop', () => {
   test('browse, filter, solve all five families, report feedback, restore progress, and continue', async ({ page }) => {
     await page.goto(`${learnBase}/problems?stage=AI_1_FOUNDATIONS&q=Learner%20e2e`);
     await expect(page.getByRole('heading', { name: 'Problems' })).toBeVisible();
-    await expect(page.getByRole('table', { name: 'Published problems' })).toBeVisible();
+    if ((page.viewportSize()?.width ?? 1280) < 768) {
+      await expect(page.getByRole('list', { name: 'Published problem cards' })).toBeVisible();
+    } else {
+      await expect(page.getByRole('table', { name: 'Published problems' })).toBeVisible();
+    }
     await solve(page, problems.single, async () => page.getByRole('radio', { name: 'Correct' }).check(), 'Score: 1.0');
     await expect(page.getByRole('link', { name: /^Continue to / })).toHaveCount(1);
 
@@ -46,6 +51,46 @@ test.describe.serial('Release 0 learner solving loop', () => {
 
     await page.goto(`${learnBase}/problems?stage=AI_1_FOUNDATIONS&q=Learner%20e2e`);
     await expect(page.getByText('Completed').first()).toBeVisible();
+    await page.goto(`${learnBase}/submissions`);
+    await expect(page.getByRole('link', { name: /Learner e2e/ })).toHaveCount(5);
+  });
+
+  test('restores bilingual search and hierarchical filters through a permanent URL', async ({ page }) => {
+    const vietnameseSearch = `Bài e2e QUIZ_SINGLE ${problems.single}`;
+    const libraryUrl = `${learnBase}/problems?stage=AI_1_FOUNDATIONS&q=${encodeURIComponent(vietnameseSearch)}&topic=TOPIC_EVALUATION&include_subtopics=true&sort=TITLE`;
+    const isMobile = (page.viewportSize()?.width ?? 1280) < 768;
+    await page.goto(libraryUrl);
+    if (isMobile) {
+      await openMobileFilters(page);
+    }
+    await expect(page.getByRole('searchbox', { name: 'Search problems' })).toHaveValue(vietnameseSearch);
+    await expect(page.getByRole('combobox', { name: 'Topic' })).toHaveValue('TOPIC_EVALUATION');
+    await expect(page.getByRole('checkbox', { name: 'Include subtopics' })).toBeChecked();
+    if (isMobile) {
+      await page.getByRole('button', { name: 'Close filters' }).click();
+    }
+    const results = isMobile
+      ? page.getByRole('list', { name: 'Published problem cards' })
+      : page.getByRole('table', { name: 'Published problems' });
+    const problemLink = results.locator(`a[href^="/problems/${problems.single}?"]`);
+    await expect(problemLink).toBeVisible();
+    await problemLink.click();
+    const back = page.getByRole('link', { name: 'Back to problem library' });
+    const backUrl = new URL(await back.getAttribute('href') ?? '', learnBase);
+    expect(Object.fromEntries(backUrl.searchParams)).toMatchObject({
+      stage: 'AI_1_FOUNDATIONS',
+      q: vietnameseSearch,
+      topic: 'TOPIC_EVALUATION',
+      include_subtopics: 'true',
+      sort: 'TITLE',
+    });
+    await back.click();
+    await expect(page).toHaveURL(/\/problems\?/);
+    if (isMobile) {
+      await openMobileFilters(page);
+    }
+    await expect(page.getByRole('searchbox', { name: 'Search problems' })).toHaveValue(vietnameseSearch);
+    await expect(page.getByRole('checkbox', { name: 'Include subtopics' })).toBeChecked();
   });
 
   test('covers direct URLs, empty results, corrupt storage, draft isolation, and mobile cards', async ({ page, request }) => {
@@ -56,6 +101,7 @@ test.describe.serial('Release 0 learner solving loop', () => {
     await page.goto(`${learnBase}/problems?stage=AI_1_FOUNDATIONS&q=no-such-published-problem`);
     await expect(page.getByRole('status', { name: 'No matching problems' })).toContainText('Clear filters');
     expect((await request.get(`${apiBase}/problems/not-published`)).status()).toBe(404);
+    expect((await request.get(`${apiBase}/problems/${problems.archived}`)).status()).toBe(404);
 
     await page.setViewportSize({ width: 360, height: 800 });
     await page.goto(`${learnBase}/problems?stage=AI_1_FOUNDATIONS&q=Learner%20e2e`);
@@ -184,7 +230,23 @@ async function solve(page: Page, slug: string, answer: () => Promise<unknown>, e
   await expect(page.getByText(expected, { exact: false })).toBeVisible();
 }
 
-async function publish(request: APIRequestContext, slug: string, type: string): Promise<string> {
+async function openMobileFilters(page: Page) {
+  const open = page.getByRole('button', { name: 'Open filters' });
+  const close = page.getByRole('button', { name: 'Close filters' });
+  await expect(open).toBeVisible();
+  await expect(async () => {
+    if (await close.isVisible()) return;
+    await open.click();
+    await expect(close).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 5_000 });
+}
+
+async function publish(
+  request: APIRequestContext,
+  slug: string,
+  type: string,
+  archive = false,
+): Promise<string> {
   const createdResponse = await request.post(`${apiBase}/author/problems`, { data: {} });
   expect(createdResponse.ok(), await createdResponse.text()).toBeTruthy();
   const created = await createdResponse.json() as { problem_id: string; revision_id: string; version: number };
@@ -192,7 +254,7 @@ async function publish(request: APIRequestContext, slug: string, type: string): 
   const response = responseConfiguration(type, localized);
   const save = await request.put(`${apiBase}/author/revisions/${created.revision_id}`, { data: {
     problem_id: created.problem_id, expected_version: created.version, client_save_key: `save-${slug}`, slug,
-    content: { title: localized(`Learner e2e ${type}`, `Bài e2e ${type}`), summary: localized('Solve the published task.', 'Giải bài đã xuất bản.'), objectives: [localized('Calculate the correct response.', 'Tính đáp án đúng.')], blocks: [{ kind: 'STATEMENT', content: localized('Provide the correct response.', 'Cung cấp đáp án đúng.'), order: 1, reveal_order: null }] },
+    content: { title: localized(`Learner e2e ${type} ${slug}`, `Bài e2e ${type} ${slug}`), summary: localized('Solve the published task.', 'Giải bài đã xuất bản.'), objectives: [localized('Calculate the correct response.', 'Tính đáp án đúng.')], blocks: [{ kind: 'STATEMENT', content: localized('Provide the correct response.', 'Cung cấp đáp án đúng.'), order: 1, reveal_order: null }] },
     metadata: { stage: ['PATHWAY_STAGE', 'AI_1_FOUNDATIONS'], difficulty: ['DIFFICULTY', 'EASY'], primary_competency: ['COMPETENCY', 'EVAL_METRICS'], secondary_competencies: [], task_type: ['TASK_TYPE', type], topics: [['TOPIC', 'EVAL_CONFUSION_MATRIX']], prerequisites: [], modalities: [['DATA_MODALITY', 'NONE']], expected_minutes: 10, resources: { compute_tier: ['COMPUTE_TIER', 'NONE'], runtime_class: ['RUNTIME_CLASS', 'INSTANT'], cpu_cores: 0, ram_mb: 0, gpu_count: 0, gpu_vram_mb: 0, storage_mb: 0, runtime_seconds: 0, network_policy: 'DENIED' } },
     response, scoring: { response_type: type, pass_threshold: '1.0', components: [{ method: type === 'SHORT_ANSWER' || type === 'CODE_FUNCTION' ? 'RUBRIC_HUMAN' : 'EXACT_MATCH', weight: '1.0', configuration: type === 'SHORT_ANSWER' || type === 'CODE_FUNCTION' ? { criteria: [{ id: 'correctness', title: localized('Correctness', 'Tính đúng'), description: localized('Produces a correct and well-reasoned response.', 'Tạo câu trả lời đúng và có lập luận.'), maximum_points: '1', levels: [{ id: 'not-yet', label: localized('Not yet', 'Chưa đạt'), description: localized('The response is not yet correct.', 'Câu trả lời chưa đúng.'), points: '0' }, { id: 'complete', label: localized('Complete', 'Hoàn thành'), description: localized('The response is correct.', 'Câu trả lời đúng.'), points: '1' }] }], reviewer_guidance: 'Review the response.', exemplar: null } : null }] },
   } });
@@ -201,6 +263,17 @@ async function publish(request: APIRequestContext, slug: string, type: string): 
   await command(request, created.revision_id, 'approve', 3, `approve-${slug}`);
   const published = await request.post(`${apiBase}/author/revisions/${created.revision_id}/publish`, { data: { expected_version: 4, note: 'Publish learner E2E.', actor_context: 'e2e-reviewer', idempotency_key: `publish-${slug}` } });
   expect(published.ok(), await published.text()).toBeTruthy();
+  if (archive) {
+    const archived = await request.post(`${apiBase}/author/problems/${created.problem_id}/archive`, {
+      data: {
+        expected_version: 5,
+        note: 'Archive learner E2E isolation fixture.',
+        actor_context: 'e2e-reviewer',
+        operation_id: `archive-${slug}`,
+      },
+    });
+    expect(archived.ok(), await archived.text()).toBeTruthy();
+  }
   return slug;
 }
 

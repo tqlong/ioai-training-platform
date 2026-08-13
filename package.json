@@ -10,6 +10,7 @@
     "test": "pnpm -r run test",
     "test:e2e": "playwright test",
     "test:a11y": "bash scripts/accessibility_check.sh",
+    "test:learner-system": "bash scripts/learner_system_check.sh",
     "build": "pnpm -r run build",
     "generate:contracts": "bash scripts/generate_contracts.sh",
     "check:contracts": "bash scripts/openapi_drift_check.sh",

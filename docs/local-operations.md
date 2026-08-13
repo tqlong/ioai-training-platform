@@ -66,6 +66,13 @@ Release 0.
   dialog keyboard/focus checks against an already healthy stack. Human-assisted
   checks and honest environment limitations are recorded in
   `docs/phase9-accessibility-checklist.md`.
+- `bash scripts/learner_system_check.sh` runs the learner-critical desktop and
+  mobile Chromium/Firefox/WebKit matrix, then stops the mounted frontends,
+  builds and starts an isolated production Learn server, and measures the cold
+  normal-broadband 2 s/3 s budgets. Its exit trap stops the production process
+  and restarts the Compose frontends. Firefox/WebKit run in the pinned matching
+  Playwright container because their host libraries are unavailable; see
+  `docs/phase9-browser-performance-matrix.md`.
 - Public canonical vocabulary is available from `GET /api/v1/vocabulary` with a
   required `vocabulary_type`; author-safe values and availability are available
   from `GET /api/v1/author/vocabulary`.

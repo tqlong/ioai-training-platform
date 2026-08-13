@@ -19,7 +19,7 @@ const localized = (en: string, vi: string) => ({
 export async function createHumanProblem(
   request: APIRequestContext,
   slug: string,
-  target: 'APPROVED' | 'PUBLISHED',
+  target: 'DRAFT' | 'APPROVED' | 'PUBLISHED',
 ): Promise<ProblemFixture> {
   const createdResponse = await request.post(`${apiBase}/author/problems`, { data: {} });
   expect(createdResponse.ok(), await createdResponse.text()).toBeTruthy();
@@ -36,7 +36,7 @@ export async function createHumanProblem(
       client_save_key: `a11y-save-${slug}`,
       slug,
       content: {
-        title: localized('Accessible system problem', 'Bài toán hệ thống dễ tiếp cận'),
+        title: localized(`Accessible system problem ${slug}`, `Bài toán hệ thống dễ tiếp cận ${slug}`),
         summary: localized('Explain one classification result.', 'Giải thích một kết quả phân loại.'),
         objectives: [localized('Explain precision from a confusion matrix.', 'Giải thích precision từ ma trận nhầm lẫn.')],
         blocks: [{
@@ -109,8 +109,10 @@ export async function createHumanProblem(
     } },
   );
   expect(saveResponse.ok(), await saveResponse.text()).toBeTruthy();
-  await editorialCommand(request, created.revision_id, 'submit-review', 2, slug);
-  await editorialCommand(request, created.revision_id, 'approve', 3, slug);
+  if (target !== 'DRAFT') {
+    await editorialCommand(request, created.revision_id, 'submit-review', 2, slug);
+    await editorialCommand(request, created.revision_id, 'approve', 3, slug);
+  }
   if (target === 'PUBLISHED') {
     const published = await request.post(
       `${apiBase}/author/revisions/${created.revision_id}/publish`,
@@ -127,7 +129,7 @@ export async function createHumanProblem(
     problemId: created.problem_id,
     revisionId: created.revision_id,
     slug,
-    version: target === 'PUBLISHED' ? 5 : 4,
+    version: target === 'PUBLISHED' ? 5 : target === 'APPROVED' ? 4 : 2,
   };
 }
 
