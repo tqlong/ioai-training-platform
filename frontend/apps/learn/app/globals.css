@@ -134,7 +134,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid #67e8f9; outline-offs
 .problem-detail h1 { margin: 0.2rem 0; font-size: clamp(1.9rem, 5vw, 3rem); }
 .problem-detail h2 { margin-bottom: 0.4rem; font-size: 1.15rem; text-transform: capitalize; }
 .problem-metadata { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.problem-metadata span { border: 1px solid var(--line); border-radius: 999px; padding: 0.35rem 0.65rem; background: white; }
+.problem-metadata > div { display: flex; gap: 0.35rem; border: 1px solid var(--line); border-radius: 999px; padding: 0.35rem 0.65rem; background: white; }
+.problem-metadata dt { color: var(--muted); font-weight: 700; }
+.problem-metadata dd { margin: 0; }
 .problem-detail details, .response-placeholder { border: 1px solid var(--line); border-radius: 0.65rem; padding: 0.8rem 1rem; background: white; }
 .problem-detail summary { min-height: 2.75rem; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
 .problem-detail footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--line); padding-top: 1rem; }

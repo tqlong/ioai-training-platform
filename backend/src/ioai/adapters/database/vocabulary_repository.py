@@ -22,13 +22,19 @@ from .vocabulary_model import VocabularyRecordModel
 class SqlAlchemyVocabularyRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
+        self._records: tuple[VocabularyRecord, ...] | None = None
 
     def list_records(self) -> tuple[VocabularyRecord, ...]:
+        if self._records is not None:
+            return self._records
         statement = select(VocabularyRecordModel).order_by(
             VocabularyRecordModel.vocabulary_type,
             VocabularyRecordModel.code,
         )
-        return tuple(_to_domain(row) for row in self._session.scalars(statement))
+        self._records = tuple(
+            _to_domain(row) for row in self._session.scalars(statement)
+        )
+        return self._records
 
     def get(self, identity: VocabularyIdentity) -> VocabularyRecord | None:
         key = (identity.vocabulary_type.value, identity.code)
@@ -66,6 +72,7 @@ class SqlAlchemyVocabularyRepository:
 
     def add(self, record: VocabularyRecord) -> None:
         self._session.add(_to_model(record))
+        self._records = None
 
     def update(self, record: VocabularyRecord) -> None:
         key = (record.identity.vocabulary_type.value, record.identity.code)
@@ -83,6 +90,7 @@ class SqlAlchemyVocabularyRepository:
             record.parent.vocabulary_type.value if record.parent else None
         )
         stored.parent_code = record.parent.code if record.parent else None
+        self._records = None
 
 
 class SqlAlchemyVocabularyUnitOfWork:

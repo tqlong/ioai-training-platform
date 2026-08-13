@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import { ProblemResultsTable } from '../src/components/problem-results-table';
 
@@ -85,5 +85,24 @@ describe('dense learner results table', () => {
     expect(within(row).getByRole('button', { name: 'Show competency and evidence' }))
       .toBeInTheDocument();
     expect(within(row).getAllByText('Practiced')).toHaveLength(2);
+  });
+
+  it('delegates row navigation to the prefetched problem link', () => {
+    const linkClick = vi.spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    render(
+      <ProblemResultsTable
+        items={items}
+        labels={labels}
+        returnUrl="/problems?stage=AI_1_FOUNDATIONS"
+      />,
+    );
+
+    const row = within(screen.getByRole('table', { name: 'Published problems' }))
+      .getAllByRole('row')[1]!;
+    fireEvent.click(row);
+
+    expect(linkClick).toHaveBeenCalledTimes(1);
+    linkClick.mockRestore();
   });
 });

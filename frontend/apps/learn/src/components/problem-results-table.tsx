@@ -1,6 +1,7 @@
 'use client';
 
 import type { PublicProblemList } from '@ioai/api-client';
+import Link from 'next/link';
 import type { KeyboardEvent, MouseEvent } from 'react';
 
 
@@ -80,7 +81,7 @@ export function ProblemResultsTable({
                   )}
                 </td>
                 <td className="problem-cell">
-                  <a href={href}>{item.title.en}</a>
+                  <Link data-problem-link href={href} prefetch>{item.title.en}</Link>
                   <span className="short-id">{item.public_short_id}</span>
                   <span>{item.objective.en}</span>
                 </td>
@@ -126,7 +127,7 @@ export function ProblemResultsTable({
         return (
           <li className="problem-card" key={item.slug}>
             <div className="problem-card-heading">
-              <a href={href}>{item.title.en}</a>
+              <Link data-problem-link href={href} prefetch>{item.title.en}</Link>
               <span className={`status status-${itemProgress.status.toLowerCase()}`}>
                 <span aria-hidden="true">{statusIcon(itemProgress.status)}</span>
                 {STATUS_LABELS[itemProgress.status]}
@@ -157,14 +158,16 @@ const isInteractive = (target: EventTarget | null): boolean =>
 
 const navigateRow = (event: MouseEvent<HTMLTableRowElement>): void => {
   if (isInteractive(event.target)) return;
-  const href = event.currentTarget.dataset.href;
-  if (href) window.location.assign(href);
+  activateProblemLink(event.currentTarget);
 };
 
 const navigateRowWithKeyboard = (event: KeyboardEvent<HTMLTableRowElement>): void => {
   if (event.key !== 'Enter' || isInteractive(event.target)) return;
-  const href = event.currentTarget.dataset.href;
-  if (href) window.location.assign(href);
+  activateProblemLink(event.currentTarget);
+};
+
+const activateProblemLink = (row: HTMLTableRowElement): void => {
+  row.querySelector<HTMLAnchorElement>('a[data-problem-link]')?.click();
 };
 
 const statusIcon = (status: ProblemProgressDisplay['status']): string => ({

@@ -50,6 +50,17 @@ describe('IOAI Learn URL-owned discovery', () => {
     }));
   });
 
+  it('does not turn blank optional time fields into one-minute filters', () => {
+    expect(parseProblemSearchParams({
+      stage: 'AI_1_FOUNDATIONS',
+      expected_minutes_min: '',
+      expected_minutes_max: '',
+    }, vocabulary)).toEqual(expect.objectContaining({
+      expectedMinutesMin: undefined,
+      expectedMinutesMax: undefined,
+    }));
+  });
+
   it('renders ordered stages, compact filters, hierarchy, and URL filter tokens', () => {
     const query = parseProblemSearchParams({
       stage: 'AI_1_FOUNDATIONS', topic: 'MATH_BAYES',

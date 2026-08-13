@@ -50,6 +50,6 @@ const boundedInteger = (value: string | string[] | undefined, minimum: number, m
   return Number.isFinite(parsed) ? Math.max(minimum, Math.min(maximum, parsed)) : fallback;
 };
 const optionalBoundedInteger = (value: string | string[] | undefined, minimum: number, maximum: number): number | undefined => {
-  const candidate = single(value);
-  return candidate === undefined ? undefined : boundedInteger(candidate, minimum, maximum, minimum);
+  const candidate = single(value)?.trim();
+  return candidate ? boundedInteger(candidate, minimum, maximum, minimum) : undefined;
 };

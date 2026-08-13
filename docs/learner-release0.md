@@ -22,6 +22,20 @@ editorial state, draft data, or identity claims. Corrupt records are discarded;
 when browser storage is disabled, browsing and solving continue with a temporary-
 progress notice.
 
+## Detail navigation performance
+
+Problem rows and cards use prefetched Next.js navigation. The detail route
+loads its problem through the generated public client and resolves display
+labels from the generated canonical vocabulary artifact; it does not fan out
+to runtime vocabulary endpoints. The PostgreSQL vocabulary adapter reuses one
+request-scoped record snapshot for query results and breadcrumbs, preventing
+the former per-item SELECT pattern.
+
+The learner browser regression measures the interval from activating a warmed
+problem link until the detail heading enters the DOM. It requires zero
+vocabulary requests during navigation and a result below 500 ms in the local
+Phase 8 deployment.
+
 ## Safe failure behavior
 
 - A missing, draft-only, unapproved, or archived-only slug has the same public

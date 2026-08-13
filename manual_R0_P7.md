@@ -75,23 +75,23 @@ complete a small problem. A convenient valid example is:
 
 Save and reload the editor.
 
-- [ ] Problem ID and revision ID are distinct and visible only in Studio.
-- [ ] Editorial status is visibly **Draft**/`DRAFT`, not learner task status.
-- [ ] The saved version increments and the data survives reload.
-- [ ] The draft does not appear in IOAI Learn.
-- [ ] Save, Validate, Preview, and editorial actions remain separate controls.
+- [x] Problem ID and revision ID are distinct and visible only in Studio.
+- [x] Editorial status is visibly **Draft**/`DRAFT`, not learner task status.
+- [x] The saved version increments and the data survives reload.
+- [x] The draft does not appear in IOAI Learn.
+- [x] Save, Validate, Preview, and editorial actions remain separate controls.
 
 Keep the problem ID, revision ID, current version, and slug in the test record.
 
 If the problem already has multiple revisions, verify the Studio list:
 
-- [ ] Shows one row for the stable problem identity by default.
-- [ ] The collapsed row contains the latest revision, status, validation, and
+- [x] Shows one row for the stable problem identity by default.
+- [x] The collapsed row contains the latest revision, status, validation, and
       last-saved values.
-- [ ] **Show all N revisions** reports the correct total and expands exactly N
+- [x] **Show all N revisions** reports the correct total and expands exactly N
       rows for that problem.
-- [ ] **Hide revision history** restores the single latest row.
-- [ ] Expanded historical rows retain their own status and validation result.
+- [x] **Hide revision history** restores the single latest row.
+- [x] Expanded historical rows retain their own status and validation result.
 
 ## 4. Verify validation blocks review (`R0-07003`)
 
@@ -101,16 +101,16 @@ If the problem already has multiple revisions, verify the Studio list:
 
 Expected:
 
-- [ ] Validation reports a field-addressable blocker under the correct group.
-- [ ] Focus moves deterministically to the first blocker or its issue link.
-- [ ] The revision stays `DRAFT`; no `IN_REVIEW` history entry is created.
-- [ ] A missing editorial note disables or rejects the transition.
-- [ ] Errors include text/icon cues and do not rely on color alone.
+- [x] Validation reports a field-addressable blocker under the correct group.
+- [x] Focus moves deterministically to the first blocker or its issue link.
+- [x] The revision stays `DRAFT`; no `IN_REVIEW` history entry is created.
+- [x] A missing editorial note disables or rejects the transition.
+- [x] Errors include text/icon cues and do not rely on color alone.
 
 Restore valid scoring, save, and validate again.
 
-- [ ] **Eligible for publication** is visible.
-- [ ] Validation does not itself submit, approve, or publish the revision.
+- [x] **Eligible for publication** is visible.
+- [x] Validation does not itself submit, approve, or publish the revision.
 
 ## 5. Verify unsaved learner preview (`R0-07005`, `R0-07006`)
 

@@ -7,15 +7,22 @@ type Props = { problem: PublicProblem; labels: Record<string, string>; returnUrl
 
 export function ProblemDetail({ problem, labels, returnUrl }: Props) {
   const label = (code: string) => labels[code] ?? code;
+  const typedLabel = (vocabularyType: string, code: string) =>
+    labels[`${vocabularyType}:${code}`]
+      ?? (vocabularyType === 'DATA_MODALITY' && code === 'NONE' ? 'No Dataset' : label(code));
   return <article className="problem-detail">
     <ProblemOpenedTracker slug={problem.slug} title={problem.title.en} />
     <a aria-label="Back to problem library" href={returnUrl}>← Back to problem library</a>
     <header><p className="eyebrow">{problem.public_short_id}</p><h1>{problem.title.en}</h1>
       <p>{label(problem.stage_code)} · {label(problem.difficulty_code)}</p><p>{problem.summary.en}</p></header>
-    <aside className="problem-metadata" aria-label="Problem metadata">
-      <span>{label(problem.primary_competency_code)}</span><span>{problem.expected_minutes} min</span>
-      <span>{label(problem.resources.compute_tier_code)}</span>
-      {problem.topic_codes.map((code) => <span key={code}>{label(code)}</span>)}
+    <aside aria-label="Problem metadata">
+      <dl className="problem-metadata">
+        <div><dt>Competency</dt><dd>{typedLabel('COMPETENCY', problem.primary_competency_code)}</dd></div>
+        <div><dt>Time</dt><dd>{problem.expected_minutes} min</dd></div>
+        <div><dt>Compute</dt><dd>{typedLabel('COMPUTE_TIER', problem.resources.compute_tier_code)}</dd></div>
+        <div><dt>Data</dt><dd>{problem.modality_codes.map((code) => typedLabel('DATA_MODALITY', code)).join(', ')}</dd></div>
+        {problem.topic_codes.map((code) => <div key={code}><dt>Topic</dt><dd>{typedLabel('TOPIC', code)}</dd></div>)}
+      </dl>
     </aside>
     <section><h2>Learning objective</h2><p>{problem.objective.en}</p></section>
     {problem.prerequisites.length ? <section><h2>Prerequisites</h2><ul>{problem.prerequisites.map((item, index) => <li key={`${item.target_type}-${item.target_code ?? item.target_id}-${index}`}>{item.relationship.toLowerCase()}: {label(item.target_code ?? item.target_id ?? '')}{item.minimum_evidence ? ` · ${item.minimum_evidence.toLowerCase()}` : ''}</li>)}</ul></section> : null}

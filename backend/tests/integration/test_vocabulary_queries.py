@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, update
+from sqlalchemy import create_engine, event, update
 from sqlalchemy.orm import sessionmaker
 from tests.integration.database_environment import require_test_database_url
 
@@ -13,7 +13,7 @@ from ioai.adapters.database.vocabulary_repository import (
     SqlAlchemyVocabularyUnitOfWork,
 )
 from ioai.adapters.vocabulary.runtime import load_generated_vocabulary
-from ioai.application.vocabulary.queries import VocabularyQuery
+from ioai.application.vocabulary.queries import QueryVocabulary, VocabularyQuery
 from ioai.application.vocabulary.synchronize import SynchronizeVocabulary
 from ioai.domain.vocabulary.values import VocabularyIdentity, VocabularyType
 
@@ -116,3 +116,31 @@ def test_breadcrumbs_are_root_to_leaf_and_preserve_composite_identity(
         "MATH_LINEAR_ALGEBRA_TOPICS",
         "MATH_VECTORS_MATRICES",
     ]
+
+
+def test_vocabulary_query_with_breadcrumbs_uses_one_database_select(
+    populated_session_factory,
+) -> None:
+    engine = populated_session_factory.kw["bind"]
+    select_count = 0
+
+    def count_selects(*args: object) -> None:
+        nonlocal select_count
+        statement = args[2]
+        if isinstance(statement, str) and statement.lstrip().upper().startswith(
+            "SELECT"
+        ):
+            select_count += 1
+
+    event.listen(engine, "before_cursor_execute", count_selects)
+    try:
+        with populated_session_factory() as session:
+            reader = SqlAlchemyVocabularyRepository(session)
+            items = QueryVocabulary(reader)(
+                VocabularyQuery("TOPIC", limit=500), active_only=True
+            )
+    finally:
+        event.remove(engine, "before_cursor_execute", count_selects)
+
+    assert len(items) > 100
+    assert select_count == 1
