@@ -61,6 +61,11 @@ Release 0.
   readiness separately, probes Learn and Studio, briefly pauses only the
   development PostgreSQL container, confirms a safe readiness 503 while
   liveness remains 200, resumes PostgreSQL, and requires readiness recovery.
+- `bash scripts/accessibility_check.sh` runs the representative learner and
+  Studio WCAG scan, required breakpoint/reflow assertions, 200% text zoom, and
+  dialog keyboard/focus checks against an already healthy stack. Human-assisted
+  checks and honest environment limitations are recorded in
+  `docs/phase9-accessibility-checklist.md`.
 - Public canonical vocabulary is available from `GET /api/v1/vocabulary` with a
   required `vocabulary_type`; author-safe values and availability are available
   from `GET /api/v1/author/vocabulary`.

@@ -22,9 +22,9 @@ retroactive test-driven development.
 | FastAPI | Versioned public and author routers plus a real-app/real-PostgreSQL suite for vocabulary, proposals, drafts, validation/preview, workflow/publication/archive, public queries, all five submissions, feedback, receipts, and manual assessment | Adversarial leak-path, network exposure, structured observability, and dependency-readiness proof remains assigned to later Phase 9 steps |
 | Public isolation | Dedicated published reader plus an adversarial PostgreSQL/API suite covering private author notes, successor revisions, archived snapshots, rubric guidance/exemplars, answer keys, hidden tests, object keys, alternate identifiers, result receipts, OpenAPI, learner source, and production build output | No-auth network exposure and structured-log redaction remain assigned to `R0-09005` and `R0-09007` |
 | Generated contracts | Deterministic OpenAPI JSON, `openapi-typescript` output, vocabulary artifacts, generation script, and drift script | Handwritten client wrappers are not comprehensively exercised against a running API |
-| Learn components | Unit/component coverage for URL discovery, table/cards, detail, five response forms, local progress, feedback, continuation, and submission history | No automated accessibility scanner; responsive and keyboard proof is distributed across tests and manual notes |
-| Studio components | Unit/component coverage for list/editor sections, validation, preview, editorial review, rubric editor, assessment queue, and assessment decisions | No automated accessibility scanner or complete route-width regression |
-| Browser workflows | `learner-solving-loop.spec.ts` and `editorial-publication.spec.ts`, including the manual-assessment path currently embedded in the learner specification | Playwright config runs Chromium desktop only; browser/mobile matrix and full performance budgets are not proved |
+| Learn components | Unit/component coverage for URL discovery, table/cards, detail, five response forms, local progress, feedback, continuation, and submission history, complemented by a deployed axe/keyboard/width/zoom browser gate | Physical screen-reader and touch checks remain observed-pilot work |
+| Studio components | Unit/component coverage for list/editor sections, validation, preview, editorial review, rubric editor, assessment queue, and assessment decisions, complemented by representative route-level accessibility and reflow checks | Physical screen-reader and touch checks remain observed-pilot work |
+| Browser workflows | `learner-solving-loop.spec.ts`, `editorial-publication.spec.ts`, and `accessibility-responsive.spec.ts`, including representative Learn/Studio WCAG scanning and required breakpoints | Playwright config still runs Chromium desktop only; cross-browser/mobile journey and full performance budgets remain assigned to `R0-09010`–`R0-09012` |
 | Health and observability | Liveness/readiness routes, request-ID response middleware, readiness integration tests, and Compose health checks | Readiness returns a successful HTTP status when degraded; Compose waits on process startup in places; structured completion/operation events and redaction proof are absent |
 | Local operations | Compose topology plus start, stop, migrate, seed, redeploy, phase-specific test, smoke, and backup/restore commands; PostgreSQL/API/Studio bind to loopback, Learn blocks author proxy paths, and FastAPI uses explicit non-credentialed CORS origins | No clean/persisted lifecycle rehearsal exists and restore is not verified in a disposable database |
 | CI and reproducibility | Committed `uv.lock` and `pnpm-lock.yaml`, frozen installs, backend/frontend quality scripts, drift checks, migration checks, and one GitHub Actions workflow | CI selects pnpm 9 while the root manifest declares pnpm 10, does not run browser/accessibility/Compose/recovery gates, and can silently omit browser evidence |
@@ -33,9 +33,9 @@ retroactive test-driven development.
 
 | Criterion | Current evidence | Gap to close | Phase 9 owner |
 | --- | --- | --- | --- |
-| `AC-R0-015-01` | Accessible-role component tests and focused dialog/focus assertions | Automated scan plus route-level keyboard, focus, screen-reader, and state coverage | `R0-09009` |
-| `AC-R0-015-02` | Text-backed status/evidence component assertions | Detectable contrast scan and documented grayscale/non-color manual evidence | `R0-09009` |
-| `AC-R0-015-03` | Learner Playwright checks at 360, 768, 1024, and 1440 px | Complete learner/Studio route coverage, zoom, overflow, and intermediate layout proof | `R0-09009`–`R0-09012` |
+| `AC-R0-015-01` | Deployed axe A/AA scans across six Learn/Studio surfaces; role/name, validation focus, repeated-control, announcement, and dialog keyboard/focus tests | Physical screen-reader and full keyboard traversal are documented observed-pilot checks, not silently treated as passes | `R0-09009` complete; limitation audited by `R0-09016` |
+| `AC-R0-015-02` | Detectable axe contrast checks plus text/border/shape-backed state assertions and representative grayscale inspection | Reconfirm grayscale and focus presentation on the pilot display | `R0-09009` complete; limitation audited by `R0-09016` |
+| `AC-R0-015-03` | Learner library/detail and Studio editor/assessment route checks at 360, 768, 1024, and 1440 px, including card/table switch, reflow, 200% text zoom, and page-overflow assertions | Cross-browser journey widths remain in `R0-09010`–`R0-09012`; physical touch remains an observed-pilot check | `R0-09009` complete; `R0-09010`–`R0-09012` |
 | `AC-R0-015-04` | A local warmed detail-navigation regression | Representative production-build library FCP under the documented broadband profile and no draft/account payload | `R0-09010` |
 | `AC-R0-015-05` | Detail navigation and non-blocking component behavior | Representative permanent-detail usability budget and unrelated-reading proof | `R0-09010` |
 | `AC-R0-015-06` | Chromium desktop Playwright project | Documented Chromium, Firefox, WebKit, and available mobile-equivalent matrix | `R0-09010`–`R0-09012` |
@@ -205,3 +205,28 @@ retroactive test-driven development.
   returned every service healthy and `scripts/health_dependency_check.sh`
   confirmed API/FE readiness, live=200/readiness=503 while PostgreSQL was paused,
   and readiness recovery after PostgreSQL resumed.
+
+### `R0-09009`
+
+- Red observed: the new browser-width regression first found the 360 px Studio
+  editor 216 px wider than the viewport, then found learner-library overflow at
+  768 and 1024 px. After those constraints were corrected, the 200% text-zoom
+  case exposed a further 105 px Studio tooltip overflow.
+- Added `@axe-core/playwright` and a repeatable deployed-system gate covering
+  six representative learner/Studio routes, four required viewport widths,
+  the below-768 card/table switch, document-level overflow, 200% text zoom, and
+  learner/publication dialog focus wrapping, Escape, and focus return.
+- Constrained learner table/filter grids and Studio editor fields, fieldsets,
+  and help tooltips so intermediate widths and text zoom reflow without
+  unintended page scrolling. Existing internal table/code scrolling remains
+  intentional.
+- `scripts/accessibility_check.sh` passed all four browser cases in 47.8 seconds
+  after the final redeploy.
+  Frontend lint, strict type checking, 102 component/client tests, and both
+  production builds passed. A migration-aware redeploy preserved data,
+  synchronized all 343 canonical records unchanged, and returned PostgreSQL,
+  API readiness, Learn, and Studio healthy.
+- `docs/phase9-accessibility-checklist.md` separates automated evidence from
+  human-assisted screen-reader, grayscale, physical-keyboard, and touch checks.
+  Representative grayscale pages were inspected; unavailable desktop screen
+  reader and physical-touch evidence is explicit rather than silently passed.

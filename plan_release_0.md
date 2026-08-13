@@ -1280,7 +1280,7 @@ not claim retroactive red-green evidence.
   schema or leak infrastructure details. Extend the smoke command to check API,
   Learn, and Studio readiness separately (`AC-R0-015-16`). Suggested commit:
   `test(operations): verify health and readiness boundaries`.
-- [ ] **R0-09009 — Automate accessibility and responsive regression checks.**
+- [x] **R0-09009 — Automate accessibility and responsive regression checks.**
   Add an accessibility runner to representative Learn and Studio pages and
   integrate it with component or browser tests. Cover visible labels and focus,
   keyboard order, dialog trap/Escape/return, disclosures, repeated-field focus,

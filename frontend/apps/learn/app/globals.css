@@ -40,7 +40,8 @@ header nav {
   padding: 1rem clamp(1rem, 3vw, 2.5rem);
 }
 
-.problem-library { display: grid; gap: 1.25rem; }
+.problem-library { min-width: 0; display: grid; gap: 1.25rem; }
+.problem-library > *, .results-placeholder { min-width: 0; max-width: 100%; }
 .library-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; }
 .library-heading h1 { margin: 0.15rem 0; font-size: clamp(1.8rem, 4vw, 2.6rem); }
 .library-heading p { margin: 0; color: var(--muted); }
@@ -91,7 +92,7 @@ header nav {
 .active-filters a, .topic-shortcuts a { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 0.35rem 0.65rem; background: white; text-decoration: none; font-size: 0.82rem; }
 .active-filters a { background: var(--brand-soft); border-color: #a5f3fc; }
 .results-placeholder { min-height: 10rem; border-top: 1px solid var(--line); padding-top: 1rem; }
-.problem-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 0.75rem; background: white; }
+.problem-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 0.75rem; background: white; }
 .problem-table { width: 100%; min-width: 1080px; border-collapse: collapse; font-size: 0.82rem; }
 .problem-table thead { position: sticky; top: 0; z-index: 1; background: #eef4f8; }
 .problem-table th { color: #334155; font-size: 0.72rem; letter-spacing: 0.03em; text-align: left; text-transform: uppercase; }
@@ -179,6 +180,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid #67e8f9; outline-offs
 @media (min-width: 1024px) and (max-width: 1279px) {
   .learning-guidance { grid-template-columns: 1fr; }
   .learning-sidebar { grid-row: 2; }
+  .filter-bar { flex-wrap: wrap; }
+  .filter-bar .search-field { flex-basis: 100%; }
   .problem-table { min-width: 900px; }
   .problem-table .intermediate-secondary { display: none; }
   .intermediate-details { display: block; margin-top: 0.35rem; }

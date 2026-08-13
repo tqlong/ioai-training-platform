@@ -3,6 +3,8 @@
   --studio-foreground: #0f172a;
 }
 
+*, *::before, *::after { box-sizing: border-box; }
+
 html,
 body {
   margin: 0;
@@ -22,7 +24,9 @@ main {
 .status-tabs, .list-tools { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.5rem 0; }
 .status-tabs button[aria-pressed="true"] { border-color: #3730a3; font-weight: 700; }
 .list-tools label { display: grid; gap: .35rem; font-weight: 600; }
-input, select, button { font: inherit; min-height: 2.75rem; border: 1px solid #94a3b8; border-radius: .25rem; padding: 0 .75rem; }
+input, select, button, textarea { max-width: 100%; font: inherit; }
+input:not([type='checkbox']):not([type='radio']), select, textarea { width: 100%; min-width: 0; }
+input, select, button { min-height: 2.75rem; border: 1px solid #94a3b8; border-radius: .25rem; padding: 0 .75rem; }
 .draft-table-wrap { overflow-x: auto; background: white; border: 1px solid #cbd5e1; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: .85rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
@@ -39,6 +43,9 @@ th, td { padding: .85rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
 @media (max-width: 767px) {
   main { padding: 1rem; }
   .page-heading { display: grid; }
+  .editor-section { min-width: 0; padding: 1rem; }
+  fieldset { min-width: 0; margin-inline: 0; padding-inline: .75rem; }
+  .field-help-tooltip { right: 0; left: auto; max-width: 70vw; transform: none; }
   .draft-table-wrap table, .draft-table-wrap tbody, .draft-table-wrap tr, .draft-table-wrap td { display: block; }
   .draft-table-wrap thead { position: absolute; clip: rect(0, 0, 0, 0); }
   .draft-table-wrap tr { padding: .75rem; border-bottom: 1px solid #cbd5e1; }
@@ -54,7 +61,7 @@ th, td { padding: .85rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
 .field-label-row label { display: inline; margin: 0; }
 .field-help { position: relative; display: inline-flex; }
 .field-help-trigger { display: inline-grid; place-items: center; width: 1.5rem; min-height: 1.5rem; height: 1.5rem; padding: 0; border: 0; background: transparent; font-size: 1rem; line-height: 1; }
-.field-help-tooltip { position: absolute; z-index: 20; left: calc(100% + .5rem); top: 50%; width: max-content; max-width: min(24rem, 70vw); padding: .55rem .7rem; border-radius: .25rem; background: #0f172a; color: white; font-size: .875rem; font-weight: 500; line-height: 1.35; opacity: 0; pointer-events: none; transform: translateY(-50%); transition: opacity .12s ease-in-out; }
+.field-help-tooltip { position: absolute; z-index: 20; left: 50%; top: calc(100% + .5rem); width: max-content; max-width: min(24rem, 50vw); padding: .55rem .7rem; border-radius: .25rem; background: #0f172a; color: white; font-size: .875rem; font-weight: 500; line-height: 1.35; opacity: 0; pointer-events: none; transform: translateX(-50%); transition: opacity .12s ease-in-out; }
 .field-help:hover .field-help-tooltip, .field-help:focus-within .field-help-tooltip { opacity: 1; }
 .field-help-trigger:focus-visible { outline: 3px solid #818cf8; outline-offset: 2px; }
 .validation-panel { margin-top: 1.5rem; padding: 1.5rem; border: 1px solid #cbd5e1; background: white; }
@@ -101,10 +108,16 @@ th, td { padding: .85rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
 .input-method-note { padding: .75rem; background: #ecfeff; border-left: .25rem solid #0f766e; }
 .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
 .field-grid label, fieldset > label { display: grid; gap: .35rem; }
-fieldset { margin: 1.5rem 0; border: 1px solid #cbd5e1; }
+fieldset { width: 100%; min-width: 0; max-width: 100%; margin: 1.5rem 0; border: 1px solid #cbd5e1; }
+.repeated-row, .field-grid, label { min-width: 0; max-width: 100%; }
 legend { font-weight: 750; }
 .choice-row { display: flex !important; align-items: flex-start; grid-template-columns: none !important; font-weight: 500 !important; }
 .choice-row input { min-height: auto; }
 .choice-row small { display: block; color: #475569; }
 .selection-list { max-height: 20rem; overflow: auto; padding: .5rem; border: 1px solid #cbd5e1; }
 .field-guidance { color: #475569; }
+
+@media (max-width: 767px) {
+  .field-help-tooltip { right: 0; left: auto; max-width: 70vw; transform: none; }
+  fieldset fieldset { padding-inline: .4rem; }
+}
