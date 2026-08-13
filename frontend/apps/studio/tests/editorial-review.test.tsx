@@ -60,6 +60,41 @@ describe('editorial review workspace', () => {
     expect(transition).toHaveBeenCalledWith('revision-1', 'approve', expect.objectContaining({ expected_version: 2, note: 'Approved.' }));
   });
 
+  it('does not block the next decision on a stalled history refresh', async () => {
+    const draftStart = { ...draft, editorial_status: 'DRAFT' };
+    const inReview = { ...draftStart, version: 3, editorial_status: 'IN_REVIEW' };
+    const onDraftChange = vi.fn();
+    const transition = vi.fn(async () => inReview);
+    const loadHistory = vi.fn()
+      .mockResolvedValueOnce(history)
+      .mockImplementation(() => new Promise(() => undefined));
+    const { rerender } = render(<EditorialReviewWorkspace
+      draft={draftStart}
+      loadHistory={loadHistory}
+      onDraftChange={onDraftChange}
+      transition={transition}
+    />);
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Editorial note' }), {
+      target: { value: 'Ready.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit for review' }));
+    await waitFor(() => expect(onDraftChange).toHaveBeenCalledWith(inReview));
+    rerender(<EditorialReviewWorkspace
+      draft={inReview}
+      loadHistory={loadHistory}
+      onDraftChange={onDraftChange}
+      transition={transition}
+    />);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Editorial note' }), {
+      target: { value: 'Approved.' },
+    });
+
+    await waitFor(() => expect(
+      (screen.getByRole('button', { name: 'Approve' }) as HTMLButtonElement).disabled,
+    ).toBe(false));
+  });
+
   it('confirms publication with permanent URL and returns focus on Escape', async () => {
     const approved = { ...draft, editorial_status: 'APPROVED', slug: 'metrics-basics' };
     render(<EditorialReviewWorkspace draft={approved} loadHistory={async () => history} onDraftChange={() => undefined} publish={vi.fn()} transition={vi.fn()} />);

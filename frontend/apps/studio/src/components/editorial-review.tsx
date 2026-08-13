@@ -86,7 +86,7 @@ export function EditorialReviewWorkspace({
       });
       setNote('');
       onDraftChange(updated);
-      await refreshHistory();
+      void refreshHistory();
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : 'The editorial decision could not be saved.');
       window.setTimeout(() => noteRef.current?.focus(), 0);
