@@ -60,6 +60,37 @@ def test_compose_dependencies_wait_for_api_readiness() -> None:
     assert Path("scripts/health_dependency_check.sh").is_file()
 
 
+def test_compose_runtime_and_migration_commands_use_the_committed_uv_lock() -> None:
+    compose_text = Path("docker-compose.yml").read_text()
+    migrate_text = Path("scripts/dev_migrate.sh").read_text()
+
+    assert "uv sync --frozen --only-group backend" in compose_text
+    assert "uv run --frozen --no-sync uvicorn" in compose_text
+    assert 'user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"' in compose_text
+    assert "UV_CACHE_DIR: /tmp/ioai-uv-cache" in compose_text
+    assert "uv run --with" not in compose_text
+    assert "uv sync --frozen --only-group backend" in migrate_text
+    assert "uv run --frozen --no-sync alembic" in migrate_text
+    assert "uv run --with" not in migrate_text
+
+
+def test_clean_compose_lifecycle_has_an_isolated_documented_entrypoint() -> None:
+    override_text = Path("docker-compose.system.yml").read_text()
+    script_text = Path("scripts/compose_lifecycle_check.sh").read_text()
+    package_text = Path("package.json").read_text()
+
+    assert "127.0.0.1:58000:8000" in override_text
+    assert "127.0.0.1:55432:5432" in override_text
+    assert "127.0.0.1:53001:3001" in override_text
+    assert "project=${IOAI_SYSTEM_COMPOSE_PROJECT:-ioai-r0-system}" in script_text
+    assert '[[ "$project" != ioai-r0-system ]]' in script_text
+    assert "git archive" in script_text
+    assert "down --volumes --remove-orphans" in script_text
+    assert "uv sync --frozen --all-groups" in script_text
+    assert "pnpm install --frozen-lockfile" in script_text
+    assert '"test:compose-system"' in package_text
+
+
 def test_studio_uses_compose_api_service_for_server_side_requests() -> None:
     compose_text = Path("docker-compose.yml").read_text()
     studio_service = compose_text.split("\n  studio:\n", maxsplit=1)[1].split(

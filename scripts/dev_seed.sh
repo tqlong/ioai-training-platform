@@ -6,4 +6,4 @@ cd "$REPO_ROOT"
 
 printf 'Synchronizing validated canonical vocabulary\n'
 docker compose run --rm api bash -lc \
-  "PYTHONPATH=/app/backend/src uv run --group backend python backend/scripts/sync_vocabulary.py"
+  "uv sync --frozen --only-group backend && PYTHONPATH=/app/backend/src uv run --frozen --no-sync python backend/scripts/sync_vocabulary.py"

@@ -1,0 +1,23 @@
+services:
+  postgres:
+    ports: !override
+      - '127.0.0.1:55432:5432'
+
+  postgres-test:
+    ports: !override
+      - '127.0.0.1:55433:5432'
+
+  api:
+    environment:
+      IOAI_ALLOWED_ORIGINS: http://127.0.0.1:53000,http://127.0.0.1:53001
+      IOAI_ENVIRONMENT: system-verification
+    ports: !override
+      - '127.0.0.1:58000:8000'
+
+  learn:
+    ports: !override
+      - '127.0.0.1:53000:3000'
+
+  studio:
+    ports: !override
+      - '127.0.0.1:53001:3001'

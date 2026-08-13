@@ -81,6 +81,15 @@ Release 0.
   manual-assessment journey, mixed-scoring and privacy checks, plus the critical
   human/correction path on the desktop matrix and storage-disabled keyboard
   operation on both mobile profiles.
+- `bash scripts/compose_lifecycle_check.sh` exports committed `HEAD` into a
+  temporary clean source tree and uses only the reserved `ioai-r0-system`
+  Compose project. It installs the committed locks, starts a fresh named volume,
+  explicitly migrates and synchronizes vocabulary, exercises public/author and
+  assessment boundaries, proves PostgreSQL records survive stop/restart, and
+  proves an unknown migration revision makes API readiness fail safely. Its exit
+  trap deletes only that reserved project and temporary source; the development
+  project and volume are not changed. Override `IOAI_SYSTEM_SOURCE_REF` only
+  with another committed revision to rehearse that exact source.
 - Public canonical vocabulary is available from `GET /api/v1/vocabulary` with a
   required `vocabulary_type`; author-safe values and availability are available
   from `GET /api/v1/author/vocabulary`.
@@ -121,3 +130,8 @@ Release 0.
 - Backup/restore applies only to PostgreSQL data; browser-local progress is intentionally not stored there.
 - Playwright failure traces, screenshots, and the HTML report are local ignored
   artifacts under `test-results/` and `playwright-report/`.
+- The clean Compose rehearsal requires Docker Compose with YAML tag support for
+  `!override` (Compose 2.24.4 or newer), GNU-compatible Bash/core utilities,
+  `git`, `curl`, `uv`, `pnpm`, and an installed Playwright Chromium matching the
+  committed package. It is Linux-validated; Docker Desktop host networking and
+  bind-mount performance on macOS/Windows are not yet evidence for this gate.

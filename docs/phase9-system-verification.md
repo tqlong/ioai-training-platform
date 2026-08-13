@@ -306,3 +306,35 @@ retroactive test-driven development.
   102 component/client tests, deterministic contract drift, both production
   builds, and the migration-aware redeploy also passed; all 343 canonical
   records remained unchanged and every service returned healthy.
+
+### `R0-09013`
+
+- Red observed: the committed-lock regression first failed because Compose and
+  migration helpers resolved an ad hoc uv environment. The first complete clean
+  rehearsal then reached every functional assertion but returned exit 1 because
+  the root-running API container left root-owned bytecode in its temporary bind
+  mount and the cleanup trap could not remove it.
+- Runtime and migration commands now use frozen `uv.lock` resolution. The API
+  container runs as the invoking UID/GID with a writable temporary uv cache, so
+  the reserved project can cleanly remove its bind mount and volume on success
+  or failure.
+- `scripts/compose_lifecycle_check.sh` exported a staged commit tree into a
+  temporary clean source, installed 31 Python and 261 JavaScript packages from
+  the committed locks, migrated all eight Alembic revisions, and synchronized
+  343 canonical vocabulary records. Its Chromium flow created one published
+  problem/revision/snapshot, learner attempt, feedback record, and assessment
+  decision through the deployed API, Learn, and Studio boundaries.
+- Counts for vocabulary, problems, revisions, snapshots, attempts, feedback,
+  and decisions were byte-for-byte identical before and after stopping all
+  services and restarting without deleting the named volume. The public problem
+  and assessed queue record remained queryable.
+- An injected unknown Alembic revision made explicit migration fail and API
+  readiness return the safe 503 contract. Restoring the disposable schema
+  marker restored API, Learn, and Studio health. Runtime port inspection proved
+  loopback database/API/Studio exposure and internal `http://api:8000` use;
+  `.env.example` coverage and the absence of Redis, Celery, Docling, MinIO,
+  vector, and GPU services also passed. The final isolated run exited 0 and
+  removed only `ioai-r0-system` resources.
+- Bash syntax, Compose rendering, focused ESLint, and all nine foundation stack
+  tests passed. Linux is the validated platform; Docker Desktop filesystem and
+  networking behavior remain explicitly unverified.

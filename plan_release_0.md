@@ -1327,7 +1327,7 @@ not claim retroactive red-green evidence.
   unavailable local storage, private guidance redaction, responsive layouts,
   and keyboard operation. Suggested commit:
   `test(e2e): verify manual assessment across learn and studio`.
-- [ ] **R0-09013 — Verify the Compose topology from clean and persisted
+- [x] **R0-09013 — Verify the Compose topology from clean and persisted
   states.** Add a deterministic system rehearsal that starts from a clean
   checkout and fresh named volume, installs only from committed lockfiles,
   starts PostgreSQL, explicitly migrates and synchronizes vocabulary, then

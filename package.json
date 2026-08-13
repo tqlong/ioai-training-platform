@@ -13,6 +13,7 @@
     "test:learner-system": "bash scripts/learner_system_check.sh",
     "test:author-system": "bash scripts/author_system_check.sh",
     "test:assessment-system": "bash scripts/assessment_system_check.sh",
+    "test:compose-system": "bash scripts/compose_lifecycle_check.sh",
     "build": "pnpm -r run build",
     "generate:contracts": "bash scripts/generate_contracts.sh",
     "check:contracts": "bash scripts/openapi_drift_check.sh",
