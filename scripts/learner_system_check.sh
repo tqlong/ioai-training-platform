@@ -22,7 +22,7 @@ cleanup() {
   fi
   rm -f "$production_log"
   if [[ "$frontends_stopped" == "1" ]]; then
-    docker compose up -d learn studio >/dev/null 2>&1 || true
+    docker compose up -d --wait learn studio >/dev/null 2>&1 || true
   fi
 }
 trap cleanup EXIT

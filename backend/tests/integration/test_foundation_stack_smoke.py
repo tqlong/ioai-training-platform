@@ -122,6 +122,12 @@ def test_phase9_ci_uses_one_pinned_explicit_orchestration_contract() -> None:
     assert "--frozen-lockfile" in entrypoint_text
 
 
+def test_learner_system_cleanup_waits_before_the_next_browser_gate() -> None:
+    learner_script = Path("scripts/learner_system_check.sh").read_text()
+
+    assert "docker compose up -d --wait learn studio" in learner_script
+
+
 def test_studio_uses_compose_api_service_for_server_side_requests() -> None:
     compose_text = Path("docker-compose.yml").read_text()
     studio_service = compose_text.split("\n  studio:\n", maxsplit=1)[1].split(
