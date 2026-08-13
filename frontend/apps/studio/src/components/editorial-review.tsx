@@ -153,6 +153,7 @@ export function EditorialReviewWorkspace({
     {actions.length > 0 && <div className="editorial-decision">
       <label htmlFor="editorial-note">Editorial note</label>
       <textarea
+        disabled={pending !== null}
         id="editorial-note"
         maxLength={2000}
         onChange={(event) => setNote(event.target.value)}

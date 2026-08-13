@@ -95,6 +95,23 @@ describe('editorial review workspace', () => {
     ).toBe(false));
   });
 
+  it('prevents a second note from being entered while a decision is pending', async () => {
+    const transition = vi.fn(() => new Promise<AuthorDraft>(() => undefined));
+    render(<EditorialReviewWorkspace
+      draft={draft}
+      loadHistory={async () => history}
+      onDraftChange={() => undefined}
+      transition={transition}
+    />);
+    const note = screen.getByRole('textbox', { name: 'Editorial note' }) as HTMLTextAreaElement;
+
+    fireEvent.change(note, { target: { value: 'Approval in progress.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+
+    await waitFor(() => expect(transition).toHaveBeenCalledOnce());
+    expect(note.disabled).toBe(true);
+  });
+
   it('confirms publication with permanent URL and returns focus on Escape', async () => {
     const approved = { ...draft, editorial_status: 'APPROVED', slug: 'metrics-basics' };
     render(<EditorialReviewWorkspace draft={approved} loadHistory={async () => history} onDraftChange={() => undefined} publish={vi.fn()} transition={vi.fn()} />);
