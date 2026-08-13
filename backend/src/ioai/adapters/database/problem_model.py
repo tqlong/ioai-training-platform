@@ -262,6 +262,7 @@ class PublishedSnapshotModel(Base):
     __tablename__ = "published_snapshot"
     __table_args__ = (
         UniqueConstraint("revision_id", name="uq_published_snapshot_revision_id"),
+        Index("ix_published_snapshot_slug", "slug"),
         Index("ix_published_snapshot_problem_published", "problem_id", "published_at"),
     )
 
@@ -333,6 +334,12 @@ class LearnerAttemptModel(Base):
             name="uq_learner_attempt_snapshot_submission_key",
         ),
         Index("ix_learner_attempt_snapshot_submitted", "snapshot_id", "submitted_at"),
+        Index(
+            "ix_learner_attempt_outcome_submitted",
+            "outcome",
+            "submitted_at",
+            "attempt_id",
+        ),
     )
 
     attempt_id: Mapped[str] = mapped_column(String(128), primary_key=True)

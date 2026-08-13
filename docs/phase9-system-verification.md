@@ -18,7 +18,7 @@ retroactive test-driven development.
 
 | Boundary | Present implementation and evidence | Baseline limitation |
 | --- | --- | --- |
-| PostgreSQL and Alembic | Seven ordered revisions from canonical vocabulary through manual assessment; integration tests cover migrations, repositories, readiness, synchronization, public queries, learner records, and publication | No single test proves the complete empty-database chain, all current constraints, the latest downgrade/re-upgrade boundary, query indexes, and injected migration/publication failure together |
+| PostgreSQL and Alembic | Eight ordered revisions from canonical vocabulary through the Phase 9 system-query indexes; integration tests cover the complete head chain, migrations, repositories, readiness, synchronization, public queries, learner records, publication, supporting index plans, and transactional rollback | API-level persistence and failure coverage remains assigned to `R0-09003` |
 | FastAPI | Versioned public and author routers for vocabulary, proposals, problems, publication, submissions, feedback, and manual assessment; health routes and safe error DTOs | Most HTTP tests use injected fakes; a complete real-app/real-PostgreSQL contract suite is missing |
 | Public isolation | Dedicated published reader, public DTOs, OpenAPI schema checks, repository tests, and `scripts/public_isolation_check.sh` | Leak-path fixtures do not yet cover every private field, stale/archive path, generated client, server fetch, and result/assessment path together |
 | Generated contracts | Deterministic OpenAPI JSON, `openapi-typescript` output, vocabulary artifacts, generation script, and drift script | Handwritten client wrappers are not comprehensively exercised against a running API |
@@ -39,9 +39,9 @@ retroactive test-driven development.
 | `AC-R0-015-04` | A local warmed detail-navigation regression | Representative production-build library FCP under the documented broadband profile and no draft/account payload | `R0-09010` |
 | `AC-R0-015-05` | Detail navigation and non-blocking component behavior | Representative permanent-detail usability budget and unrelated-reading proof | `R0-09010` |
 | `AC-R0-015-06` | Chromium desktop Playwright project | Documented Chromium, Firefox, WebKit, and available mobile-equivalent matrix | `R0-09010`–`R0-09012` |
-| `AC-R0-015-07` | Domain invariants, SQLAlchemy model checks, and focused PostgreSQL constraints | One current domain/database invariant matrix including manual-assessment history and query indexes | `R0-09002` |
-| `AC-R0-015-08` | Descriptive migrations and representative upgrade/downgrade tests | Complete clean-chain and latest safe downgrade/re-upgrade proof without rewriting history | `R0-09002` |
-| `AC-R0-015-09` | Unit-of-work rollback and atomic publication tests | Injected migration/publication failures through real persistence and HTTP boundaries | `R0-09002`, `R0-09003` |
+| `AC-R0-015-07` | Domain invariants, SQLAlchemy model checks, PostgreSQL constraints, append-only assessment history, and verified public/assessment index plans | API-level persistence coverage remains | `R0-09002` complete; `R0-09003` |
+| `AC-R0-015-08` | Complete linear empty-database chain, idempotent 343-record canonical sync, representative safe downgrades through manual assessment, and a new forward-only Phase 9 index migration | Clean deployment rehearsal remains | `R0-09002` complete; `R0-09013` |
+| `AC-R0-015-09` | Transactional migration-DDL rollback plus unit-of-work and atomic publication rollback tests | Injected failure through the real HTTP boundary remains | `R0-09002` complete; `R0-09003` |
 | `AC-R0-015-10` | Public DTO/schema isolation and guessed-ID tests | Every leak path plus a concrete no-auth topology preventing the learner surface from reaching author commands | `R0-09004`, `R0-09005` |
 | `AC-R0-015-11` | Studio host port maps to `127.0.0.1:3001` and documentation rejects port-as-auth | Automated configuration/topology proof and safe API author exposure | `R0-09005`, `R0-09013` |
 | `AC-R0-015-12` | Bounded progress, submission, feedback, receipt, and throttle tests | Full persistence/log review and no-auth boundary integration tests | `R0-09003`, `R0-09005`, `R0-09007` |
@@ -78,3 +78,16 @@ retroactive test-driven development.
   boundaries.
 - The final baseline records every unavailable browser or manual check as a
   limitation. A required silent skip keeps the owning Phase 9 item incomplete.
+
+## Completed step evidence
+
+### `R0-09002`
+
+- Red observed: the focused PostgreSQL tests failed because migration
+  `20260813_09002` and indexes `ix_published_snapshot_slug` and
+  `ix_learner_attempt_outcome_submitted` did not exist.
+- Green observed: 122 affected PostgreSQL/domain/model tests passed, including
+  the complete migration chain, latest downgrade/re-upgrade, idempotent
+  canonical synchronization, append-only assessment decisions, publication and
+  migration rollback, and forced index-plan checks.
+- Static gates: Ruff format/check, Pyright, and the Alembic-head check passed.

@@ -1204,7 +1204,7 @@ not claim retroactive red-green evidence.
   incomplete request/operation observability, and backup commands that do not
   yet prove a disposable restore. Do not change product behavior in this step.
   Suggested commit: `docs(verification): baseline release 0 system evidence`.
-- [ ] **R0-09002 — Verify the full migration chain, constraints, and canonical
+- [x] **R0-09002 — Verify the full migration chain, constraints, and canonical
   seed on real PostgreSQL.** From an empty test database, upgrade every committed
   Alembic revision through head, synchronize canonical vocabulary twice, and
   prove deterministic/idempotent results. Extend safe downgrade/re-upgrade
