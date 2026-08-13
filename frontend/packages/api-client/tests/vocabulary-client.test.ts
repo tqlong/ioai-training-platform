@@ -27,6 +27,34 @@ describe('generated vocabulary client', () => {
       expect.objectContaining({ method: 'POST', body: JSON.stringify({ submission_key: 'retry-key', receipt: 'private-receipt-1234', response: { type: 'QUIZ_SINGLE', choice_id: 'a' } }) }),
     );
   });
+
+  it.each([
+    { type: 'QUIZ_SINGLE' as const, choice_id: 'a' },
+    { type: 'QUIZ_MULTIPLE' as const, choice_ids: ['a', 'b'] },
+    { type: 'NUMERIC_ANSWER' as const, value: '3.14' },
+    { type: 'SHORT_ANSWER' as const, text: 'Precision is bounded.' },
+    { type: 'CODE_FUNCTION' as const, code: 'def solve(value):\n    return value' },
+  ])('serializes the generated $type response discriminator', async (response) => {
+    const fetchFn = vi.fn(async () => Response.json({
+      attempt_id: 'attempt-1', result_url: '/submissions/attempt-1',
+      submitted_at: '2026-08-13T00:00:00Z', outcome: 'ACCEPTED_RESULT',
+      message: 'Assessed.',
+    }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+
+    await client.submitPublicProblem('metrics', {
+      submission_key: `retry-${response.type}`,
+      receipt: 'private-receipt-1234',
+      response,
+    });
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/problems/metrics/submissions',
+      expect.objectContaining({
+        body: expect.stringContaining(`"type":"${response.type}"`),
+      }),
+    );
+  });
   it('gets one typed published problem detail by stable slug', async () => {
     const fetchFn = vi.fn(async () => Response.json({ slug: 'metrics-basics' }));
     const client = createApiClient({
@@ -161,6 +189,50 @@ describe('generated vocabulary client', () => {
   it('surfaces FastAPI detail errors with their stable machine code', async () => {
     const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn: async () => Response.json({ detail: { code: 'REVISION_CONFLICT', message: 'A newer draft version exists.', current_version: 3 } }, { status: 409 }) });
     await expect(client.saveAuthorDraft('revision-1', { problem_id: 'problem-1', expected_version: 2 })).rejects.toMatchObject({ code: 'REVISION_CONFLICT', status: 409 });
+  });
+
+  it('propagates a caller request ID and preserves it on stable errors', async () => {
+    const fetchFn = vi.fn(async (_input: string, init?: RequestInit) => {
+      const requestId = new Headers(init?.headers).get('x-request-id');
+      return Response.json(
+        { detail: { code: 'PUBLIC_NOT_FOUND', message: 'Problem not found.' } },
+        { status: 404, headers: { 'x-request-id': requestId ?? '' } },
+      );
+    });
+    const client = createApiClient({
+      baseUrl: 'http://localhost:8000/api/v1',
+      fetchFn,
+      requestIdFactory: () => 'contract-request-1',
+    });
+
+    await expect(client.getPublicProblem('missing')).rejects.toMatchObject({
+      code: 'PUBLIC_NOT_FOUND',
+      status: 404,
+      requestId: 'contract-request-1',
+    });
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/problems/missing',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'x-request-id': 'contract-request-1' }),
+      }),
+    );
+  });
+
+  it('reads a submission with the opaque receipt header', async () => {
+    const fetchFn = vi.fn(async () => Response.json({
+      attempt_id: 'attempt-1', outcome: 'PENDING_HUMAN', score: null,
+      passed: null, components: [], message: 'Pending review.',
+    }));
+    const client = createApiClient({ baseUrl: 'http://localhost:8000/api/v1', fetchFn });
+
+    await client.getPublicSubmission('attempt 1', 'opaque-receipt');
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/v1/submissions/attempt%201',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'x-submission-receipt': 'opaque-receipt' }),
+      }),
+    );
   });
 
   it('validates an exact saved author revision version', async () => {

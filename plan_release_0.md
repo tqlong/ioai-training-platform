@@ -1251,7 +1251,7 @@ not claim retroactive red-green evidence.
   claims nor secrets (`AC-R0-015-10` through `AC-R0-015-12`). Do not add
   accounts or general authentication. Suggested commit:
   `fix(security): enforce release 0 local author boundary`.
-- [ ] **R0-09006 — Verify deterministic OpenAPI and generated-client
+- [x] **R0-09006 — Verify deterministic OpenAPI and generated-client
   compatibility.** Strengthen generation so the FastAPI OpenAPI document,
   committed JSON, generated TypeScript declarations, handwritten client
   wrappers, and canonical vocabulary artifact are produced in one deterministic

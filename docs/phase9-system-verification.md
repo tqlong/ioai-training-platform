@@ -142,3 +142,22 @@ retroactive test-driven development.
   Runtime probes confirmed loopback ports, public Learn API status 200, author
   paths through Learn status 404, configured-origin preflight status 200 with no
   credential header, and unknown-origin preflight status 400.
+
+### `R0-09006`
+
+- Red observed: the API-client regression test failed because stable FastAPI
+  errors lost the propagated `x-request-id`; a compile-time compatibility check
+  also caught an incorrect assumed success status for learner submission.
+- Contract generation now validates/regenerates the canonical vocabulary,
+  dumps sorted OpenAPI JSON, generates TypeScript, and copies the frontend
+  vocabulary through one command. Drift verification independently generates
+  OpenAPI and TypeScript twice and compares both runs and all committed outputs.
+- Handwritten query inputs derive their value types from generated operations;
+  compile-time assertions bind representative public/author request and response
+  wrappers to their exact generated operations. Runtime tests cover pagination,
+  all five discriminated submission bodies, idempotency fields, opaque receipt
+  headers, request IDs, and stable error decoding.
+- `scripts/client_contract_check.sh` passed 24 unit contract tests and three
+  running-API public/author/negative cases against the loopback FastAPI service,
+  plus lint, strict type checking, vocabulary/OpenAPI/client drift, and repeated
+  deterministic generation.

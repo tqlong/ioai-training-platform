@@ -13,6 +13,7 @@
     "lint": "eslint src tests",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:system-contract": "vitest run --config vitest.system.config.ts",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {}

@@ -35,6 +35,11 @@ Release 0.
   OpenAPI-derived TypeScript, and the frontend canonical vocabulary artifact.
 - `bash scripts/openapi_drift_check.sh` verifies all generated contracts and
   frontend vocabulary data are current without changing checked-in files.
+- `bash scripts/client_contract_check.sh` runs deterministic drift, generated-
+  type/wrapper compatibility, unit contract, and running-API contract checks.
+  It defaults to `http://127.0.0.1:8000/api/v1`; override
+  `IOAI_SYSTEM_API_BASE` for another local verification API. The running check
+  creates one empty draft to prove the author command/validation contract.
 - `bash scripts/vocabulary_drift_check.sh` verifies `vocab.md` and the backend
   canonical artifact are synchronized.
 
