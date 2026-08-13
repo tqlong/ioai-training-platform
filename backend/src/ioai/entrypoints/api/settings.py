@@ -19,6 +19,7 @@ class ApiSettings:
     api_prefix: str = "/api/v1"
     debug: bool = False
     request_id_header: str = "x-request-id"
+    environment: str = "development"
     allowed_origins: tuple[str, ...] = DEFAULT_ALLOWED_ORIGINS
 
     def __post_init__(self) -> None:
@@ -29,6 +30,10 @@ class ApiSettings:
             for origin in self.allowed_origins
         ):
             raise ValueError("allowed origins must use explicit http or https origins")
+        if not self.environment.replace("-", "").replace("_", "").isalnum():
+            raise ValueError("environment must be a bounded deployment label")
+        if len(self.environment) > 32:
+            raise ValueError("environment must be a bounded deployment label")
 
     @classmethod
     def from_env(cls) -> "ApiSettings":
@@ -50,5 +55,6 @@ class ApiSettings:
             request_id_header=os.getenv(
                 "IOAI_REQUEST_ID_HEADER", cls.request_id_header
             ),
+            environment=os.getenv("IOAI_ENVIRONMENT", cls.environment),
             allowed_origins=allowed_origins,
         )

@@ -1261,7 +1261,7 @@ not claim retroactive red-green evidence.
   error decoding. CI must fail on either generated drift or a wrapper that no
   longer matches the generated schema (`AC-R0-015-19`). Suggested commit:
   `test(contract): verify generated client compatibility`.
-- [ ] **R0-09007 — Add safe structured observability and end-to-end request-ID
+- [x] **R0-09007 — Add safe structured observability and end-to-end request-ID
   propagation.** Begin with tests showing the current request-ID-only middleware
   is insufficient. Emit one bounded structured completion event per HTTP request
   and meaningful publication, submission, feedback, and assessment operation,

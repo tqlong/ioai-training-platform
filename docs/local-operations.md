@@ -47,6 +47,16 @@ Release 0.
 
 - `bash scripts/dev_health.sh` probes health endpoints, public and author
   vocabulary projections, and key route shells.
+- `bash scripts/observability_check.sh` sends a correlated health request and
+  verifies the API emitted one structured completion event without logging the
+  query value.
+- API request logs are compact JSON allowlists. They contain environment,
+  request ID, route template, method, status, outcome, and duration only.
+  Publication, submission, feedback, and assessment events additionally contain
+  a canonical problem slug and one-way operation digest. Request/response bodies,
+  answers, notes, receipts, credentials, SQL, object keys, and raw exception
+  details are excluded. Uvicorn access logging is disabled to avoid raw-query
+  duplication; use the structured request event for correlation.
 - Public canonical vocabulary is available from `GET /api/v1/vocabulary` with a
   required `vocabulary_type`; author-safe values and availability are available
   from `GET /api/v1/author/vocabulary`.

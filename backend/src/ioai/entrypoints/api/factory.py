@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from contextlib import contextmanager
 from datetime import UTC, datetime
+from time import monotonic
 from uuid import uuid4
 
 from fastapi import FastAPI
@@ -23,7 +25,14 @@ from ...adapters.database.session import (
 )
 from ...adapters.database.settings import DatabaseSettings
 from ...adapters.database.vocabulary_repository import SqlAlchemyVocabularyRepository
+from ...adapters.observability.json_event_sink import JsonEventSink
 from ...adapters.vocabulary.runtime import load_generated_vocabulary
+from ...application.observability import (
+    EventSink,
+    ObservabilityEvent,
+    bind_request_id,
+    observe_operation,
+)
 from ...application.problems.assessment import AssessSubmission, SubmissionCommand
 from ...application.problems.authoring import (
     CreateDraft,
@@ -107,6 +116,7 @@ def create_app(
     author_problem_service: AuthorProblemService | None = None,
     public_problem_service: PublicProblemService | None = None,
     manual_assessment_service: ManualAssessmentService | None = None,
+    event_sink: EventSink | None = None,
 ) -> FastAPI:
     resolved_settings = settings or ApiSettings.from_env()
     resolved_probe = readiness_probe
@@ -115,6 +125,7 @@ def create_app(
     resolved_author_problem_service = author_problem_service
     resolved_public_problem_service = public_problem_service
     resolved_manual_assessment_service = manual_assessment_service
+    resolved_event_sink = event_sink or JsonEventSink()
     db_settings = DatabaseSettings.from_env()
     engine = build_engine(db_settings)
     session_factory = build_session_factory(engine)
@@ -196,13 +207,21 @@ def create_app(
                 id_generator=lambda: str(uuid4()),
                 clock=lambda: datetime.now(UTC),
             ),
+            event_sink=resolved_event_sink,
+            environment=resolved_settings.environment,
         )
 
     if resolved_public_problem_service is None:
-        resolved_public_problem_service = _DefaultPublicProblemService(session_factory)
+        resolved_public_problem_service = _DefaultPublicProblemService(
+            session_factory,
+            event_sink=resolved_event_sink,
+            environment=resolved_settings.environment,
+        )
     if resolved_manual_assessment_service is None:
         resolved_manual_assessment_service = _DefaultManualAssessmentService(
-            session_factory
+            session_factory,
+            event_sink=resolved_event_sink,
+            environment=resolved_settings.environment,
         )
 
     app = FastAPI(
@@ -259,6 +278,8 @@ def create_app(
     app.add_middleware(
         _RequestIdMiddleware,
         header_name=resolved_settings.request_id_header,
+        event_sink=resolved_event_sink,
+        environment=resolved_settings.environment,
     )
 
     @app.get("/health", include_in_schema=False)
@@ -269,9 +290,17 @@ def create_app(
 
 
 class _DefaultPublicProblemService:
-    def __init__(self, session_factory) -> None:
+    def __init__(
+        self,
+        session_factory,
+        *,
+        event_sink: EventSink,
+        environment: str,
+    ) -> None:
         self._session_factory = session_factory
         self._feedback_throttle = FixedWindowFeedbackThrottle(lambda: datetime.now(UTC))
+        self._event_sink = event_sink
+        self._environment = environment
 
     def list(self, query: PublicProblemQuery):
         with self._session_factory() as session:
@@ -283,19 +312,35 @@ class _DefaultPublicProblemService:
             return GetPublishedProblem(SqlAlchemyPublishedProblemReader(session))(slug)
 
     def assess(self, command: SubmissionCommand):
-        return AssessSubmission(
-            lambda: SqlAlchemyAssessmentUnitOfWork(self._session_factory),
-            lambda: str(uuid4()),
-            lambda: datetime.now(UTC),
-        )(command)
+        return observe_operation(
+            sink=self._event_sink,
+            event_name="learner.submission",
+            environment=self._environment,
+            raw_operation_id=command.submission_key,
+            reference=command.slug,
+            action=lambda: AssessSubmission(
+                lambda: SqlAlchemyAssessmentUnitOfWork(self._session_factory),
+                lambda: str(uuid4()),
+                lambda: datetime.now(UTC),
+            )(command),
+            clock=monotonic,
+        )
 
     def feedback(self, command: SubmitFeedbackCommand):
-        return RecordProblemFeedback(
-            lambda: SqlAlchemyAssessmentUnitOfWork(self._session_factory),
-            lambda: str(uuid4()),
-            lambda: datetime.now(UTC),
-            self._feedback_throttle,
-        )(command)
+        return observe_operation(
+            sink=self._event_sink,
+            event_name="learner.feedback",
+            environment=self._environment,
+            raw_operation_id=command.feedback_key,
+            reference=command.slug,
+            action=lambda: RecordProblemFeedback(
+                lambda: SqlAlchemyAssessmentUnitOfWork(self._session_factory),
+                lambda: str(uuid4()),
+                lambda: datetime.now(UTC),
+                self._feedback_throttle,
+            )(command),
+            clock=monotonic,
+        )
 
     def recommend(self, context: RecommendationContext):
         with self._session_factory() as session:
@@ -305,7 +350,13 @@ class _DefaultPublicProblemService:
 
 
 class _DefaultManualAssessmentService:
-    def __init__(self, session_factory) -> None:
+    def __init__(
+        self,
+        session_factory,
+        *,
+        event_sink: EventSink,
+        environment: str,
+    ) -> None:
         def factory():
             return SqlAlchemyManualAssessmentUnitOfWork(session_factory)
 
@@ -315,6 +366,8 @@ class _DefaultManualAssessmentService:
         self._resolve = ResolveManualAssessment(
             factory, lambda: str(uuid4()), lambda: datetime.now(UTC)
         )
+        self._event_sink = event_sink
+        self._environment = environment
 
     def list_assessments(self, *, status, problem, limit, offset):
         return self._list(status=status, problem=problem, limit=limit, offset=offset)
@@ -326,20 +379,29 @@ class _DefaultManualAssessmentService:
         return self._get_submission(attempt_id, receipt)
 
     def decide(self, attempt_id: str, request: AssessmentDecisionRequest):
-        return self._resolve(
-            attempt_id,
-            tuple(
-                AssessmentSelection(
-                    item.component_index,
-                    item.criterion_id,
-                    item.level_id,
-                    item.feedback,
-                )
-                for item in request.selections
+        record = self._get(attempt_id)
+        return observe_operation(
+            sink=self._event_sink,
+            event_name="author.assessment",
+            environment=self._environment,
+            raw_operation_id=request.expected_decision_id or attempt_id,
+            reference=record.slug,
+            action=lambda: self._resolve(
+                attempt_id,
+                tuple(
+                    AssessmentSelection(
+                        item.component_index,
+                        item.criterion_id,
+                        item.level_id,
+                        item.feedback,
+                    )
+                    for item in request.selections
+                ),
+                expected_decision_id=request.expected_decision_id,
+                overall_feedback=request.overall_feedback,
+                correction_reason=request.correction_reason,
             ),
-            expected_decision_id=request.expected_decision_id,
-            overall_feedback=request.overall_feedback,
-            correction_reason=request.correction_reason,
+            clock=monotonic,
         )
 
 
@@ -361,6 +423,8 @@ class _DefaultAuthorProblemService:
         publish: PublishRevision,
         start_revision: StartSuccessorDraft,
         archive: ArchiveProblem,
+        event_sink: EventSink,
+        environment: str,
     ):
         self._create = create
         self._list = list_drafts
@@ -378,6 +442,8 @@ class _DefaultAuthorProblemService:
         self._publish = publish
         self._start_revision = start_revision
         self._archive = archive
+        self._event_sink = event_sink
+        self._environment = environment
 
     def create(self):
         return self._create()
@@ -463,12 +529,22 @@ class _DefaultAuthorProblemService:
         return self._history(revision_id)
 
     def publish(self, revision_id: RevisionId, request: PublishRevisionRequest):
-        return self._publish(
-            revision_id,
-            expected_version=request.expected_version,
-            note=request.note,
-            actor=ActorContext(request.actor_context),
-            idempotency_key=request.idempotency_key,
+        current = self._get_revision(revision_id)
+        reference = current.slug.value if current.slug else "unassigned"
+        return observe_operation(
+            sink=self._event_sink,
+            event_name="author.publication",
+            environment=self._environment,
+            raw_operation_id=request.idempotency_key,
+            reference=reference,
+            action=lambda: self._publish(
+                revision_id,
+                expected_version=request.expected_version,
+                note=request.note,
+                actor=ActorContext(request.actor_context),
+                idempotency_key=request.idempotency_key,
+            ),
+            clock=monotonic,
         )
 
     def start_revision(self, problem_id: ProblemId, request: StartRevisionRequest):
@@ -494,9 +570,17 @@ class _DefaultAuthorProblemService:
 
 
 class _RequestIdMiddleware:
-    def __init__(self, app: ASGIApp, header_name: str) -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        header_name: str,
+        event_sink: EventSink,
+        environment: str,
+    ) -> None:
         self.app = app
         self.header_name = header_name
+        self.event_sink = event_sink
+        self.environment = environment
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope.get("type") != "http":
@@ -504,13 +588,50 @@ class _RequestIdMiddleware:
             return
         header_name = self.header_name.lower().encode()
         request_headers = dict(scope.get("headers", []))
-        request_id = request_headers.get(header_name, str(uuid4()).encode())
+        request_id = _safe_request_id(request_headers.get(header_name))
+        status_code = 500
+        started = monotonic()
 
         async def send_with_request_id(message: Message) -> None:
+            nonlocal status_code
             if message.get("type") == "http.response.start":
+                status_code = int(message.get("status", 500))
                 headers = list(message.get("headers", []))
-                headers.append((header_name, request_id))
+                headers.append((header_name, request_id.encode()))
                 message["headers"] = headers
             await send(message)
 
-        await self.app(scope, receive, send_with_request_id)
+        try:
+            with bind_request_id(request_id):
+                await self.app(scope, receive, send_with_request_id)
+        finally:
+            route = scope.get("route")
+            route_template = getattr(route, "path", "unmatched")
+            self.event_sink.emit(
+                ObservabilityEvent(
+                    event="http.request.completed",
+                    outcome=_http_outcome(status_code),
+                    environment=self.environment,
+                    request_id=request_id,
+                    duration_ms=max(0, round((monotonic() - started) * 1000)),
+                    method=str(scope.get("method", "UNKNOWN")),
+                    route=route_template,
+                    status_code=status_code,
+                )
+            )
+
+
+def _safe_request_id(raw_value: bytes | None) -> str:
+    if raw_value is not None:
+        value = raw_value.decode("ascii", errors="ignore")
+        if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", value):
+            return value
+    return str(uuid4())
+
+
+def _http_outcome(status_code: int):
+    if status_code < 400:
+        return "success"
+    if status_code < 500:
+        return "client_error"
+    return "failure"

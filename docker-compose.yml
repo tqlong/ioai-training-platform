@@ -40,12 +40,13 @@ services:
     environment:
       IOAI_DATABASE_URL: postgresql+psycopg://ioai:ioai@postgres:5432/ioai
       IOAI_ALLOWED_ORIGINS: "${IOAI_ALLOWED_ORIGINS:-http://127.0.0.1:3000,http://localhost:3000,http://127.0.0.1:3001,http://localhost:3001}"
+      IOAI_ENVIRONMENT: "${IOAI_ENVIRONMENT:-development}"
       PYTHONPATH: /app/backend/src
       UV_PROJECT_ENVIRONMENT: /tmp/ioai-venv
     depends_on:
       postgres:
         condition: service_healthy
-    command: bash -lc "uv run --with pydantic,fastapi,sqlalchemy,alembic,psycopg[binary],pytest,ruff,pyright,uvicorn uvicorn ioai.entrypoints.api.main:app --host 0.0.0.0 --port 8000"
+    command: bash -lc "uv run --with pydantic,fastapi,sqlalchemy,alembic,psycopg[binary],pytest,ruff,pyright,uvicorn uvicorn ioai.entrypoints.api.main:app --host 0.0.0.0 --port 8000 --no-access-log"
     ports:
       - '127.0.0.1:8000:8000'
     healthcheck:

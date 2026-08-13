@@ -8,6 +8,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette import status
 
+from ioai.application.observability import current_request_id
+
 
 @dataclass(frozen=True)
 class PublicError:
@@ -30,7 +32,7 @@ def install_error_handlers(app: FastAPI, request_id_header: str) -> None:
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
         payload = public_error("invalid_request", "The request parameters are invalid.")
-        request_id = request.headers.get(request_id_header)
+        request_id = current_request_id()
         if request_id:
             payload["request_id"] = request_id
         return JSONResponse(
@@ -42,7 +44,7 @@ def install_error_handlers(app: FastAPI, request_id_header: str) -> None:
     async def _unhandled_error_handler(
         request: Request, exc: Exception
     ) -> JSONResponse:
-        request_id = request.headers.get(request_id_header)
+        request_id = current_request_id()
         payload = public_error("internal_error", "An unexpected error occurred.")
         if request_id:
             payload["request_id"] = request_id

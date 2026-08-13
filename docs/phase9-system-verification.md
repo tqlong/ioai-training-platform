@@ -161,3 +161,26 @@ retroactive test-driven development.
   running-API public/author/negative cases against the loopback FastAPI service,
   plus lint, strict type checking, vocabulary/OpenAPI/client drift, and repeated
   deterministic generation.
+
+### `R0-09007`
+
+- Red observed: focused tests could not import an application observability
+  contract or JSON adapter, the API could not inject a sink, and unsafe request
+  IDs were trusted. Runtime rehearsal then exposed two integration defects in
+  sequence: the standalone event logger dropped INFO records and Uvicorn access
+  logs duplicated the raw query string.
+- Added an application-owned, allowlisted `ObservabilityEvent`, request-context
+  binding, opaque operation digests, and bounded canonical fields, with a JSON
+  logging adapter behind an `EventSink` port. The entrypoint sanitizes or creates
+  request IDs, binds them across synchronous use cases, returns the same ID, and
+  emits exactly one completion event with a route template rather than raw URL.
+- Default publication, learner submission, feedback, and manual-assessment
+  services emit success/failure events containing only environment, correlated
+  request ID, duration, safe event/outcome, canonical slug, and one-way operation
+  digest. Tests explicitly exclude bodies, answers, hidden guidance, notes,
+  receipts, raw keys/IDs, SQL/errors, filesystem paths, and object keys.
+- The focused 44-test unit/API/PostgreSQL suite, Ruff, Pyright, Compose config,
+  shell validation, healthy migration-aware redeploy, and
+  `scripts/observability_check.sh` passed. The final runtime log contained the
+  structured request event and no supplied query value; Uvicorn access logging
+  is disabled to prevent an unstructured query-string leak.

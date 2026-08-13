@@ -14,8 +14,10 @@ from ioai.adapters.database.vocabulary_repository import (
     SqlAlchemyVocabularyUnitOfWork,
 )
 from ioai.adapters.vocabulary.runtime import load_generated_vocabulary
+from ioai.application.observability import ObservabilityEvent
 from ioai.application.vocabulary.synchronize import SynchronizeVocabulary
 from ioai.entrypoints.api.factory import create_app
+from ioai.entrypoints.api.settings import ApiSettings
 
 from .database_environment import require_test_database_url
 from .test_vocabulary_migration import alembic_config
@@ -25,6 +27,15 @@ from .test_vocabulary_migration import alembic_config
 class ApiSystem:
     client: TestClient
     engine: Engine
+    events: list[ObservabilityEvent]
+
+
+class RecordingSink:
+    def __init__(self) -> None:
+        self.events: list[ObservabilityEvent] = []
+
+    def emit(self, event: ObservabilityEvent) -> None:
+        self.events.append(event)
 
 
 @dataclass(frozen=True)
@@ -50,8 +61,11 @@ def api_system() -> Iterator[ApiSystem]:
     result = synchronize(load_generated_vocabulary())
     assert (result.added, result.updated, result.unchanged) == (343, 0, 0)
 
-    with TestClient(create_app()) as client:
-        yield ApiSystem(client, engine)
+    sink = RecordingSink()
+    with TestClient(
+        create_app(settings=ApiSettings(environment="test"), event_sink=sink)
+    ) as client:
+        yield ApiSystem(client, engine, sink.events)
 
     command.downgrade(alembic_config(), "base")
     engine.dispose()
@@ -357,6 +371,24 @@ def test_all_release_0_response_contracts_persist_once(
     assert first.json()["attempt_id"] == replay.json()["attempt_id"]
     assert first.json()["outcome"] == expected_outcome
     assert first.json()["receipt"] == receipt
+    matching_events = [
+        event
+        for event in api_system.events
+        if event.reference == slug
+        and event.event in {"author.publication", "learner.submission"}
+    ]
+    assert {event.event for event in matching_events} == {
+        "author.publication",
+        "learner.submission",
+    }
+    submission_event = next(
+        event for event in matching_events if event.event == "learner.submission"
+    )
+    assert submission_event.request_id == first.headers["x-request-id"]
+    assert submission_event.operation_id.startswith("op_")
+    assert request["submission_key"] not in repr(submission_event)
+    assert receipt not in repr(submission_event)
+    assert str(answer) not in repr(submission_event)
     with api_system.engine.connect() as connection:
         assert (
             connection.scalar(
@@ -452,6 +484,19 @@ def test_vocabulary_proposal_public_queries_and_feedback_use_real_storage(
     assert feedback.status_code == replay.status_code == 201
     assert feedback.json()["receipt_id"] == replay.json()["receipt_id"]
     assert conflict.status_code == 409
+    feedback_events = [
+        event
+        for event in api_system.events
+        if event.event == "learner.feedback" and event.reference == first.slug
+    ]
+    assert [event.outcome for event in feedback_events[-3:]] == [
+        "success",
+        "success",
+        "failure",
+    ]
+    assert feedback_events[-3].request_id == feedback.headers["x-request-id"]
+    assert feedback_request["message"] not in repr(feedback_events)
+    assert feedback_request["feedback_key"] not in repr(feedback_events)
     with api_system.engine.connect() as connection:
         assert (
             connection.scalar(
@@ -547,6 +592,35 @@ def test_manual_assessment_receipt_decision_and_correction_are_snapshot_bound(
     assert len(corrected.json()["decision_history"]) == 2
     assert corrected.json()["latest_decision"]["version"] == 2
     assert corrected.json()["latest_decision"]["result"]["passed"] is False
+    operation_events = [
+        event
+        for event in api_system.events
+        if event.reference == published.slug
+        and event.event
+        in {"author.publication", "learner.submission", "author.assessment"}
+    ]
+    assert {event.event for event in operation_events} == {
+        "author.publication",
+        "learner.submission",
+        "author.assessment",
+    }
+    assert [
+        event.outcome
+        for event in operation_events
+        if event.event == "author.assessment"
+    ] == ["success", "failure", "success"]
+    serialized_events = repr(operation_events)
+    for private_value in (
+        receipt,
+        "Reasoned answer",
+        "Correct reasoning.",
+        "Well done.",
+        "Private reviewer guidance.",
+        attempt_id,
+        published.revision_id,
+        published.snapshot_id,
+    ):
+        assert private_value not in serialized_events
 
 
 def test_rejected_requests_do_not_mutate_and_publication_replay_is_bounded(
