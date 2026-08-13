@@ -23,14 +23,19 @@ export function AuthorProblemsView({
   const [status, setStatus] = useState('ALL');
   const [starting, setStarting] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
-  const [archived, setArchived] = useState<Set<string>>(new Set());
+  const [archived, setArchived] = useState<Map<string, number>>(new Map());
   const [expandedProblems, setExpandedProblems] = useState<Set<string>>(new Set());
   const [archiveTarget, setArchiveTarget] = useState<AuthorDraftList['items'][number] | null>(null);
   const [archiveNote, setArchiveNote] = useState('');
   const [archiving, setArchiving] = useState(false);
   const archiveTrigger = useRef<HTMLButtonElement | null>(null);
   const archiveNoteInput = useRef<HTMLTextAreaElement>(null);
-  const items = useMemo(() => result.items.map((item) => archived.has(item.revision_id) ? { ...item, editorial_status: 'ARCHIVED' } : item), [archived, result.items]);
+  const items = useMemo(() => result.items.map((item) => {
+    const archivedVersion = archived.get(item.revision_id);
+    return archivedVersion === undefined
+      ? item
+      : { ...item, editorial_status: 'ARCHIVED', version: archivedVersion };
+  }), [archived, result.items]);
   const groups = useMemo(() => {
     const byProblem = new Map<string, typeof items>();
     items.forEach((item) => {
@@ -94,7 +99,10 @@ export function AuthorProblemsView({
         actor_context: 'local-reviewer',
         operation_id: globalThis.crypto?.randomUUID?.() ?? `archive-${archiveTarget.version}`,
       });
-      setArchived((current) => new Set(current).add(archiveTarget.revision_id));
+      setArchived((current) => new Map(current).set(
+        archiveTarget.revision_id,
+        archiveTarget.version + 1,
+      ));
       setArchiveTarget(null); setArchiveNote('');
     } catch {
       setActionError('The published problem could not be archived. Reload and try again.');

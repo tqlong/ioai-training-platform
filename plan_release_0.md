@@ -1306,7 +1306,7 @@ not claim retroactive red-green evidence.
   proving no draft payload or account handshake is shipped
   (`AC-R0-015-04` through `AC-R0-015-06`). Suggested commit:
   `test(e2e): verify learner journey and performance matrix`.
-- [ ] **R0-09011 — Extend the author editorial journey across supported
+- [x] **R0-09011 — Extend the author editorial journey across supported
   browsers.** Reuse and harden `editorial-publication.spec.ts` to cover create,
   structured authoring, canonical metadata and unavailable values, autosave
   failure/local recovery/stale conflict, validation focus, unsaved desktop and

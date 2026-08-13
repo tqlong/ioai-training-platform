@@ -73,6 +73,10 @@ Release 0.
   and restarts the Compose frontends. Firefox/WebKit run in the pinned matching
   Playwright container because their host libraries are unavailable; see
   `docs/phase9-browser-performance-matrix.md`.
+- `bash scripts/author_system_check.sh` runs the complete editorial workflow on
+  pinned Chromium, Firefox, and WebKit profiles, plus autosave/conflict/
+  validation checks in Chromium and unsaved-preview checks on both mobile
+  profiles. It uses the same matching Playwright container for Firefox/WebKit.
 - Public canonical vocabulary is available from `GET /api/v1/vocabulary` with a
   required `vocabulary_type`; author-safe values and availability are available
   from `GET /api/v1/author/vocabulary`.

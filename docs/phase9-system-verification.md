@@ -38,7 +38,7 @@ retroactive test-driven development.
 | `AC-R0-015-03` | Learner library/detail and Studio editor/assessment route checks at 360, 768, 1024, and 1440 px, including card/table switch, reflow, 200% text zoom, and page-overflow assertions | Cross-browser journey widths remain in `R0-09010`–`R0-09012`; physical touch remains an observed-pilot check | `R0-09009` complete; `R0-09010`–`R0-09012` |
 | `AC-R0-015-04` | Cold production library rendered meaningful content in 1,233 ms with 216 public records under the documented 40 ms/10 Mbps profile; initial HTML excluded the private marker/internal fields and browser traffic had no account handshake | Repeat in final clean baseline | `R0-09010` complete; `R0-09016` |
 | `AC-R0-015-05` | Cold permanent detail was usable in 316 ms; pending feedback left unrelated objective content readable | Repeat in final clean baseline | `R0-09010` complete; `R0-09016` |
-| `AC-R0-015-06` | Learner matrix passed bundled Chromium 140, Firefox 141, WebKit 26, Pixel 7 mobile-Chrome, and iPhone 15 mobile-Safari profiles | Author and assessment matrices remain; branded current-stable browser/device checks depend on available pilot environments | `R0-09010` complete; `R0-09011`–`R0-09012`, `R0-09016` |
+| `AC-R0-015-06` | Learner and author matrices passed bundled Chromium 140, Firefox 141, WebKit 26, Pixel 7 mobile-Chrome, and iPhone 15 mobile-Safari profiles | Assessment matrix remains; branded current-stable browser/device checks depend on available pilot environments | `R0-09010`–`R0-09011` complete; `R0-09012`, `R0-09016` |
 | `AC-R0-015-07` | Domain invariants, SQLAlchemy model checks, PostgreSQL constraints, append-only assessment history, and verified public/assessment index plans | API-level persistence coverage remains | `R0-09002` complete; `R0-09003` |
 | `AC-R0-015-08` | Complete linear empty-database chain, idempotent 343-record canonical sync, representative safe downgrades through manual assessment, and a new forward-only Phase 9 index migration | Clean deployment rehearsal remains | `R0-09002` complete; `R0-09013` |
 | `AC-R0-015-09` | Transactional migration-DDL rollback, unit-of-work and atomic publication rollback, plus real HTTP rejected-command non-mutation assertions | Dependency interruption/recovery remains | `R0-09002`–`R0-09003` complete; `R0-09008` |
@@ -255,3 +255,27 @@ retroactive test-driven development.
   and permanent detail became usable in 316 ms (budget 3,000 ms). Initial HTML
   excluded the private draft marker/internal draft fields, no account handshake
   occurred, and pending feedback did not block reading.
+
+### `R0-09011`
+
+- Red observed: the expanded Chromium journey found that archiving incremented
+  the server revision version but the Studio list retained the pre-archive
+  version, so its visible `Create new draft` action always submitted a stale
+  command and failed. The initial mobile/canonical assertions also exposed test
+  assumptions about hidden desktop results and disabled-option matching.
+- Studio now records the deterministic post-archive version in list state, so
+  re-entry through a new private draft succeeds without weakening the workflow.
+  The component regression proves the successor command uses the incremented
+  version; all 39 Studio component tests pass.
+- The complete browser path now covers creation, structured bilingual content,
+  canonical metadata and disabled future values, unsaved desktop/mobile learner
+  preview, layered validation focus, review/change-request successor, approval,
+  an in-flight atomic-publication isolation check, permanent public visibility,
+  private published successor isolation, replacement publication, archive, and
+  republish at the same permanent slug. Save, approval, and publication remain
+  separate actions throughout.
+- Chromium additionally proves failed autosave creates a versioned local copy,
+  reload offers explicit recovery, and an external version advance produces a
+  conflict requiring an explicit keep-local resolution. The final matrix passed
+  4/4 Chromium cases in 43.3 seconds, complete Firefox/WebKit flows in 49.2
+  seconds, mobile Chrome in 5.0 seconds, and mobile Safari in 6.4 seconds.

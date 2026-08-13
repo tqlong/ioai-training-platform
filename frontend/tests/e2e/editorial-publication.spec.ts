@@ -1,8 +1,17 @@
-import { expect, test } from '@playwright/test';
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type APIResponse,
+  type Page,
+} from '@playwright/test';
+
+import { createHumanProblem } from './support/system-fixture';
 
 const apiBase = process.env.API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1';
+const learnBase = process.env.LEARN_BASE_URL ?? 'http://127.0.0.1:3000';
 
-test('author preview, review, publication, revision, and archive stay separated', async ({ page, request }) => {
+test('completes the full editorial publication, successor, archive, and republish journey', async ({ page, request }) => {
   const createdResponse = await request.post(`${apiBase}/author/problems`, { data: {} });
   await expectApiOk(createdResponse);
   const created = await createdResponse.json() as {
@@ -56,6 +65,7 @@ test('author preview, review, publication, revision, and archive stay separated'
     } },
   );
   await expectApiOk(saveResponse);
+  expect((await request.get(`${apiBase}/problems/${slug}`)).status()).toBe(404);
 
   await page.goto(`/author/problems/${created.problem_id}`);
   await expect(page.getByText('Version 2')).toBeVisible();
@@ -88,13 +98,44 @@ test('author preview, review, publication, revision, and archive stay separated'
   await decide(page, 'Revised and ready.', 'Submit for review');
   await decide(page, 'Content and scoring checked.', 'Approve');
   await expect(page.getByText('Approved', { exact: true })).toBeVisible();
+  expect((await request.get(`${apiBase}/problems/${slug}`)).status()).toBe(404);
 
   await page.getByRole('button', { name: 'Publish' }).click();
   const publishDialog = page.getByRole('dialog', { name: 'Publish approved revision' });
   await expect(publishDialog).toContainText(`/problems/${slug}`);
   await publishDialog.getByRole('textbox', { name: 'Publication note' }).fill('Publish pilot content.');
+  let releasePublish: () => void = () => undefined;
+  const publishHeld = new Promise<void>((resolve) => { releasePublish = resolve; });
+  let publishIntercepted: () => void = () => undefined;
+  const intercepted = new Promise<void>((resolve) => { publishIntercepted = resolve; });
+  await page.route('**/api/v1/author/revisions/*/publish', async (route) => {
+    publishIntercepted();
+    await publishHeld;
+    await route.continue();
+  }, { times: 1 });
   await publishDialog.getByRole('button', { name: 'Confirm publish' }).click();
+  await intercepted;
+  expect((await request.get(`${apiBase}/problems/${slug}`)).status()).toBe(404);
+  releasePublish();
   await expect(page.getByRole('link', { name: `/problems/${slug}` })).toHaveAttribute('href', `/problems/${slug}`);
+  await expectPublicTitle(request, slug, 'Editorial workflow problem');
+
+  await page.goto('/author/problems');
+  await page.getByRole('row', { name: new RegExp(created.problem_id) })
+    .getByRole('button', { name: 'Edit as new draft' }).click();
+  await expect(page.getByText('Structured draft · DRAFT')).toBeVisible();
+  await waitForEditorPolicies(page);
+  await page.getByRole('textbox', { name: 'English title' }).fill('Published successor title');
+  await page.getByRole('button', { name: 'Save draft' }).click();
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await expectPublicTitle(request, slug, 'Editorial workflow problem');
+  await page.getByRole('button', { name: 'Validate draft' }).click();
+  await expect(page.getByText('Eligible for publication')).toBeVisible();
+  await decide(page, 'Successor ready for review.', 'Submit for review');
+  await decide(page, 'Successor approved.', 'Approve');
+  await expectPublicTitle(request, slug, 'Editorial workflow problem');
+  await publishApproved(page, 'Publish approved successor.');
+  await expectPublicTitle(request, slug, 'Published successor title');
 
   await page.goto('/author/problems');
   await page.getByRole('row', { name: new RegExp(created.problem_id) })
@@ -104,18 +145,137 @@ test('author preview, review, publication, revision, and archive stay separated'
   await archiveDialog.getByRole('button', { name: 'Confirm archive' }).click();
   await expect(page.getByRole('row', { name: new RegExp(created.problem_id) })
     .getByText('archived').first()).toBeVisible();
+  expect((await request.get(`${apiBase}/problems/${slug}`)).status()).toBe(404);
+
+  await page.getByRole('row', { name: new RegExp(created.problem_id) })
+    .getByRole('button', { name: 'Create new draft' }).click();
+  await expect(page.getByText('Structured draft · DRAFT')).toBeVisible();
+  await waitForEditorPolicies(page);
+  await page.getByRole('button', { name: 'Validate draft' }).click();
+  await expect(page.getByText('Eligible for publication')).toBeVisible();
+  await decide(page, 'Republish review.', 'Submit for review');
+  await decide(page, 'Republish approval.', 'Approve');
+  await publishApproved(page, 'Republish archived content.');
+  await expectPublicTitle(request, slug, 'Published successor title');
+  const publicPage = await page.goto(`${learnBase}/problems/${slug}`);
+  expect(publicPage?.ok()).toBeTruthy();
+  await expect(page.getByRole('heading', { name: 'Published successor title' })).toBeVisible();
 });
 
-async function decide(page: import('@playwright/test').Page, note: string, action: string) {
+test('recovers a failed autosave and explicitly resolves a stale draft conflict', async ({ page, request }) => {
+  const slug = `editorial-recovery-${Date.now()}`;
+  const fixture = await createHumanProblem(request, slug, 'DRAFT');
+  await page.goto(`/author/problems/${fixture.problemId}`);
+  await waitForEditorPolicies(page);
+  await page.route('**/api/v1/author/revisions/*', async (route) => {
+    if (route.request().method() === 'PUT') await route.abort('failed');
+    else await route.continue();
+  });
+  await page.getByRole('textbox', { name: 'English title' }).fill('Recovered local title');
+  await expect(page.getByText('Save failed', { exact: true })).toBeVisible({ timeout: 10_000 });
+  expect(await page.evaluate((revisionId) => Boolean(
+    localStorage.getItem(`ioai:studio:recovery:${revisionId}`),
+  ), fixture.revisionId)).toBeTruthy();
+
+  await page.unroute('**/api/v1/author/revisions/*');
+  await page.reload();
+  const recovery = page.getByRole('dialog', { name: 'Recover unsaved draft' });
+  await expect(recovery).toBeVisible();
+  await recovery.getByRole('button', { name: 'Restore local copy' }).click();
+  await expect(page.getByRole('textbox', { name: 'English title' })).toHaveValue('Recovered local title');
+  await page.getByRole('button', { name: 'Save draft' }).click();
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+
+  const currentResponse = await request.get(`${apiBase}/author/problems/${fixture.problemId}`);
+  await expectApiOk(currentResponse);
+  const current = await currentResponse.json() as Record<string, unknown> & {
+    problem_id: string; revision_id: string; version: number; slug: string;
+  };
+  const externalSave = await request.put(`${apiBase}/author/revisions/${current.revision_id}`, {
+    data: {
+      problem_id: current.problem_id,
+      expected_version: current.version,
+      client_save_key: `external-${slug}`,
+      slug: current.slug,
+      content: current.content,
+      metadata: current.metadata,
+      response: current.response,
+      scoring: current.scoring,
+    },
+  });
+  await expectApiOk(externalSave);
+
+  await page.getByRole('textbox', { name: 'English title' }).fill('Local conflict winner');
+  await page.getByRole('button', { name: 'Save draft' }).click();
+  const conflict = page.getByRole('dialog', { name: 'Resolve draft conflict' });
+  await expect(conflict).toBeVisible();
+  await conflict.getByRole('button', { name: 'Keep local changes and retry' }).click();
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible({ timeout: 10_000 });
+  const resolved = await request.get(`${apiBase}/author/problems/${fixture.problemId}`);
+  await expectApiOk(resolved);
+  expect((await resolved.json()).content.title.en).toBe('Local conflict winner');
+});
+
+test('focuses the first validation blocker and identifies unavailable canonical values', async ({ page, request }) => {
+  const created = await request.post(`${apiBase}/author/problems`, { data: {} });
+  await expectApiOk(created);
+  const draft = await created.json() as { problem_id: string };
+  await page.goto(`/author/problems/${draft.problem_id}`);
+  await waitForEditorPolicies(page);
+  expect(await page.locator('#field-metadata-pathway-stage option[value="AI_3_HIGHSCHOOL"]')
+    .evaluate((option: HTMLOptionElement) => option.disabled)).toBeTruthy();
+  expect(await page.locator('#field-metadata-task-type option[value="CODE_DEBUGGING"]')
+    .evaluate((option: HTMLOptionElement) => option.disabled)).toBeTruthy();
+  await page.getByRole('button', { name: 'Validate draft' }).click();
+  await expect(page.getByText('Not eligible for publication')).toBeVisible();
+  const blocker = page.locator('.validation-issue-group a').first();
+  await expect(blocker).toBeFocused();
+  await expect(blocker).toHaveAttribute('href', '#content');
+});
+
+test('keeps unsaved learner preview usable at a mobile Studio viewport', async ({ page, request }) => {
+  const fixture = await createHumanProblem(request, `editorial-mobile-${Date.now()}`, 'DRAFT');
+  await page.goto(`/author/problems/${fixture.problemId}`);
+  await waitForEditorPolicies(page);
+  await page.getByRole('textbox', { name: 'English title' }).fill('Unsaved mobile preview title');
+  await page.getByRole('link', { name: 'Preview as learner' }).click();
+  await expect(page.getByText('Draft preview - not public')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Unsaved mobile preview title' })).toBeVisible();
+  await page.getByRole('button', { name: 'Mobile width' }).click();
+  await expect(page.getByTestId('preview-frame')).toHaveAttribute('data-viewport', 'mobile');
+  await expect.poll(() => page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )).toBeLessThanOrEqual(1);
+});
+
+async function decide(page: Page, note: string, action: string) {
   await page.getByRole('textbox', { name: 'Editorial note' }).fill(note);
   await page.getByRole('button', { name: action }).click();
 }
 
-async function waitForEditorPolicies(page: import('@playwright/test').Page) {
+async function waitForEditorPolicies(page: Page) {
   await expect(page.getByText('Loading curriculum values...')).toBeHidden({ timeout: 20_000 });
   await expect(page.getByText('Loading resource policy…')).toBeHidden({ timeout: 20_000 });
 }
 
-async function expectApiOk(response: import('@playwright/test').APIResponse) {
+async function expectApiOk(response: APIResponse) {
   expect(response.ok(), `${response.status()} ${await response.text()}`).toBeTruthy();
+}
+
+async function publishApproved(page: Page, note: string) {
+  await page.getByRole('button', { name: 'Publish', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Publish approved revision' });
+  await dialog.getByRole('textbox', { name: 'Publication note' }).fill(note);
+  await dialog.getByRole('button', { name: 'Confirm publish' }).click();
+  await expect(dialog).toBeHidden();
+}
+
+async function expectPublicTitle(
+  request: APIRequestContext,
+  slug: string,
+  title: string,
+) {
+  const response = await request.get(`${apiBase}/problems/${slug}`);
+  await expectApiOk(response);
+  expect((await response.json()).title.en).toBe(title);
 }

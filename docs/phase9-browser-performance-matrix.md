@@ -31,6 +31,14 @@ that Linux runs branded current-stable Chrome, macOS Safari, iOS Safari, or
 Android Chrome. Those branded current-stable checks remain an explicit
 environment-availability item for the final `R0-09016` baseline.
 
+`bash scripts/author_system_check.sh` uses the same pinned desktop matrix for
+the complete Studio create/edit/validate/preview/review/publish/revise/archive/
+republish flow. Chromium additionally covers autosave failure and local
+recovery, optimistic-conflict resolution, validation focus, and unavailable
+canonical values. Pixel 7 mobile Chromium and iPhone 15 mobile WebKit provide
+the smallest meaningful unsaved learner-preview and overflow checks; the local
+Studio port remains a deployment boundary, not an authorization claim.
+
 ## Normal-broadband production profile
 
 The same script stops the mounted development frontends, builds Learn with the
@@ -59,3 +67,7 @@ On 2026-08-14, the host Chromium/mobile-Chrome group passed 8/8 cases in
 meaningful library content and 316 ms to usable permanent detail. Both budgets
 passed without an account handshake or the private draft marker in initial
 HTML.
+
+The R0-09011 author run passed all 4 Chromium system cases in 43.3 seconds,
+the complete Firefox/WebKit workflows in 49.2 seconds, mobile Chrome in 5.0
+seconds, and mobile Safari in 6.4 seconds. No browser project was skipped.

@@ -119,7 +119,17 @@ describe('IOAI Studio author problem list', () => {
     const archiveProblem = vi.fn(async () => ({
       problem_id: 'problem-1', slug: 'metrics', archived_at: '2026-08-09T00:00:00Z',
     }));
-    render(<AuthorProblemsView archiveProblem={archiveProblem} result={{ count: 1, items: [published] }} />);
+    const startRevision = vi.fn(async () => ({
+      problem_id: 'problem-1', revision_id: 'revision-2', version: 1,
+      editorial_status: 'DRAFT', slug: null, content: null, metadata: null,
+      response: null, scoring: null,
+    }));
+    render(<AuthorProblemsView
+      archiveProblem={archiveProblem}
+      onOpen={() => undefined}
+      result={{ count: 1, items: [published] }}
+      startRevision={startRevision}
+    />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Archive' }));
     const confirm = screen.getByRole('button', { name: 'Confirm archive' }) as HTMLButtonElement;
@@ -131,5 +141,9 @@ describe('IOAI Studio author problem list', () => {
       'problem-1', expect.objectContaining({ expected_version: 4, note: 'Outdated.' }),
     ));
     expect(await screen.findByText('archived')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Create new draft' }));
+    await waitFor(() => expect(startRevision).toHaveBeenCalledWith(
+      'problem-1', expect.objectContaining({ expected_version: 5 }),
+    ));
   });
 });
