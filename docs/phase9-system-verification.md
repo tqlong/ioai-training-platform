@@ -46,7 +46,7 @@ retroactive test-driven development.
 | `AC-R0-015-11` | Runtime-confirmed `127.0.0.1` bindings for PostgreSQL, API, and Studio, with documentation that this is not authorization | Clean lifecycle configuration proof remains | `R0-09005` complete; `R0-09013` |
 | `AC-R0-015-12` | Real bounded persistence plus explicit no-wildcard/non-credentialed CORS and the learner/author proxy split | Structured-log review remains | `R0-09003`, `R0-09005` complete; `R0-09007` |
 | `AC-R0-015-13` | Cross-route adversarial not-found/alternate-ID/rejected-query checks expose no private values or infrastructure details | Structured-log redaction remains | `R0-09004` complete; `R0-09007` |
-| `AC-R0-015-14` | Backup, restore, and reset command branches plus a short runbook | Disposable restore rehearsal comparing all system-of-record entities; safe confirmed reset | `R0-09014` |
+| `AC-R0-015-14` | Isolated logical backup/restore rehearsal compares all Release 0 system-of-record histories; restore and reset are exact-target confirmed and fail closed | Provider, retention period, and off-host schedule remain deployment decisions; device-local progress is explicitly unrecoverable | `R0-09014` complete; limitation audited by `R0-09016` |
 | `AC-R0-015-15` | Request-ID response propagation | Structured request/operation completion events, duration/outcome fields, propagation, and redaction | `R0-09007` |
 | `AC-R0-015-16` | Separate health routes, database probe, and service health checks | Non-success degraded readiness, migration-head proof, dependency waiting, interruption/recovery smoke | `R0-09008`, `R0-09013` |
 | `AC-R0-015-17` | Lockfiles and foundation/phase quality scripts | One clean deterministic system entrypoint, aligned tool versions, browser/Compose/recovery CI jobs | `R0-09013`, `R0-09015` |
@@ -338,3 +338,32 @@ retroactive test-driven development.
 - Bash syntax, Compose rendering, focused ESLint, and all nine foundation stack
   tests passed. Linux is the validated platform; Docker Desktop filesystem and
   networking behavior remain explicitly unverified.
+
+### `R0-09014`
+
+- Red observed: the safety regression invoked the legacy unconfirmed `reset`
+  branch and proved it immediately ran broad `docker compose down -v`; this
+  deleted and recreated the local development PostgreSQL volume. No project
+  backup existed, so the previous local records were not recoverable. Source
+  files and the separate integration-test volume were unaffected. The test was
+  changed to non-executing policy inspection before the replacement was added.
+- Restore now accepts only a new `ioai_restore_*` database plus exact repeated
+  confirmation, refuses the active `ioai` database and existing targets, and
+  removes a partially restored target on failure. Development reset requires
+  the exact volume name twice, verifies that it is the running PostgreSQL data
+  mount, removes that one volume without a broad `down -v`, then runs the normal
+  migrate/synchronize/start path.
+- The isolated `ioai-r0-recovery` rehearsal migrated the full eight-revision
+  chain and synchronized 343 canonical records. Its API fixture produced one
+  stable problem, two revisions, two current/historical snapshots, six
+  editorial transitions, one snapshot-bound attempt, one feedback record, and
+  two append-only assessment decisions including a correction.
+- A PostgreSQL custom-format, no-owner/no-privilege logical dump restored only
+  into `ioai_restore_verify`. Counts and deterministic full-row digests matched
+  for `alembic_version`, vocabulary, problems, revisions, transitions,
+  snapshots, attempts, feedback, and decisions. The target database and
+  recovery project/volume were removed after the pass.
+- The runbook states that provider, retention, and off-host scheduling remain
+  deployment decisions and that browser-local progress/receipt indexes are not
+  recoverable from PostgreSQL. Bash syntax, Compose rendering, ESLint, and all
+  11 foundation-stack tests passed.

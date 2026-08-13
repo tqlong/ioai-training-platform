@@ -116,9 +116,29 @@ Release 0.
   host build otherwise compete for the same `.next` directories.
 - `bash scripts/test_learner_e2e.sh` runs only the learner browse, solve,
   feedback, progress, and continue workflow against an already healthy stack.
-- `bash scripts/db_backup_restore.sh backup` creates a PostgreSQL dump.
-- `bash scripts/db_backup_restore.sh restore <file>` restores from backup.
-- `bash scripts/db_backup_restore.sh reset` recreates stack data by removing local volumes.
+- `bash scripts/db_backup_restore.sh backup [backups/name.dump]` creates a
+  private custom-format logical dump without overwriting an existing file.
+- Restore can target only a new database whose name begins with
+  `ioai_restore_`, and requires the same exact name in its confirmation:
+  `bash scripts/db_backup_restore.sh restore <file.dump> ioai_restore_check
+  --confirm-database=ioai_restore_check`. It refuses the active `ioai` database
+  and refuses to overwrite any existing database.
+- Remove a verified restore with
+  `bash scripts/db_backup_restore.sh drop-restore ioai_restore_check
+  --confirm-database=ioai_restore_check`.
+- `pnpm test:recovery-system` starts the reserved `ioai-r0-recovery` project,
+  builds a representative PostgreSQL source, backs it up, restores it only into
+  `ioai_restore_verify`, compares full-row counts and digests for vocabulary,
+  identities, revisions, snapshots, editorial history, attempts, feedback, and
+  assessment/correction history, then removes the restore database and isolated
+  volume.
+- Development reset is deliberately verbose and destructive. It requires
+  `bash scripts/db_backup_restore.sh reset
+  ioai-training-platform_postgres-data
+  --confirm-volume=ioai-training-platform_postgres-data`. Before deletion it
+  resolves the running PostgreSQL container's data mount and requires that exact
+  volume; it never uses broad `docker compose down -v`. Back up and verify a
+  disposable restore first.
 
 ## Notes
 
@@ -127,7 +147,10 @@ Release 0.
   authentication or production authorization.
 - FastAPI accepts only the explicit local origins in `IOAI_ALLOWED_ORIGINS`,
   rejects wildcard configuration, and does not enable credentialed CORS.
-- Backup/restore applies only to PostgreSQL data; browser-local progress is intentionally not stored there.
+- Backup/restore applies only to PostgreSQL data. Browser-local task progress
+  and receipt indexes are intentionally not server-backed and cannot be
+  recovered from a PostgreSQL backup; retained server attempts still require
+  the learner's opaque receipt to read private results.
 - Playwright failure traces, screenshots, and the HTML report are local ignored
   artifacts under `test-results/` and `playwright-report/`.
 - The clean Compose rehearsal requires Docker Compose with YAML tag support for

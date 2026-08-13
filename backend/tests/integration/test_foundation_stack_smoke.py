@@ -91,6 +91,22 @@ def test_clean_compose_lifecycle_has_an_isolated_documented_entrypoint() -> None
     assert '"test:compose-system"' in package_text
 
 
+def test_restore_and_reset_refuse_unconfirmed_active_targets() -> None:
+    script_text = Path("scripts/db_backup_restore.sh").read_text()
+
+    assert "Refusing non-disposable restore target" in script_text
+    assert "explicit volume confirmation" in script_text
+    assert "ioai_restore_" in script_text
+    assert "--confirm-database=" in script_text
+    assert "--confirm-volume=" in script_text
+    assert "docker compose down -v" not in script_text
+
+
+def test_backup_restore_has_a_disposable_rehearsal_entrypoint() -> None:
+    assert Path("scripts/backup_restore_rehearsal.sh").is_file()
+    assert '"test:recovery-system"' in Path("package.json").read_text()
+
+
 def test_studio_uses_compose_api_service_for_server_side_requests() -> None:
     compose_text = Path("docker-compose.yml").read_text()
     studio_service = compose_text.split("\n  studio:\n", maxsplit=1)[1].split(

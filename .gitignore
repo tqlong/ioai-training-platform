@@ -18,6 +18,7 @@ node_modules/
 .next/
 playwright-report/
 test-results/
+backups/
 *.log
 *.sqlite3
 uploads/

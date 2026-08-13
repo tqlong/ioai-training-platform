@@ -1339,7 +1339,7 @@ not claim retroactive red-green evidence.
   `.env.example` coverage, and the absence of Redis/Celery/Docling/MinIO/vector/
   GPU services; document platform-specific limitations. Suggested commit:
   `test(system): verify release 0 compose lifecycle`.
-- [ ] **R0-09014 — Rehearse deterministic PostgreSQL backup and restore.**
+- [x] **R0-09014 — Rehearse deterministic PostgreSQL backup and restore.**
   Replace the current command-only check with a safe script/test that backs up a
   representative database and restores into an explicitly disposable database,
   never over the active development database. Compare canonical vocabulary,
