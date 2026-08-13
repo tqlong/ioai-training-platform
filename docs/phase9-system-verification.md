@@ -26,7 +26,7 @@ retroactive test-driven development.
 | Studio components | Unit/component coverage for list/editor sections, validation, preview, editorial review, rubric editor, assessment queue, and assessment decisions | No automated accessibility scanner or complete route-width regression |
 | Browser workflows | `learner-solving-loop.spec.ts` and `editorial-publication.spec.ts`, including the manual-assessment path currently embedded in the learner specification | Playwright config runs Chromium desktop only; browser/mobile matrix and full performance budgets are not proved |
 | Health and observability | Liveness/readiness routes, request-ID response middleware, readiness integration tests, and Compose health checks | Readiness returns a successful HTTP status when degraded; Compose waits on process startup in places; structured completion/operation events and redaction proof are absent |
-| Local operations | Compose topology plus start, stop, migrate, seed, redeploy, phase-specific test, smoke, and backup/restore commands | PostgreSQL is host-published broadly, API author exposure and CORS are permissive, no clean/persisted lifecycle rehearsal exists, and restore is not verified in a disposable database |
+| Local operations | Compose topology plus start, stop, migrate, seed, redeploy, phase-specific test, smoke, and backup/restore commands; PostgreSQL/API/Studio bind to loopback, Learn blocks author proxy paths, and FastAPI uses explicit non-credentialed CORS origins | No clean/persisted lifecycle rehearsal exists and restore is not verified in a disposable database |
 | CI and reproducibility | Committed `uv.lock` and `pnpm-lock.yaml`, frozen installs, backend/frontend quality scripts, drift checks, migration checks, and one GitHub Actions workflow | CI selects pnpm 9 while the root manifest declares pnpm 10, does not run browser/accessibility/Compose/recovery gates, and can silently omit browser evidence |
 
 ## `R0-015` criterion ownership
@@ -42,9 +42,9 @@ retroactive test-driven development.
 | `AC-R0-015-07` | Domain invariants, SQLAlchemy model checks, PostgreSQL constraints, append-only assessment history, and verified public/assessment index plans | API-level persistence coverage remains | `R0-09002` complete; `R0-09003` |
 | `AC-R0-015-08` | Complete linear empty-database chain, idempotent 343-record canonical sync, representative safe downgrades through manual assessment, and a new forward-only Phase 9 index migration | Clean deployment rehearsal remains | `R0-09002` complete; `R0-09013` |
 | `AC-R0-015-09` | Transactional migration-DDL rollback, unit-of-work and atomic publication rollback, plus real HTTP rejected-command non-mutation assertions | Dependency interruption/recovery remains | `R0-09002`–`R0-09003` complete; `R0-09008` |
-| `AC-R0-015-10` | Adversarial current/draft/successor/archive isolation across repository/API/result/OpenAPI/source/production-build paths | Concrete no-auth topology preventing the learner surface from reaching author commands remains | `R0-09004` complete; `R0-09005` |
-| `AC-R0-015-11` | Studio host port maps to `127.0.0.1:3001` and documentation rejects port-as-auth | Automated configuration/topology proof and safe API author exposure | `R0-09005`, `R0-09013` |
-| `AC-R0-015-12` | Real persistence proves bounded/idempotent submissions, feedback, private receipt digests, rejected-input non-mutation, and manual-decision history | No-auth topology and structured-log review remain | `R0-09003` complete; `R0-09005`, `R0-09007` |
+| `AC-R0-015-10` | Adversarial isolation plus loopback API/database exposure, explicit CORS, and a runtime-tested Learn proxy guard that returns a public 404 for author paths | Clean lifecycle rehearsal remains | `R0-09004`–`R0-09005` complete; `R0-09013` |
+| `AC-R0-015-11` | Runtime-confirmed `127.0.0.1` bindings for PostgreSQL, API, and Studio, with documentation that this is not authorization | Clean lifecycle configuration proof remains | `R0-09005` complete; `R0-09013` |
+| `AC-R0-015-12` | Real bounded persistence plus explicit no-wildcard/non-credentialed CORS and the learner/author proxy split | Structured-log review remains | `R0-09003`, `R0-09005` complete; `R0-09007` |
 | `AC-R0-015-13` | Cross-route adversarial not-found/alternate-ID/rejected-query checks expose no private values or infrastructure details | Structured-log redaction remains | `R0-09004` complete; `R0-09007` |
 | `AC-R0-015-14` | Backup, restore, and reset command branches plus a short runbook | Disposable restore rehearsal comparing all system-of-record entities; safe confirmed reset | `R0-09014` |
 | `AC-R0-015-15` | Request-ID response propagation | Structured request/operation completion events, duration/outcome fields, propagation, and redaction | `R0-09007` |
@@ -125,3 +125,20 @@ retroactive test-driven development.
 - `scripts/dev_redeploy.sh` preserved the development volume, applied migration
   `20260813_09002`, idempotently synchronized all 343 vocabulary records, and
   restored healthy PostgreSQL, API, Learn, and Studio services.
+
+### `R0-09005`
+
+- Red observed: focused tests failed because `ApiSettings` had no allowed-origin
+  contract, FastAPI used credentialed wildcard CORS, Compose published
+  PostgreSQL/API on all interfaces, and Learn had no author-path proxy guard.
+- Added validated explicit HTTP(S) origins, bounded CORS methods/headers without
+  credentials, loopback host bindings for PostgreSQL/API/Studio, internal-only
+  API environment use by Learn, and a uniform safe 404 middleware boundary for
+  `/api/v1/author/...` on the learner origin.
+- Nine focused backend/configuration tests and all 34 Learn tests passed, along
+  with Ruff, Pyright, Learn lint/typecheck, Compose configuration validation,
+  two successful Learn production builds, and the public build leak scan.
+- `scripts/dev_redeploy.sh` preserved data and returned every service healthy.
+  Runtime probes confirmed loopback ports, public Learn API status 200, author
+  paths through Learn status 404, configured-origin preflight status 200 with no
+  credential header, and unknown-origin preflight status 400.

@@ -1240,7 +1240,7 @@ not claim retroactive red-green evidence.
   private record exists (`AC-R0-014-09` through `AC-R0-014-16`,
   `AC-R0-015-10`, and `AC-R0-015-13`). Suggested commit:
   `test(isolation): close release 0 public leak paths`.
-- [ ] **R0-09005 — Harden the no-auth system boundary and local Studio
+- [x] **R0-09005 — Harden the no-auth system boundary and local Studio
   exposure.** With failing boundary tests first, make allowed origins and host
   exposure explicit, replace permissive credentialed CORS, and verify the
   learner origin/proxy can invoke only public read/submission contracts while

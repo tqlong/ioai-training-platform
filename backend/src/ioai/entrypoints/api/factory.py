@@ -215,10 +215,15 @@ def create_app(
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_origins=list(resolved_settings.allowed_origins),
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "OPTIONS"],
+        allow_headers=[
+            "content-type",
+            resolved_settings.request_id_header,
+            "x-submission-receipt",
+        ],
+        expose_headers=[resolved_settings.request_id_header],
     )
 
     app.include_router(health_router(is_ready=resolved_probe), prefix="")

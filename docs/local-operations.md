@@ -12,6 +12,20 @@
   recreate PostgreSQL without deleting its volume, apply migrations, synchronize
   vocabulary, recreate API/Learn/Studio, and check health. It does not run tests.
 
+Default host exposure is intentionally narrow for the no-auth editorial pilot:
+
+- Learn is available on `0.0.0.0:3000` for approved classroom testing.
+- PostgreSQL and FastAPI bind to host loopback at `127.0.0.1:5432` and
+  `127.0.0.1:8000`.
+- Studio binds to host loopback at `127.0.0.1:3001`.
+- The Learn same-origin proxy returns a uniform public 404 for every
+  `/api/v1/author/...` path. Studio reaches those commands through its local
+  proxy and the internal Compose API service.
+
+These controls limit local network exposure; they are not authentication or a
+production authorization model. Do not expose Studio or the API publicly in
+Release 0.
+
 ## Migration and seed
 
 - `bash scripts/dev_migrate.sh` runs Alembic migration head application.
@@ -63,6 +77,8 @@
 - API readiness is not marked healthy when database migration checks fail.
 - Studio is published on host loopback at `127.0.0.1:3001`; this is not
   authentication or production authorization.
+- FastAPI accepts only the explicit local origins in `IOAI_ALLOWED_ORIGINS`,
+  rejects wildcard configuration, and does not enable credentialed CORS.
 - Backup/restore applies only to PostgreSQL data; browser-local progress is intentionally not stored there.
 - Playwright failure traces, screenshots, and the HTML report are local ignored
   artifacts under `test-results/` and `playwright-report/`.

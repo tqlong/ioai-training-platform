@@ -16,7 +16,9 @@ def test_compose_declares_runtime_and_isolated_test_services() -> None:
     assert "studio:" in compose_text
     assert "postgres-test:" in compose_text
     assert "postgres-test-data:" in compose_text
+    assert "'127.0.0.1:5432:5432'" in compose_text
     assert "'127.0.0.1:5433:5432'" in compose_text
+    assert "'127.0.0.1:8000:8000'" in compose_text
     assert "depends_on:" in compose_text
     assert "postgres" in compose_text.split("api:")[1]
 
@@ -26,6 +28,18 @@ def test_studio_binding_remains_loopback_in_compose() -> None:
 
     assert "'127.0.0.1:3001:3001'" in compose_text
     assert Path("frontend/apps/studio/app/author/problems/page.tsx").is_file()
+
+
+def test_compose_configures_explicit_local_cors_origins() -> None:
+    compose_text = Path("docker-compose.yml").read_text()
+    api_service = compose_text.split("\n  api:\n", maxsplit=1)[1].split(
+        "\n  learn:\n", maxsplit=1
+    )[0]
+
+    assert "IOAI_ALLOWED_ORIGINS:" in api_service
+    assert "http://127.0.0.1:3000" in api_service
+    assert "http://127.0.0.1:3001" in api_service
+    assert "IOAI_ALLOWED_ORIGINS: '*'" not in api_service
 
 
 def test_studio_uses_compose_api_service_for_server_side_requests() -> None:
