@@ -20,7 +20,7 @@ retroactive test-driven development.
 | --- | --- | --- |
 | PostgreSQL and Alembic | Eight ordered revisions from canonical vocabulary through the Phase 9 system-query indexes; integration tests cover the complete head chain, migrations, repositories, readiness, synchronization, public queries, learner records, publication, supporting index plans, and transactional rollback | API-level persistence and failure coverage remains assigned to `R0-09003` |
 | FastAPI | Versioned public and author routers plus a real-app/real-PostgreSQL suite for vocabulary, proposals, drafts, validation/preview, workflow/publication/archive, public queries, all five submissions, feedback, receipts, and manual assessment | Adversarial leak-path, network exposure, structured observability, and dependency-readiness proof remains assigned to later Phase 9 steps |
-| Public isolation | Dedicated published reader, public DTOs, OpenAPI schema checks, repository tests, and `scripts/public_isolation_check.sh` | Leak-path fixtures do not yet cover every private field, stale/archive path, generated client, server fetch, and result/assessment path together |
+| Public isolation | Dedicated published reader plus an adversarial PostgreSQL/API suite covering private author notes, successor revisions, archived snapshots, rubric guidance/exemplars, answer keys, hidden tests, object keys, alternate identifiers, result receipts, OpenAPI, learner source, and production build output | No-auth network exposure and structured-log redaction remain assigned to `R0-09005` and `R0-09007` |
 | Generated contracts | Deterministic OpenAPI JSON, `openapi-typescript` output, vocabulary artifacts, generation script, and drift script | Handwritten client wrappers are not comprehensively exercised against a running API |
 | Learn components | Unit/component coverage for URL discovery, table/cards, detail, five response forms, local progress, feedback, continuation, and submission history | No automated accessibility scanner; responsive and keyboard proof is distributed across tests and manual notes |
 | Studio components | Unit/component coverage for list/editor sections, validation, preview, editorial review, rubric editor, assessment queue, and assessment decisions | No automated accessibility scanner or complete route-width regression |
@@ -42,10 +42,10 @@ retroactive test-driven development.
 | `AC-R0-015-07` | Domain invariants, SQLAlchemy model checks, PostgreSQL constraints, append-only assessment history, and verified public/assessment index plans | API-level persistence coverage remains | `R0-09002` complete; `R0-09003` |
 | `AC-R0-015-08` | Complete linear empty-database chain, idempotent 343-record canonical sync, representative safe downgrades through manual assessment, and a new forward-only Phase 9 index migration | Clean deployment rehearsal remains | `R0-09002` complete; `R0-09013` |
 | `AC-R0-015-09` | Transactional migration-DDL rollback, unit-of-work and atomic publication rollback, plus real HTTP rejected-command non-mutation assertions | Dependency interruption/recovery remains | `R0-09002`–`R0-09003` complete; `R0-09008` |
-| `AC-R0-015-10` | Public DTO/schema isolation and guessed-ID tests | Every leak path plus a concrete no-auth topology preventing the learner surface from reaching author commands | `R0-09004`, `R0-09005` |
+| `AC-R0-015-10` | Adversarial current/draft/successor/archive isolation across repository/API/result/OpenAPI/source/production-build paths | Concrete no-auth topology preventing the learner surface from reaching author commands remains | `R0-09004` complete; `R0-09005` |
 | `AC-R0-015-11` | Studio host port maps to `127.0.0.1:3001` and documentation rejects port-as-auth | Automated configuration/topology proof and safe API author exposure | `R0-09005`, `R0-09013` |
 | `AC-R0-015-12` | Real persistence proves bounded/idempotent submissions, feedback, private receipt digests, rejected-input non-mutation, and manual-decision history | No-auth topology and structured-log review remain | `R0-09003` complete; `R0-09005`, `R0-09007` |
-| `AC-R0-015-13` | Safe error DTOs, public-isolation checks, and UI safe-state assertions | Cross-route adversarial errors and structured-log redaction | `R0-09004`, `R0-09007` |
+| `AC-R0-015-13` | Cross-route adversarial not-found/alternate-ID/rejected-query checks expose no private values or infrastructure details | Structured-log redaction remains | `R0-09004` complete; `R0-09007` |
 | `AC-R0-015-14` | Backup, restore, and reset command branches plus a short runbook | Disposable restore rehearsal comparing all system-of-record entities; safe confirmed reset | `R0-09014` |
 | `AC-R0-015-15` | Request-ID response propagation | Structured request/operation completion events, duration/outcome fields, propagation, and redaction | `R0-09007` |
 | `AC-R0-015-16` | Separate health routes, database probe, and service health checks | Non-success degraded readiness, migration-head proof, dependency waiting, interruption/recovery smoke | `R0-09008`, `R0-09013` |
@@ -108,3 +108,20 @@ retroactive test-driven development.
   product behavior, then all 10 focused tests and the full 262-test backend
   suite passed.
 - Static gates: backend Ruff format/check and Pyright passed.
+
+### `R0-09004`
+
+- Added a six-case adversarial PostgreSQL/API isolation suite using deliberately
+  private author notes, an approved successor, a draft-only problem, an archived
+  historical snapshot, answer keys, hidden tests, private rubric guidance and
+  exemplar, object key, revision/workflow fields, and alternate identifiers.
+- Proved safe current-only list/detail/recommendation, snapshot-bound
+  submission/result/feedback, uniform invalid receipt and identifier behavior,
+  archive removal with retained history, public OpenAPI separation, and no
+  Learn-to-Studio/author-route source dependency.
+- Expanded `scripts/public_isolation_check.sh`; the Learn production build and
+  generated output scan passed, as did OpenAPI/client/vocabulary drift, 10
+  focused isolation/contract tests, Ruff, Pyright, and shell syntax validation.
+- `scripts/dev_redeploy.sh` preserved the development volume, applied migration
+  `20260813_09002`, idempotently synchronized all 343 vocabulary records, and
+  restored healthy PostgreSQL, API, Learn, and Studio services.

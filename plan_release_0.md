@@ -1229,7 +1229,7 @@ not claim retroactive red-green evidence.
   persisted state after every write and non-mutation after every rejected
   command. Suggested commit:
   `test(api): integrate release 0 contracts with postgres`.
-- [ ] **R0-09004 — Prove public/draft isolation across every leak path.** Build
+- [x] **R0-09004 — Prove public/draft isolation across every leak path.** Build
   adversarial fixtures containing a draft-only problem, an unapproved successor
   to a live snapshot, archived history, private rubric guidance, answer keys,
   hidden tests, author notes, object keys, and internal identifiers. Prove list,
