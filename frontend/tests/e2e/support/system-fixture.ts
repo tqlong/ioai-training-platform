@@ -20,6 +20,7 @@ export async function createHumanProblem(
   request: APIRequestContext,
   slug: string,
   target: 'DRAFT' | 'APPROVED' | 'PUBLISHED',
+  scoring: 'HUMAN' | 'MIXED' = 'HUMAN',
 ): Promise<ProblemFixture> {
   const createdResponse = await request.post(`${apiBase}/author/problems`, { data: {} });
   expect(createdResponse.ok(), await createdResponse.text()).toBeTruthy();
@@ -51,7 +52,7 @@ export async function createHumanProblem(
         difficulty: ['DIFFICULTY', 'EASY'],
         primary_competency: ['COMPETENCY', 'EVAL_METRICS'],
         secondary_competencies: [],
-        task_type: ['TASK_TYPE', 'SHORT_ANSWER'],
+        task_type: ['TASK_TYPE', scoring === 'MIXED' ? 'QUIZ_SINGLE' : 'SHORT_ANSWER'],
         topics: [['TOPIC', 'EVAL_CONFUSION_MATRIX']],
         prerequisites: [],
         modalities: [['DATA_MODALITY', 'NONE']],
@@ -68,18 +69,29 @@ export async function createHumanProblem(
           network_policy: 'DENIED',
         },
       },
-      response: {
+      response: scoring === 'MIXED' ? {
+        type: 'QUIZ_SINGLE',
+        choices: [
+          { id: 'correct', content: localized('Correct', 'Đúng') },
+          { id: 'wrong', content: localized('Wrong', 'Sai') },
+        ],
+        correct_choice_id: 'correct',
+      } : {
         type: 'SHORT_ANSWER',
         reference_answer: localized('A reasoned explanation.', 'Một lời giải thích có lập luận.'),
         accepted_keywords: [],
         rubric_guidance: 'Assess the explanation.',
       },
       scoring: {
-        response_type: 'SHORT_ANSWER',
+        response_type: scoring === 'MIXED' ? 'QUIZ_SINGLE' : 'SHORT_ANSWER',
         pass_threshold: '1.0',
-        components: [{
+        components: [...(scoring === 'MIXED' ? [{
+          method: 'EXACT_MATCH',
+          weight: '0.4',
+          configuration: null,
+        }] : []), {
           method: 'RUBRIC_HUMAN',
-          weight: '1.0',
+          weight: scoring === 'MIXED' ? '0.6' : '1.0',
           configuration: {
             criteria: [{
               id: 'reasoning',

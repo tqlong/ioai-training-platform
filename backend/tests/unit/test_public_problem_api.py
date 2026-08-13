@@ -355,6 +355,42 @@ def test_public_submission_returns_safe_assessment_result_and_request_id() -> No
     )
 
 
+def test_pending_mixed_submission_returns_completed_automated_components() -> None:
+    class MixedService(FakePublicProblemService):
+        def assess(self, command: SubmissionCommand) -> LearnerAttempt:
+            return LearnerAttempt(
+                attempt_id="attempt-mixed",
+                snapshot_id="snapshot-private",
+                submission_key=command.submission_key,
+                request_digest="a" * 64,
+                outcome=LearnerOutcome.PENDING_ASSESSMENT,
+                result={
+                    "status": "PENDING_ASSESSMENT",
+                    "automated_score": "0.4",
+                    "components": [
+                        {"method": "EXACT_MATCH", "score": "1.0", "weight": "0.4"}
+                    ],
+                },
+                submitted_at=datetime(2026, 8, 9, tzinfo=UTC),
+            )
+
+    client = TestClient(create_app(public_problem_service=MixedService()))
+
+    response = client.post(
+        "/api/v1/problems/metrics-basics/submissions",
+        json={
+            "submission_key": "mixed-client-key",
+            "receipt": "private-receipt-mixed-1234",
+            "response": {"type": "QUIZ_SINGLE", "choice_id": "a"},
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["components"] == [
+        {"method": "EXACT_MATCH", "score": "1.0", "weight": "0.4"}
+    ]
+
+
 def test_public_submission_rejects_malformed_discriminated_response() -> None:
     client = TestClient(create_app(public_problem_service=FakePublicProblemService()))
     response = client.post(

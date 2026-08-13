@@ -2,7 +2,6 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 
 const apiBase = process.env.API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1';
 const learnBase = process.env.LEARN_BASE_URL ?? 'http://127.0.0.1:3000';
-const studioBase = process.env.STUDIO_BASE_URL ?? 'http://127.0.0.1:3001';
 
 test.describe.serial('Release 0 learner solving loop', () => {
   let problems: Record<string, string>;
@@ -115,38 +114,6 @@ test.describe.serial('Release 0 learner solving loop', () => {
       await expect(page.getByRole('table', { name: 'Published problems' })).toBeVisible();
       await expect(page.getByRole('list', { name: 'Published problem cards' })).toBeHidden();
     }
-  });
-
-  test('assesses and corrects a pending answer through Studio and device history', async ({ page }) => {
-    await solve(page, problems.short, async () => page.getByRole('textbox', { name: 'Short answer' }).fill('Reasoned answer for manual review'), 'waiting for assessment');
-    await page.goto(`${studioBase}/author/assessments`);
-    await page.getByRole('textbox', { name: 'Problem slug' }).fill(problems.short);
-    await page.getByRole('link', { name: /Learner e2e SHORT_ANSWER/ }).last().click();
-    await page.getByRole('radio', { name: /Complete — 1 points/ }).check();
-    page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('button', { name: 'Complete assessment' }).click();
-    await expect(page.getByText('Assessment saved.')).toBeVisible();
-
-    await page.goto(`${learnBase}/submissions`);
-    await page.getByRole('link', { name: /Learner e2e SHORT_ANSWER/ }).click();
-    await expect(page.getByText('Passed', { exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Rubric result' })).toBeVisible();
-
-    await page.goto(`${studioBase}/author/assessments`);
-    await page.getByRole('combobox', { name: 'Status' }).selectOption('ASSESSED');
-    await page.getByRole('textbox', { name: 'Problem slug' }).fill(problems.short);
-    await page.getByRole('link', { name: /Learner e2e SHORT_ANSWER/ }).click();
-    await page.getByRole('radio', { name: /Not yet — 0 points/ }).check();
-    await page.getByRole('textbox', { name: 'Correction reason' }).fill('Corrected rubric selection.');
-    page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('button', { name: 'Save correction' }).click();
-    await expect(page.getByText('Assessment saved.')).toBeVisible();
-    await expect(page.getByText(/Version 1/)).toBeVisible();
-    await expect(page.getByText(/Version 2/)).toBeVisible();
-
-    await page.goto(`${learnBase}/submissions`);
-    await page.getByRole('link', { name: /Learner e2e SHORT_ANSWER/ }).click();
-    await expect(page.getByText('Assessed — not yet passed')).toBeVisible();
   });
 
   test('opens a prefetched warm problem detail within 500 ms without vocabulary fan-out', async ({ page }) => {

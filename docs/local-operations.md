@@ -77,6 +77,10 @@ Release 0.
   pinned Chromium, Firefox, and WebKit profiles, plus autosave/conflict/
   validation checks in Chromium and unsaved-preview checks on both mobile
   profiles. It uses the same matching Playwright container for Firefox/WebKit.
+- `bash scripts/assessment_system_check.sh` runs the dedicated cross-application
+  manual-assessment journey, mixed-scoring and privacy checks, plus the critical
+  human/correction path on the desktop matrix and storage-disabled keyboard
+  operation on both mobile profiles.
 - Public canonical vocabulary is available from `GET /api/v1/vocabulary` with a
   required `vocabulary_type`; author-safe values and availability are available
   from `GET /api/v1/author/vocabulary`.

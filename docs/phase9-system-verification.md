@@ -38,7 +38,7 @@ retroactive test-driven development.
 | `AC-R0-015-03` | Learner library/detail and Studio editor/assessment route checks at 360, 768, 1024, and 1440 px, including card/table switch, reflow, 200% text zoom, and page-overflow assertions | Cross-browser journey widths remain in `R0-09010`–`R0-09012`; physical touch remains an observed-pilot check | `R0-09009` complete; `R0-09010`–`R0-09012` |
 | `AC-R0-015-04` | Cold production library rendered meaningful content in 1,233 ms with 216 public records under the documented 40 ms/10 Mbps profile; initial HTML excluded the private marker/internal fields and browser traffic had no account handshake | Repeat in final clean baseline | `R0-09010` complete; `R0-09016` |
 | `AC-R0-015-05` | Cold permanent detail was usable in 316 ms; pending feedback left unrelated objective content readable | Repeat in final clean baseline | `R0-09010` complete; `R0-09016` |
-| `AC-R0-015-06` | Learner and author matrices passed bundled Chromium 140, Firefox 141, WebKit 26, Pixel 7 mobile-Chrome, and iPhone 15 mobile-Safari profiles | Assessment matrix remains; branded current-stable browser/device checks depend on available pilot environments | `R0-09010`–`R0-09011` complete; `R0-09012`, `R0-09016` |
+| `AC-R0-015-06` | Learner, author, and assessment matrices passed bundled Chromium 140, Firefox 141, WebKit 26, Pixel 7 mobile-Chrome, and iPhone 15 mobile-Safari profiles | Branded current-stable browser/device checks depend on available pilot environments | `R0-09010`–`R0-09012` complete; limitation audited by `R0-09016` |
 | `AC-R0-015-07` | Domain invariants, SQLAlchemy model checks, PostgreSQL constraints, append-only assessment history, and verified public/assessment index plans | API-level persistence coverage remains | `R0-09002` complete; `R0-09003` |
 | `AC-R0-015-08` | Complete linear empty-database chain, idempotent 343-record canonical sync, representative safe downgrades through manual assessment, and a new forward-only Phase 9 index migration | Clean deployment rehearsal remains | `R0-09002` complete; `R0-09013` |
 | `AC-R0-015-09` | Transactional migration-DDL rollback, unit-of-work and atomic publication rollback, plus real HTTP rejected-command non-mutation assertions | Dependency interruption/recovery remains | `R0-09002`–`R0-09003` complete; `R0-09008` |
@@ -279,3 +279,30 @@ retroactive test-driven development.
   conflict requiring an explicit keep-local resolution. The final matrix passed
   4/4 Chromium cases in 43.3 seconds, complete Firefox/WebKit flows in 49.2
   seconds, mobile Chrome in 5.0 seconds, and mobile Safari in 6.4 seconds.
+
+### `R0-09012`
+
+- Red observed: the dedicated mixed-scoring browser path proved that the domain
+  and PostgreSQL stored the completed automated component while the pending
+  public HTTP projection discarded it. A focused API regression failed with a
+  missing `components` field before the projection was corrected. The first
+  mobile assertion also exposed the actual storage-disabled empty-state copy.
+- Pending mixed submissions now return only their already-computed safe public
+  components; they still expose no score claim for unfinished human work. The
+  focused API tests and deployed mixed browser check pass, while private
+  reviewer guidance, exemplars, and hidden data remain absent from public
+  results.
+- Moved manual assessment out of the learner catch-all into
+  `manual-assessment.spec.ts`. The system path proves opaque receipt persistence,
+  missing/wrong receipt behavior, oldest-first queue order, snapshot title and
+  rubric after a newer publication, keyboard decision, learner-safe result,
+  stale concurrent correction rejection, and append-only versions 1 and 2.
+- Mixed scoring preserves the exact automated component across human correction
+  without rerunning it. Storage-disabled submission still reaches PostgreSQL,
+  leaves no device history, and remains assessable by keyboard without page
+  overflow. The matrix passed 3/3 Chromium cases in 16.5 seconds, Firefox/
+  WebKit in 24.4 seconds, mobile Chrome in 6.2 seconds, and mobile Safari in
+  7.3 seconds. Ruff, Pyright, all 284 backend tests, frontend lint/typecheck and
+  102 component/client tests, deterministic contract drift, both production
+  builds, and the migration-aware redeploy also passed; all 343 canonical
+  records remained unchanged and every service returned healthy.

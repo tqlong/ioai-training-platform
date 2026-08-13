@@ -599,9 +599,13 @@ def _submission_response(
         "submitted_response": attempt.response if include_submitted_response else None,
     }
     if attempt.outcome is LearnerOutcome.PENDING_ASSESSMENT:
+        pending_components = attempt.result.get("components")
+        if not isinstance(pending_components, list):
+            pending_components = []
         return PublicSubmissionResponse(
             **common,
             outcome=attempt.outcome.value,
+            components=pending_components or None,
             message="Your answer is waiting for assessment.",
         )
     score = attempt.result.get("score")

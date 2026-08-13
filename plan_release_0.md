@@ -1317,7 +1317,7 @@ not claim retroactive red-green evidence.
   Run the documented desktop browser matrix and the smallest meaningful mobile
   Studio checks without treating the local port as security. Suggested commit:
   `test(e2e): verify author editorial system journey`.
-- [ ] **R0-09012 — Add the cross-application manual-assessment system journey.**
+- [x] **R0-09012 — Add the cross-application manual-assessment system journey.**
   Split the existing combined learner specification where needed and verify
   author rubric publication -> learner automated/human submission -> opaque
   device-local receipt/history -> oldest-first Studio queue -> snapshot-rubric

@@ -71,3 +71,11 @@ HTML.
 The R0-09011 author run passed all 4 Chromium system cases in 43.3 seconds,
 the complete Firefox/WebKit workflows in 49.2 seconds, mobile Chrome in 5.0
 seconds, and mobile Safari in 6.4 seconds. No browser project was skipped.
+
+`bash scripts/assessment_system_check.sh` owns the dedicated assessment matrix:
+the complete snapshot/rubric/receipt/queue/result/correction system plus mixed
+scoring/privacy in Chromium, the critical human/correction journey in Firefox
+and WebKit, and storage-disabled keyboard/responsive use in both mobile profiles.
+The R0-09012 run passed 3/3 Chromium cases in 16.5 seconds, the Firefox/WebKit
+critical paths in 24.4 seconds, mobile Chrome in 6.2 seconds, and mobile Safari
+in 7.3 seconds.
