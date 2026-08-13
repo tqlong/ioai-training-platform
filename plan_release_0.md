@@ -9,8 +9,9 @@
   `R0-03xxx` plan-step form: `R0-03001` through `R0-03999`, ordered numerically.
   Each step remains one meaningful commit. Later detailed phases use the same
   pattern with their phase prefix; Phase 7 uses `R0-07001` through
-  `R0-07999`, and Phase 8 uses `R0-08001` through `R0-08999`. Plan-step IDs are
-  distinct from the requirement/story IDs in `requirement_release_0.md`.
+  `R0-07999`, Phase 8 uses `R0-08001` through `R0-08999`, and Phase 9 uses
+  `R0-09001` through `R0-09999`. Plan-step IDs are distinct from the
+  requirement/story IDs in `requirement_release_0.md`.
 - Check an item only after its acceptance conditions are met and relevant
   quality gates pass. Include the checkbox update in that step's commit.
 - Keep every commit reviewable and green. For behavior changes, observe a
@@ -1178,36 +1179,196 @@ observe the required red step before implementation.
 
 ## Phase 9 — Integration and system verification
 
-- [ ] **R0-090 — Harden migration integration tests.** Verify a clean PostgreSQL
-  database upgrades to head, seed/import is idempotent, constraints protect
-  invariants, representative downgrade behavior is safe, and the application
-  starts only after migrations are ready. Suggested commit:
-  `test(db): verify migrations and canonical seeds`.
-- [ ] **R0-091 — Add API integration coverage.** Exercise success, validation,
-  conflict, idempotency, pagination, filtering, workflow, scoring, feedback, and
-  safe-error contracts through FastAPI against PostgreSQL. Suggested commit:
-  `test(api): cover release 0 contracts`.
-- [ ] **R0-092 — Add OpenAPI/client contract verification.** Fail CI on generated
-  contract drift and test representative frontend requests against the running
-  API, including stable error decoding. Suggested commit:
-  `test(contract): verify frontend api compatibility`.
-- [ ] **R0-093 — Add learner Playwright workflow.** Test browse → filter → open
-  permanent problem → submit → receive feedback → continue, including a mobile
-  viewport and local-progress restoration. Suggested commit:
-  `test(e2e): cover learner release 0 journey`.
-- [ ] **R0-094 — Add author Playwright workflow.** Test draft → autosave →
-  validate → preview → submit → request/resolve changes → approve → publish →
-  verify public visibility and revision isolation. Suggested commit:
-  `test(e2e): cover editorial release 0 journey`.
-- [ ] **R0-095 — Verify accessibility and responsive behavior.** Add automated
-  accessibility checks to critical pages, perform documented keyboard/focus
-  verification, and capture acceptance evidence for all required widths.
-  Suggested commit: `test(ui): verify accessibility and breakpoints`.
-- [ ] **R0-096 — Verify Docker Compose from a clean state.** Build all images,
-  start the stack with documented commands, pass health checks, migrate/seed a
-  fresh volume, run smoke flows, restart without data loss, and document any
-  platform-specific limitations. Suggested commit:
-  `test(system): verify clean compose startup`.
+Phase input and traceability rule: verify the complete Release 0 system against
+`R0-011` through `R0-017`, with explicit ownership of `AC-R0-015-01` through
+`AC-R0-015-19`, using analysis sections 3 and 9-10, design sections 8-15 and
+17.3, and `ui_release_0.md` sections 3-10. Begin from the implemented Phase 7,
+8, and 8.1 baselines: the repository already has PostgreSQL integration tests,
+deterministic vocabulary/OpenAPI drift scripts, separate Learn and Studio
+component suites, two focused Chromium Playwright specifications, Compose
+health checks, and backup/restore commands. Phase 9 must consolidate and extend
+that evidence rather than replace it with parallel fixtures or duplicate
+workflows. Every runtime defect found here starts with a failing regression
+test. A verification-only step records an honest failed/skipped result and must
+not claim retroactive red-green evidence.
+
+- [x] **R0-09001 — Baseline system-verification coverage against the current
+  codebase.** Inventory all migrations, repositories, FastAPI routes and error
+  mappings, generated contracts, frontend routes/component tests, Playwright
+  scenarios, Compose/operations scripts, CI jobs, and existing Phase 7/8/8.1
+  evidence. Add a criterion-level matrix for `AC-R0-015-01` through
+  `AC-R0-015-19` and cross-reference the functional criteria in `R0-011`
+  through `R0-014` and `R0-017`; identify the owning automated test, manual
+  check, or later Phase 9 step for every gap. Record known limitations such as
+  Chromium-only browser coverage, absent automated accessibility scanning,
+  incomplete request/operation observability, and backup commands that do not
+  yet prove a disposable restore. Do not change product behavior in this step.
+  Suggested commit: `docs(verification): baseline release 0 system evidence`.
+- [ ] **R0-09002 — Verify the full migration chain, constraints, and canonical
+  seed on real PostgreSQL.** From an empty test database, upgrade every committed
+  Alembic revision through head, synchronize canonical vocabulary twice, and
+  prove deterministic/idempotent results. Extend safe downgrade/re-upgrade
+  coverage through the learner-record and manual-assessment revisions; verify
+  domain and database protection for composite vocabulary identity and
+  parentage, problem cardinalities, decimal scoring totals, editorial state and
+  required notes, stable slugs, snapshot/attempt/assessment references, and
+  append-only decision history. Inject migration and publication failures to
+  prove rollback leaves no partial transition or public snapshot, and inspect
+  the indexes used by public and assessment queries (`AC-R0-015-07` through
+  `AC-R0-015-09`). Suggested commit:
+  `test(db): verify release 0 migration and integrity chain`.
+- [ ] **R0-09003 — Exercise the complete FastAPI contract against PostgreSQL.**
+  Add integration tests through the real application wiring for canonical
+  vocabulary, proposals, draft/revision commands, validation/preview,
+  editorial transitions/publication/archive, published list/detail/search and
+  recommendations, all five response families, anonymous feedback, pending and
+  mixed assessment, receipt-protected results, corrections, and history/queue
+  pagination. Cover success, malformed and bounded input, policy rejection,
+  safe not-found, conflict, stale version, idempotent replay, dependency
+  rollback, sorting/filtering/page boundaries, and request-ID behavior; assert
+  persisted state after every write and non-mutation after every rejected
+  command. Suggested commit:
+  `test(api): integrate release 0 contracts with postgres`.
+- [ ] **R0-09004 — Prove public/draft isolation across every leak path.** Build
+  adversarial fixtures containing a draft-only problem, an unapproved successor
+  to a live snapshot, archived history, private rubric guidance, answer keys,
+  hidden tests, author notes, object keys, and internal identifiers. Prove list,
+  search, filter, direct slug, recommendation, submission/result, feedback,
+  pagination/stale lookup, OpenAPI schemas, generated clients, Next.js server
+  fetches, and production learner build output expose only current eligible
+  published projections. Alternate IDs and errors must not reveal whether a
+  private record exists (`AC-R0-014-09` through `AC-R0-014-16`,
+  `AC-R0-015-10`, and `AC-R0-015-13`). Suggested commit:
+  `test(isolation): close release 0 public leak paths`.
+- [ ] **R0-09005 — Harden the no-auth system boundary and local Studio
+  exposure.** With failing boundary tests first, make allowed origins and host
+  exposure explicit, replace permissive credentialed CORS, and verify the
+  learner origin/proxy can invoke only public read/submission contracts while
+  author commands remain limited to the documented local operator path. Prove
+  Studio binds to `127.0.0.1:3001` by default, the API/Compose topology does not
+  turn a separate port into an authorization claim, anonymous inputs and stored
+  records remain bounded, and logs/responses contain neither direct identity
+  claims nor secrets (`AC-R0-015-10` through `AC-R0-015-12`). Do not add
+  accounts or general authentication. Suggested commit:
+  `fix(security): enforce release 0 local author boundary`.
+- [ ] **R0-09006 — Verify deterministic OpenAPI and generated-client
+  compatibility.** Strengthen generation so the FastAPI OpenAPI document,
+  committed JSON, generated TypeScript declarations, handwritten client
+  wrappers, and canonical vocabulary artifact are produced in one deterministic
+  pipeline. Add positive and negative compatibility tests using representative
+  public and author requests against the running API, including discriminated
+  responses, pagination, idempotency fields, receipts, request IDs, and stable
+  error decoding. CI must fail on either generated drift or a wrapper that no
+  longer matches the generated schema (`AC-R0-015-19`). Suggested commit:
+  `test(contract): verify generated client compatibility`.
+- [ ] **R0-09007 — Add safe structured observability and end-to-end request-ID
+  propagation.** Begin with tests showing the current request-ID-only middleware
+  is insufficient. Emit one bounded structured completion event per HTTP request
+  and meaningful publication, submission, feedback, and assessment operation,
+  including request/operation ID, safe event name/outcome, duration, environment,
+  and safe canonical reference. Verify propagation through entrypoint,
+  application, and adapter boundaries and redact bodies, answers, hidden tests,
+  notes, receipts, credentials, SQL, filesystem paths, object keys, and provider
+  details in success and failure logs (`AC-R0-015-13` and `AC-R0-015-15`).
+  Suggested commit: `feat(observability): add safe release 0 request events`.
+- [ ] **R0-09008 — Separate and verify liveness, readiness, and dependency
+  failure behavior.** Test liveness independently of PostgreSQL, and make
+  readiness fail closed with a safe machine-readable response and non-success
+  status when PostgreSQL is unavailable or Alembic is not at head. Verify
+  Compose dependencies wait on readiness rather than process startup; failed
+  migration, database interruption, and recovery never serve against a partial
+  schema or leak infrastructure details. Extend the smoke command to check API,
+  Learn, and Studio readiness separately (`AC-R0-015-16`). Suggested commit:
+  `test(operations): verify health and readiness boundaries`.
+- [ ] **R0-09009 — Automate accessibility and responsive regression checks.**
+  Add an accessibility runner to representative Learn and Studio pages and
+  integrate it with component or browser tests. Cover visible labels and focus,
+  keyboard order, dialog trap/Escape/return, disclosures, repeated-field focus,
+  validation linkage, loading/error/status announcements, touch targets,
+  non-color meaning, and WCAG 2.2 AA detectable contrast violations. Verify the
+  learner library/detail and the author editor/review/assessment routes at 360,
+  768, 1024, and 1440 px, including cards below 768 px, intermediate sidebar
+  placement, dense desktop tables, 200% zoom, and no unintended horizontal page
+  scrolling. Document manual screen-reader, grayscale, and interaction checks
+  that automation cannot prove (`AC-R0-015-01` through `AC-R0-015-03`).
+  Suggested commit: `test(a11y): verify release 0 routes and breakpoints`.
+- [ ] **R0-09010 — Extend the learner critical journey across supported
+  browsers and performance budgets.** Reuse and harden
+  `learner-solving-loop.spec.ts` to cover enabled stage selection, bilingual
+  search/hierarchical filters and URL restoration, permanent/direct URLs, all
+  five response types, safe result or pending feedback, device-local progress
+  and storage failure, anonymous problem feedback, one eligible continuation,
+  archived/draft isolation, and submission history. Run desktop Chromium,
+  Firefox, and WebKit plus documented mobile Chrome/Safari equivalents where
+  the environment supports them. Against a representative seeded production
+  build, measure first meaningful library content within 2 seconds and usable
+  detail within 3 seconds on the documented normal-broadband profile, while
+  proving no draft payload or account handshake is shipped
+  (`AC-R0-015-04` through `AC-R0-015-06`). Suggested commit:
+  `test(e2e): verify learner journey and performance matrix`.
+- [ ] **R0-09011 — Extend the author editorial journey across supported
+  browsers.** Reuse and harden `editorial-publication.spec.ts` to cover create,
+  structured authoring, canonical metadata and unavailable values, autosave
+  failure/local recovery/stale conflict, validation focus, unsaved desktop and
+  mobile preview banner, review notes, changes-requested successor, approval,
+  publish confirmation, permanent public visibility, published-revision
+  isolation, archive, and republish. Verify save, approval, and publication stay
+  distinct and no public route changes before the atomic publish completes.
+  Run the documented desktop browser matrix and the smallest meaningful mobile
+  Studio checks without treating the local port as security. Suggested commit:
+  `test(e2e): verify author editorial system journey`.
+- [ ] **R0-09012 — Add the cross-application manual-assessment system journey.**
+  Split the existing combined learner specification where needed and verify
+  author rubric publication -> learner automated/human submission -> opaque
+  device-local receipt/history -> oldest-first Studio queue -> snapshot-rubric
+  decision -> learner-safe result/status update -> append-only correction.
+  Cover mixed scoring without automated reruns, invalid/missing receipts,
+  concurrent stale corrections, a newly published revision after submission,
+  unavailable local storage, private guidance redaction, responsive layouts,
+  and keyboard operation. Suggested commit:
+  `test(e2e): verify manual assessment across learn and studio`.
+- [ ] **R0-09013 — Verify the Compose topology from clean and persisted
+  states.** Add a deterministic system rehearsal that starts from a clean
+  checkout and fresh named volume, installs only from committed lockfiles,
+  starts PostgreSQL, explicitly migrates and synchronizes vocabulary, then
+  brings up API, Learn, and loopback-only Studio after readiness. Exercise
+  public and author smoke flows, stop without deleting data, restart and verify
+  revisions/snapshots/attempts/feedback/assessments persist, and prove a failed
+  migration blocks API readiness. Validate service-name URLs, port bindings,
+  health checks, loopback-only database/API author exposure, non-secret
+  `.env.example` coverage, and the absence of Redis/Celery/Docling/MinIO/vector/
+  GPU services; document platform-specific limitations. Suggested commit:
+  `test(system): verify release 0 compose lifecycle`.
+- [ ] **R0-09014 — Rehearse deterministic PostgreSQL backup and restore.**
+  Replace the current command-only check with a safe script/test that backs up a
+  representative database and restores into an explicitly disposable database,
+  never over the active development database. Compare canonical vocabulary,
+  stable problem/revision identities, current and historical snapshots,
+  editorial transitions, attempts, feedback, rubric-bound assessments, and
+  correction history after restore; document that device-local progress is not
+  recoverable. Make reset require explicit confirmation and validate exact
+  targets before deleting a development volume (`AC-R0-015-14`). Suggested
+  commit: `test(recovery): verify postgres backup and restore`.
+- [ ] **R0-09015 — Assemble the deterministic integration and system CI
+  pipeline.** Provide one documented orchestration entrypoint and CI jobs for
+  frozen `uv`/`pnpm` installation, backend format/lint/type/unit/PostgreSQL
+  integration and migration checks, frontend lint/type/component tests,
+  vocabulary/OpenAPI/client drift, public leak scanning, production builds,
+  accessibility checks, focused browser projects, Compose lifecycle smoke, and
+  backup/restore rehearsal. Pin compatible tool versions, isolate databases and
+  browser artifacts, avoid shared `.next` writers, use deterministic fixtures,
+  and make unavailable browser/platform jobs explicit rather than silently
+  skipped (`AC-R0-015-17` through `AC-R0-015-19`). Suggested commit:
+  `ci(verification): run release 0 integration and system gates`.
+- [ ] **R0-09016 — Baseline Phase 9 with criterion-level evidence.** Run the
+  entire pipeline from a clean checkout, then update the traceability matrix and
+  operator/developer documentation with exact commands, environment, browser
+  matrix, timings, pass/fail/skip results, known limitations, and artifact
+  locations. Confirm every `AC-R0-015-01` through `AC-R0-015-19` criterion and
+  every critical `R0-011` through `R0-014` and `R0-017` cross-system invariant
+  has current evidence; leave Phase 9 unchecked if any required gate is failing
+  or silently skipped. Suggested commit:
+  `test(system): baseline release 0 integration verification`.
 
 ## Phase 10 — Refactor and release readiness
 
