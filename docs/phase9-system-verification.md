@@ -19,7 +19,7 @@ retroactive test-driven development.
 | Boundary | Present implementation and evidence | Baseline limitation |
 | --- | --- | --- |
 | PostgreSQL and Alembic | Eight ordered revisions from canonical vocabulary through the Phase 9 system-query indexes; integration tests cover the complete head chain, migrations, repositories, readiness, synchronization, public queries, learner records, publication, supporting index plans, and transactional rollback | API-level persistence and failure coverage remains assigned to `R0-09003` |
-| FastAPI | Versioned public and author routers for vocabulary, proposals, problems, publication, submissions, feedback, and manual assessment; health routes and safe error DTOs | Most HTTP tests use injected fakes; a complete real-app/real-PostgreSQL contract suite is missing |
+| FastAPI | Versioned public and author routers plus a real-app/real-PostgreSQL suite for vocabulary, proposals, drafts, validation/preview, workflow/publication/archive, public queries, all five submissions, feedback, receipts, and manual assessment | Adversarial leak-path, network exposure, structured observability, and dependency-readiness proof remains assigned to later Phase 9 steps |
 | Public isolation | Dedicated published reader, public DTOs, OpenAPI schema checks, repository tests, and `scripts/public_isolation_check.sh` | Leak-path fixtures do not yet cover every private field, stale/archive path, generated client, server fetch, and result/assessment path together |
 | Generated contracts | Deterministic OpenAPI JSON, `openapi-typescript` output, vocabulary artifacts, generation script, and drift script | Handwritten client wrappers are not comprehensively exercised against a running API |
 | Learn components | Unit/component coverage for URL discovery, table/cards, detail, five response forms, local progress, feedback, continuation, and submission history | No automated accessibility scanner; responsive and keyboard proof is distributed across tests and manual notes |
@@ -41,10 +41,10 @@ retroactive test-driven development.
 | `AC-R0-015-06` | Chromium desktop Playwright project | Documented Chromium, Firefox, WebKit, and available mobile-equivalent matrix | `R0-09010`–`R0-09012` |
 | `AC-R0-015-07` | Domain invariants, SQLAlchemy model checks, PostgreSQL constraints, append-only assessment history, and verified public/assessment index plans | API-level persistence coverage remains | `R0-09002` complete; `R0-09003` |
 | `AC-R0-015-08` | Complete linear empty-database chain, idempotent 343-record canonical sync, representative safe downgrades through manual assessment, and a new forward-only Phase 9 index migration | Clean deployment rehearsal remains | `R0-09002` complete; `R0-09013` |
-| `AC-R0-015-09` | Transactional migration-DDL rollback plus unit-of-work and atomic publication rollback tests | Injected failure through the real HTTP boundary remains | `R0-09002` complete; `R0-09003` |
+| `AC-R0-015-09` | Transactional migration-DDL rollback, unit-of-work and atomic publication rollback, plus real HTTP rejected-command non-mutation assertions | Dependency interruption/recovery remains | `R0-09002`–`R0-09003` complete; `R0-09008` |
 | `AC-R0-015-10` | Public DTO/schema isolation and guessed-ID tests | Every leak path plus a concrete no-auth topology preventing the learner surface from reaching author commands | `R0-09004`, `R0-09005` |
 | `AC-R0-015-11` | Studio host port maps to `127.0.0.1:3001` and documentation rejects port-as-auth | Automated configuration/topology proof and safe API author exposure | `R0-09005`, `R0-09013` |
-| `AC-R0-015-12` | Bounded progress, submission, feedback, receipt, and throttle tests | Full persistence/log review and no-auth boundary integration tests | `R0-09003`, `R0-09005`, `R0-09007` |
+| `AC-R0-015-12` | Real persistence proves bounded/idempotent submissions, feedback, private receipt digests, rejected-input non-mutation, and manual-decision history | No-auth topology and structured-log review remain | `R0-09003` complete; `R0-09005`, `R0-09007` |
 | `AC-R0-015-13` | Safe error DTOs, public-isolation checks, and UI safe-state assertions | Cross-route adversarial errors and structured-log redaction | `R0-09004`, `R0-09007` |
 | `AC-R0-015-14` | Backup, restore, and reset command branches plus a short runbook | Disposable restore rehearsal comparing all system-of-record entities; safe confirmed reset | `R0-09014` |
 | `AC-R0-015-15` | Request-ID response propagation | Structured request/operation completion events, duration/outcome fields, propagation, and redaction | `R0-09007` |
@@ -91,3 +91,20 @@ retroactive test-driven development.
   canonical synchronization, append-only assessment decisions, publication and
   migration rollback, and forced index-plan checks.
 - Static gates: Ruff format/check, Pyright, and the Alembic-head check passed.
+
+### `R0-09003`
+
+- Added 10 integration tests through the default FastAPI wiring and isolated
+  PostgreSQL, with 343 synchronized canonical vocabulary records.
+- Covered public and author vocabulary, proposals, draft save/list,
+  validation/preview, review/change/approval/publication/archive, stable current
+  snapshots, public list/filter/sort/page/detail/recommendation, all five
+  response families, idempotent feedback/submission, private result receipts,
+  pending assessment, decision/correction history, and safe rejected-command
+  non-mutation.
+- The first verification run passed 8 of 9 cases; the sole failure identified
+  that the new test used unsupported query name `search` instead of the
+  documented public contract `q`. The test was corrected without changing
+  product behavior, then all 10 focused tests and the full 262-test backend
+  suite passed.
+- Static gates: backend Ruff format/check and Pyright passed.

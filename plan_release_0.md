@@ -1217,7 +1217,7 @@ not claim retroactive red-green evidence.
   the indexes used by public and assessment queries (`AC-R0-015-07` through
   `AC-R0-015-09`). Suggested commit:
   `test(db): verify release 0 migration and integrity chain`.
-- [ ] **R0-09003 — Exercise the complete FastAPI contract against PostgreSQL.**
+- [x] **R0-09003 — Exercise the complete FastAPI contract against PostgreSQL.**
   Add integration tests through the real application wiring for canonical
   vocabulary, proposals, draft/revision commands, validation/preview,
   editorial transitions/publication/archive, published list/detail/search and
