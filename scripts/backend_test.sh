@@ -12,4 +12,4 @@ export IOAI_DATABASE_URL="$IOAI_TEST_DATABASE_URL"
 printf 'Starting isolated PostgreSQL integration-test environment\n'
 docker compose --profile test up -d --wait postgres-test
 printf 'Running pytest against database ioai_test on port 5433\n'
-uv run pytest "$@"
+uv run --frozen --no-sync pytest "$@"

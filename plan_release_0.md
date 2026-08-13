@@ -1349,7 +1349,7 @@ not claim retroactive red-green evidence.
   recoverable. Make reset require explicit confirmation and validate exact
   targets before deleting a development volume (`AC-R0-015-14`). Suggested
   commit: `test(recovery): verify postgres backup and restore`.
-- [ ] **R0-09015 — Assemble the deterministic integration and system CI
+- [x] **R0-09015 — Assemble the deterministic integration and system CI
   pipeline.** Provide one documented orchestration entrypoint and CI jobs for
   frozen `uv`/`pnpm` installation, backend format/lint/type/unit/PostgreSQL
   integration and migration checks, frontend lint/type/component tests,

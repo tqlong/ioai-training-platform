@@ -5,25 +5,134 @@ on:
     branches: ["main"]
   pull_request:
 
+env:
+  NODE_VERSION: "22.20.0"
+  PNPM_VERSION: "10.16.0"
+  UV_VERSION: "0.12.3"
+  PLAYWRIGHT_VERSION: "1.55.0"
+  IOAI_PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.55.0-noble
+  COMPOSE_PROGRESS: plain
+
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: "10.16.0"
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
-      - uses: astral-sh/setup-uv@v3
-      - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Install backend dependencies
-        run: uv sync --all-groups
-      - name: Foundation quality checks
-        run: bash scripts/foundation_quality.sh
-      - name: OpenAPI drift check
-        run: bash scripts/openapi_drift_check.sh
-      - name: PostgreSQL migration head check
-        run: bash scripts/foundation_migration_check.sh
+          node-version: "22.20.0"
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.3"
+          enable-cache: true
+      - name: Static, unit, drift, leak, and production-build gates
+        run: bash scripts/release0_verification.sh quality
+
+  postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10.16.0"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.3"
+          enable-cache: true
+      - name: PostgreSQL integration and complete migration gates
+        run: bash scripts/release0_verification.sh postgres
+
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10.16.0"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.3"
+          enable-cache: true
+      - name: Install pinned Chromium and system dependencies
+        run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium
+      - name: Accessibility and focused browser projects
+        run: bash scripts/release0_verification.sh browser
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-0-browser-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+
+  compose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10.16.0"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.3"
+          enable-cache: true
+      - name: Install pinned Chromium and system dependencies
+        run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium
+      - name: Clean and persisted Compose lifecycle
+        run: bash scripts/release0_verification.sh compose
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-0-compose-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+
+  recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10.16.0"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.3"
+          enable-cache: true
+      - name: Deterministic disposable backup and restore
+        run: bash scripts/release0_verification.sh recovery
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-0-recovery-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore

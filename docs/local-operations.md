@@ -98,6 +98,22 @@ Release 0.
 
 ## Recovery and maintenance
 
+- `pnpm verify:release0` is the authoritative full local verification pipeline.
+  It performs frozen installs and runs, in order, the `quality`, `postgres`,
+  `browser`, `compose`, and `recovery` modes exposed by
+  `scripts/release0_verification.sh`. A single mode can be rerun directly, for
+  example `bash scripts/release0_verification.sh postgres`.
+- The quality mode stops mounted Learn/Studio development writers before
+  clearing ignored `.next` outputs and running production builds; its exit trap
+  restores those services. PostgreSQL tests use only `ioai_test`; Compose and
+  recovery use only their reserved projects and disposable volumes.
+- `.github/workflows/release-0-ci.yml` runs the five modes as explicit Linux
+  jobs with Node 22.20.0, pnpm 10.16.0, uv 0.12.3, Playwright 1.55.0, and the
+  matching Firefox/WebKit container. Browser, Compose, and recovery reports are
+  uploaded from `test-results/` and `playwright-report/` even on failure.
+  Missing Docker/browser support fails its owning job; it is not silently
+  skipped. Local macOS/Windows and branded physical-device evidence remain
+  documented limitations rather than CI passes.
 - `bash scripts/foundation_quality.sh` runs baseline quality gates.
 - `bash scripts/backend_test.sh` starts a profile-scoped PostgreSQL service on
   `127.0.0.1:5433`, uses the dedicated `ioai_test` database and volume, and

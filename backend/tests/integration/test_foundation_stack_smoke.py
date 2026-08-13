@@ -107,6 +107,21 @@ def test_backup_restore_has_a_disposable_rehearsal_entrypoint() -> None:
     assert '"test:recovery-system"' in Path("package.json").read_text()
 
 
+def test_phase9_ci_uses_one_pinned_explicit_orchestration_contract() -> None:
+    workflow_text = Path(".github/workflows/release-0-ci.yml").read_text()
+    entrypoint_text = Path("scripts/release0_verification.sh").read_text()
+
+    assert 'version: "10.16.0"' in workflow_text
+    assert 'UV_VERSION: "0.12.3"' in workflow_text
+    assert 'node-version: "22.20.0"' in workflow_text
+    assert "version: 9" not in workflow_text
+    for mode in ("quality", "postgres", "browser", "compose", "recovery"):
+        assert f"release0_verification.sh {mode}" in workflow_text
+        assert mode in entrypoint_text
+    assert "--frozen --all-groups" in entrypoint_text
+    assert "--frozen-lockfile" in entrypoint_text
+
+
 def test_studio_uses_compose_api_service_for_server_side_requests() -> None:
     compose_text = Path("docker-compose.yml").read_text()
     studio_service = compose_text.split("\n  studio:\n", maxsplit=1)[1].split(

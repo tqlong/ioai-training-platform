@@ -15,6 +15,7 @@
     "test:assessment-system": "bash scripts/assessment_system_check.sh",
     "test:compose-system": "bash scripts/compose_lifecycle_check.sh",
     "test:recovery-system": "bash scripts/backup_restore_rehearsal.sh",
+    "verify:release0": "bash scripts/release0_verification.sh all",
     "build": "pnpm -r run build",
     "generate:contracts": "bash scripts/generate_contracts.sh",
     "check:contracts": "bash scripts/openapi_drift_check.sh",

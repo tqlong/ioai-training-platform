@@ -27,7 +27,7 @@ retroactive test-driven development.
 | Browser workflows | `learner-solving-loop.spec.ts`, `editorial-publication.spec.ts`, and `accessibility-responsive.spec.ts`, including representative Learn/Studio WCAG scanning and required breakpoints | Playwright config still runs Chromium desktop only; cross-browser/mobile journey and full performance budgets remain assigned to `R0-09010`–`R0-09012` |
 | Health and observability | Liveness/readiness routes, request-ID response middleware, readiness integration tests, and Compose health checks | Readiness returns a successful HTTP status when degraded; Compose waits on process startup in places; structured completion/operation events and redaction proof are absent |
 | Local operations | Compose topology plus start, stop, migrate, seed, redeploy, phase-specific test, smoke, and backup/restore commands; PostgreSQL/API/Studio bind to loopback, Learn blocks author proxy paths, and FastAPI uses explicit non-credentialed CORS origins | No clean/persisted lifecycle rehearsal exists and restore is not verified in a disposable database |
-| CI and reproducibility | Committed `uv.lock` and `pnpm-lock.yaml`, frozen installs, backend/frontend quality scripts, drift checks, migration checks, and one GitHub Actions workflow | CI selects pnpm 9 while the root manifest declares pnpm 10, does not run browser/accessibility/Compose/recovery gates, and can silently omit browser evidence |
+| CI and reproducibility | One mode-addressable verification entrypoint plus five explicit CI jobs use frozen locks and pinned Node 22.20.0, pnpm 10.16.0, uv 0.12.3, Playwright 1.55.0/container versions; jobs cover static/unit/build/drift/leak, PostgreSQL/migrations, accessibility/browser systems, Compose, and recovery | GitHub-hosted execution itself remains to be observed after publication; non-Linux and physical-device checks remain outside CI |
 
 ## `R0-015` criterion ownership
 
@@ -49,9 +49,9 @@ retroactive test-driven development.
 | `AC-R0-015-14` | Isolated logical backup/restore rehearsal compares all Release 0 system-of-record histories; restore and reset are exact-target confirmed and fail closed | Provider, retention period, and off-host schedule remain deployment decisions; device-local progress is explicitly unrecoverable | `R0-09014` complete; limitation audited by `R0-09016` |
 | `AC-R0-015-15` | Request-ID response propagation | Structured request/operation completion events, duration/outcome fields, propagation, and redaction | `R0-09007` |
 | `AC-R0-015-16` | Separate health routes, database probe, and service health checks | Non-success degraded readiness, migration-head proof, dependency waiting, interruption/recovery smoke | `R0-09008`, `R0-09013` |
-| `AC-R0-015-17` | Lockfiles and foundation/phase quality scripts | One clean deterministic system entrypoint, aligned tool versions, browser/Compose/recovery CI jobs | `R0-09013`, `R0-09015` |
+| `AC-R0-015-17` | One frozen, pinned verification entrypoint owns explicit quality, PostgreSQL, browser, Compose, and recovery modes locally and in CI | GitHub-hosted run and final clean aggregate timing remain | `R0-09013`, `R0-09015` complete; `R0-09016` |
 | `AC-R0-015-18` | Project TDD policy and phase baseline records | Enforce a recorded red step for every Phase 9 runtime fix; never infer prior red evidence | Every behavior-changing Phase 9 step |
-| `AC-R0-015-19` | OpenAPI/vocabulary/client drift script in local and CI quality gates | Running-API wrapper compatibility and a single authoritative deterministic CI gate | `R0-09006`, `R0-09015` |
+| `AC-R0-015-19` | Deterministic vocabulary/OpenAPI/client drift and runtime wrapper compatibility are required by the authoritative quality/browser modes | Final aggregate rerun remains | `R0-09006`, `R0-09015` complete; `R0-09016` |
 
 ## Functional cross-system ownership
 
@@ -367,3 +367,30 @@ retroactive test-driven development.
   deployment decisions and that browser-local progress/receipt indexes are not
   recoverable from PostgreSQL. Bash syntax, Compose rendering, ESLint, and all
   11 foundation-stack tests passed.
+
+### `R0-09015`
+
+- Red observed: the CI contract test failed because there was no authoritative
+  orchestration entrypoint and the workflow still selected pnpm 9. The first
+  local quality-mode run then failed a Studio production build because the
+  mounted development server was concurrently writing the same `.next` tree.
+- `scripts/release0_verification.sh` now owns five explicit modes and an ordered
+  `all` mode. Every mode installs from frozen `uv.lock` and `pnpm-lock.yaml`;
+  nested backend, migration, vocabulary, and OpenAPI commands use frozen/no-sync
+  execution. Quality stops mounted frontend writers, deletes only ignored build
+  output, and restores the frontends through an exit trap.
+- The GitHub workflow has separate quality, PostgreSQL, browser, Compose, and
+  recovery jobs on Ubuntu 24.04. It pins Node 22.20.0, pnpm 10.16.0, uv 0.12.3,
+  Playwright 1.55.0, and the matching browser container. Browser/platform
+  failures remain failures; artifacts are uploaded on failed browser, Compose,
+  or recovery jobs instead of silently omitting evidence.
+- Local quality mode passed 218 backend unit tests and 102 frontend tests plus
+  Ruff format/lint, Pyright, ESLint, strict TypeScript, deterministic vocabulary/
+  OpenAPI/client drift, public build leak scanning, and both production builds.
+  The fixed writer-isolation path restored Learn and Studio afterward.
+- Local PostgreSQL mode passed all 289 backend tests in 166.66 seconds against
+  the isolated `ioai_test` service and passed the Alembic single-head check.
+  Workflow YAML parsing, Bash syntax, the 12 foundation-stack contract tests,
+  and diff checks passed. Compose, recovery, and browser sub-gates retain their
+  direct R0-09009 through R0-09014 evidence and will be rerun together by the
+  clean aggregate baseline in `R0-09016`.

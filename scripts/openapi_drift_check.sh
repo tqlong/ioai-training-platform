@@ -8,14 +8,14 @@ DRIFT_DIR="$(mktemp -d)"
 trap 'rm -rf "$DRIFT_DIR"' EXIT
 export PYTHONPATH=backend/src
 
-uv run --group backend python backend/scripts/generate_vocabulary.py --check
-uv run --group backend python backend/scripts/dump_openapi.py \
+uv run --frozen --no-sync python backend/scripts/generate_vocabulary.py --check
+uv run --frozen --no-sync python backend/scripts/dump_openapi.py \
   --output "$DRIFT_DIR/openapi.json"
 pnpm exec openapi-typescript \
   "$DRIFT_DIR/openapi.json" \
   -o "$DRIFT_DIR/openapi.ts"
 
-uv run --group backend python backend/scripts/dump_openapi.py \
+uv run --frozen --no-sync python backend/scripts/dump_openapi.py \
   --output "$DRIFT_DIR/openapi-second.json"
 pnpm exec openapi-typescript \
   "$DRIFT_DIR/openapi-second.json" \
