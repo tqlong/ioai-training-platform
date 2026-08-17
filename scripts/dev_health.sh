@@ -10,15 +10,15 @@ curl -fsS 'http://127.0.0.1:8000/api/v1/vocabulary?vocabulary_type=PATHWAY_STAGE
 printf '\nAuthor canonical vocabulary\n'
 curl -fsS 'http://127.0.0.1:8000/api/v1/author/vocabulary?vocabulary_type=PATHWAY_STAGE&limit=2'
 printf '\nLearn route\n'
-curl -fsS -o /dev/null http://127.0.0.1:3000/problems
+curl -fsS http://127.0.0.1:3000/problems >/dev/null
 printf 'ok'
 printf '\nStudio route\n'
-curl -fsS -o /dev/null http://127.0.0.1:3001/author/problems
+curl -fsS http://127.0.0.1:3001/author/problems >/dev/null
 printf 'ok'
 printf '\nLearner submission history route\n'
-curl -fsS -o /dev/null http://127.0.0.1:3000/submissions
+curl -fsS http://127.0.0.1:3000/submissions >/dev/null
 printf 'ok'
 printf '\nStudio assessment queue route\n'
-curl -fsS -o /dev/null http://127.0.0.1:3001/author/assessments
+curl -fsS http://127.0.0.1:3001/author/assessments >/dev/null
 printf 'ok'
 printf '\nAll checks passed\n'

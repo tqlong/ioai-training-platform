@@ -8,8 +8,13 @@ studio_base=${STUDIO_BASE_URL:-http://127.0.0.1:3001}
 learn_base=${LEARN_BASE_URL:-http://127.0.0.1:3000}
 api_base=${API_BASE_URL:-http://127.0.0.1:8000/api/v1}
 playwright_image=${IOAI_PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.55.0-noble}
-local_uid=$(id -u)
-local_gid=$(id -g)
+if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* ]]; then
+  local_uid=1000
+  local_gid=1000
+else
+  local_uid="$(id -u)"
+  local_gid="$(id -g)"
+fi
 
 curl --fail --silent --show-error http://127.0.0.1:8000/health/ready >/dev/null
 curl --fail --silent --show-error "$studio_base/author/problems" >/dev/null

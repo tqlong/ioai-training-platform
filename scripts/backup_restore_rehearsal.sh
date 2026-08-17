@@ -3,8 +3,13 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repo_dir"
-export LOCAL_UID=${LOCAL_UID:-$(id -u)}
-export LOCAL_GID=${LOCAL_GID:-$(id -g)}
+if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* ]]; then
+  export LOCAL_UID=${LOCAL_UID:-1000}
+  export LOCAL_GID=${LOCAL_GID:-1000}
+else
+  export LOCAL_UID=${LOCAL_UID:-$(id -u)}
+  export LOCAL_GID=${LOCAL_GID:-$(id -g)}
+fi
 
 project=${IOAI_RECOVERY_COMPOSE_PROJECT:-ioai-r0-recovery}
 source_database=ioai_recovery_source
