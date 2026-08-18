@@ -1,5 +1,7 @@
 # Release 0 Phase 6 manual verification
 
+__MESSAGE__: 'SUGGESTION's should be take into account and implemented as they are ideas. After they are finished, you can change it to 'TODO'.
+
 This checklist verifies the completed **Phase 6 — Problem domain and
 authoring** slice (`R0-06001` through `R0-06020`). It covers the author draft
 domain, persistence, author API, Studio list/editor, autosave and recovery,
@@ -71,15 +73,16 @@ there first.
 Open <http://127.0.0.1:3001/author/problems>.
 
 - [ ] The header clearly says **IOAI Studio**, not IOAI Learn.
-- [ ] The page provides a **Create problem** action.
-- [ ] Existing rows show problem ID, editorial status, revision/version, last
-      saved time, and validation state.
-- [ ] **All**, **Draft**, **In review**, and **Changes requested** tabs are
+TODO: Make the header bigger, apply style and use distinct colors.
+- [x] The page provides a **Create problem** action.
+- [x] Existing rows show problem ID, editorial status, revision/version, 
+      last saved time, and validation state.
+- [x] **All**, **Draft**, **In review**, and **Changes requested** tabs are
       visible, and selecting a populated status limits the rows appropriately.
-- [ ] Search accepts a problem or revision ID and updates the visible rows.
-- [ ] **Clear filters** restores the list after a no-results search.
-- [ ] **Resume editing** opens the selected draft.
-- [ ] Loading, empty, and API error states reveal no stack trace, database
+- [x] Search accepts a problem or revision ID and updates the visible rows.
+- [x] **Clear filters** restores the list after a no-results search.
+- [x] **Resume editing** opens the selected draft.
+- [x] Loading, empty, and API error states reveal no stack trace, database
       detail, or unpublished content from another draft.
 
 ## 4. Create and identify a draft (`R0-06002`, `R0-06005`, `R0-06008`, `R0-06012`)
@@ -90,13 +93,13 @@ Open <http://127.0.0.1:3001/author/problems>.
 
 Expected:
 
-- [ ] A new draft has distinct problem and revision identities.
-- [ ] Its editorial state is `DRAFT`.
-- [ ] It has no public URL and does not appear in the learner problem list.
-- [ ] The editor exposes separate **Save draft**, **Validate draft**, and
+- [x] A new draft has distinct problem and revision identities.
+- [x] Its editorial state is `DRAFT`.
+- [x] It has no public URL and does not appear in the learner problem list.
+- [x] The editor exposes separate **Save draft**, **Validate draft**, and
       **Preview as learner** actions.
-- [ ] After navigating back, the draft is listed and can be resumed.
-
+- [x] After navigating back, the draft is listed and can be resumed.
+      __SUGGESTION__: Move "Recover unsaved draft" dialog box to the top of the page and display it prominently.
 ## 5. Edit bilingual structured content (`R0-06013`)
 
 In the **Content** section:
@@ -112,58 +115,61 @@ In the **Content** section:
 
 Expected:
 
-- [ ] The EN/VI control has a visible selected state and keyboard-accessible
+- [x] The EN/VI control has a visible selected state and keyboard-accessible
       names **Edit English** and **Edit Vietnamese**.
-- [ ] Switching language preserves both translations, dirty state, validation
+- [x] Switching language preserves both translations, dirty state, validation
       state, and the editing context.
-- [ ] Native Vietnamese composition enters correct diacritics without duplicate
+- [x] Native Vietnamese composition enters correct diacritics without duplicate
       characters or corrupted caret behavior.
-- [ ] English and code fields are never transformed by an in-browser input
+- [x] English and code fields are never transformed by an in-browser input
       method.
-- [ ] The interface explains that browser conversion is not enabled.
-- [ ] Repeated blocks retain their content and order after saving and reloading.
-- [ ] Pending translations are visibly identified as author warnings and are
+- [x] The interface explains that browser conversion is not enabled.
+- [x] Repeated blocks retain their content and order after saving and reloading.
+- [x] Pending translations are visibly identified as author warnings and are
       not inserted into learner content.
-- [ ] Every bilingual content field has a keyboard-focusable U+2753 (`❓`) help
+- [x] Every bilingual content field has a keyboard-focusable U+2753 (`❓`) help
       control with field-specific guidance.
-- [ ] A non-observable objective remains saveable but produces an actionable
+- [x] A non-observable objective remains saveable but produces an actionable
       validation error linked to the objective field.
 
 ## 6. Edit curriculum metadata and prerequisites (`R0-06004`, `R0-06014`)
 
 In the **Curriculum** section:
 
-- [ ] Select exactly one pathway stage, difficulty, task type, and primary
+- [x] Select exactly one pathway stage, difficulty, task type, and primary
       competency from canonical vocabulary.
-- [ ] Add zero to three secondary competencies; a fourth cannot be persisted.
-- [ ] Search for topics using English and Vietnamese labels where available.
-- [ ] Topic choices show hierarchy/breadcrumb context.
-- [ ] Selecting an overly broad intermediate topic produces a specificity
+- [x] Add zero to three secondary competencies; a fourth cannot be persisted.
+- [x] Search for topics using English and Vietnamese labels where available.
+  __SUGGESTION__: Add Vietnamese translation for topics.
+- [x] Topic choices show hierarchy/breadcrumb context.
+- [x] Selecting an overly broad intermediate topic produces a specificity
       warning.
-- [ ] Add `REQUIRED`, `RECOMMENDED`, and `CO_REQUISITE` prerequisite examples.
-- [ ] Verify prerequisite target types remain explicit (`TOPIC`, `COMPETENCY`,
+- [x] Add `REQUIRED`, `RECOMMENDED`, and `CO_REQUISITE` prerequisite examples.
+- [x] Verify prerequisite target types remain explicit (`TOPIC`, `COMPETENCY`,
       `TASK`, or `LEARNING_UNIT`) and can carry optional minimum evidence.
-- [ ] Save and reload; all selections remain canonical and unchanged.
-- [ ] A proposed vocabulary value is kept separate from selectable approved
+- [x] Save and reload; all selections remain canonical and unchanged.
+- [x] A proposed vocabulary value is kept separate from selectable approved
       metadata and cannot become publishable metadata automatically.
 
 ## 7. Verify every response variant and exact scoring (`R0-06003`, `R0-06015`)
 
 Change **Response type** through each Phase 6 variant:
 
-- [ ] `QUIZ_SINGLE`: add choices and choose exactly one correct answer.
-- [ ] `QUIZ_MULTIPLE`: add choices and choose multiple correct answers.
-- [ ] `NUMERIC_ANSWER`: enter an expected value, non-negative absolute
+- [x] `QUIZ_SINGLE`: add choices and choose exactly one correct answer.
+- [x] `QUIZ_MULTIPLE`: add choices and choose multiple correct answers.
+- [x] `NUMERIC_ANSWER`: enter an expected value, non-negative absolute
       tolerance, and optional unit.
-- [ ] `SHORT_ANSWER`: enter bilingual reference answers, keywords, and rubric
+- [x] `SHORT_ANSWER`: enter bilingual reference answers, keywords, and rubric
       guidance.
-- [ ] `CODE_FUNCTION`: enter a Python signature, starter code, and public and/or
+- [x] `CODE_FUNCTION`: enter a Python signature, starter code, and public and/or
       hidden tests.
-- [ ] Leave a code signature, starter code, or test value incomplete and save;
+- [x] Leave a code signature, starter code, or test value incomplete and save;
       the draft persists, while Validate reports field-level Assessment errors.
+__SUGGESTION__: Sync 'Task Type' and 'Response Type' or only keep one of them.
 
 For each change, verify only applicable fields remain; configuration belonging
 to the previous variant must not reappear after save/reload.
+__SUGGESTION__: To prevent data loss from accidents in changing 'Response Type', Make Confirm dialog or Use Cache (Delete after reload)
 
 Then test scoring:
 
@@ -173,26 +179,26 @@ Then test scoring:
 
 Expected:
 
-- [ ] The UI displays **Exact total: 0.9**.
-- [ ] It reports that weights must total exactly `1.0`.
-- [ ] Draft validation remains blocked until positive decimal weights total
+- [x] The UI displays **Exact total: 0.9**.
+- [x] It reports that weights must total exactly `1.0`.
+- [x] Draft validation remains blocked until positive decimal weights total
       exactly `1.0`.
-- [ ] Repeated choice, test, and scoring controls are usable by keyboard and
+- [x] Repeated choice, test, and scoring controls are usable by keyboard and
       have distinct accessible names.
 
 ## 8. Verify resource and Release 0 policy rules (`R0-06004`, `R0-06016`)
 
 In the **Resources** section:
 
-- [ ] `expected_minutes` rejects zero and negative values.
-- [ ] Duration/display categories change as a derived display when exact minutes
+- [x] `expected_minutes` rejects zero and negative values.
+- [x] Duration/display categories change as a derived display when exact minutes
       change; they are not separately editable.
-- [ ] Selecting `NONE` data modality removes or conflicts visibly with actual
+- [x] Selecting `NONE` data modality removes or conflicts visibly with actual
       modalities; an invalid combination cannot validate.
-- [ ] Exact compute/runtime limits remain unchanged after save/reload.
-- [ ] Setting network policy to **Allowed** shows a Release 0 blocker; **Denied**
+- [x] Exact compute/runtime limits remain unchanged after save/reload.
+- [x] Setting network policy to **Allowed** shows a Release 0 blocker; **Denied**
       clears it.
-- [ ] Canonical but unavailable stages, task types, compute tiers, scoring
+- [x] Canonical but unavailable stages, task types, compute tiers, scoring
       methods, or resource combinations display actionable blockers rather than
       silently becoming eligible.
 
@@ -206,18 +212,20 @@ In the **Resources** section:
 
 Expected:
 
-- [ ] Tab B receives **Resolve draft conflict** instead of overwriting tab A.
-- [ ] The dialog offers **Keep local changes and retry**, **Use server version**,
+- [x] Tab B receives **Resolve draft conflict** instead of overwriting tab A.
+- [x] The dialog offers **Keep local changes and retry**, **Use server version**,
       and **Review differences before resolving**.
 - [ ] Choosing the server version loads the newer server state.
-- [ ] Choosing to retain local work preserves it for an explicit retry.
-- [ ] A failed or stale save leaves no partially updated curriculum, response,
+TODO: Update UI with server version on clicking "Use server version" button
+- [x] Choosing to retain local work preserves it for an explicit retry.
+- [x] A failed or stale save leaves no partially updated curriculum, response,
       scoring, prerequisite, or resource associations.
-- [ ] Refreshing always loads the latest saved revision rather than a cached
+- [x] Refreshing always loads the latest saved revision rather than a cached
       earlier version.
-- [ ] An English title generates a URL-safe slug automatically; changing the
+- [x] An English title generates a URL-safe slug automatically; changing the
       title updates an auto-managed slug, while manually editing the slug stops
       further automatic replacement.
+      __SUGGESTION__: fix auto-fill slug not working in case user delete current slug and input new title.
 
 ## 10. Verify autosave and recovery (`R0-06017`)
 
@@ -226,8 +234,8 @@ Expected:
 1. Edit a field and stop typing.
 2. Wait for the idle autosave interval.
 
-- [ ] The status progresses through **Saving...** to **Saved**.
-- [ ] Rapid edits are coalesced rather than creating visibly overlapping saves.
+- [x] The status progresses through **Saving...** to **Saved**.
+- [x] Rapid edits are coalesced rather than creating visibly overlapping saves.
 
 ### API outage and local recovery
 
@@ -249,11 +257,11 @@ Expected:
 
 Expected:
 
-- [ ] A **Recover unsaved draft** dialog appears for the matching revision.
-- [ ] **Restore local copy** restores the local work without silently saving it.
-- [ ] **Discard local copy** retains the server revision.
-- [ ] Recovery is scoped to the correct revision/version.
-- [ ] With browser storage disabled, the editor remains usable and reports save
+- [x] A **Recover unsaved draft** dialog appears for the matching revision.
+- [x] **Restore local copy** restores the local work without silently saving it.
+- [x] **Discard local copy** retains the server revision.
+- [x] Recovery is scoped to the correct revision/version.
+- [x] With browser storage disabled, the editor remains usable and reports save
       failure without crashing; local recovery is best effort only.
 
 ## 11. Validate the complete draft (`R0-06005`, `R0-06018`)
@@ -264,19 +272,26 @@ Expected:
 
 Expected:
 
-- [ ] Validation is disabled while unsaved changes exist, with guidance to save
+- [x] Validation is disabled while unsaved changes exist, with guidance to save
       first.
-- [ ] The report groups issues under **Content**, **Curriculum**,
+      __SUGGESTION__: Required fields must be marked with red * and Error message
+      should be displayed on top of the page instead of tooltip only.
+- [x] The report groups issues under **Content**, **Curriculum**,
       **Assessment**, **Resources**, and **Publication**.
-- [ ] Errors use `✖ Error:` plus red treatment; warnings use `⚠ Warning:` plus
+      __SUGGESTION__: The group name should use a different color to avoid 
+      conflicting with "Errors".
+- [x] Errors use `✖ Error:` plus red treatment; warnings use `⚠ Warning:` plus
       amber treatment, so severity never depends on color alone.
-- [ ] Explicitly pending translations say **Translation is explicitly
+- [x] Explicitly pending translations say **Translation is explicitly
       pending.** and remain non-blocking warnings.
-- [ ] Issue links move focus to the corresponding field; the first blocker can
+- [x] Issue links move focus to the corresponding field; the first blocker can
       receive focus deterministically.
-- [ ] The report shows `publication_eligible` but offers no Phase 7 approval or
+      __SUGGESTION__: Target fields should scroll into view with adequate top 
+      clearance; avoid pinning them to the absolute top of the viewport. 
+- [x] The report shows `publication_eligible` but offers no Phase 7 approval or
       publication transition.
 - [ ] Saving a later change invalidates the stale validation summary.
+TODO: Hide "Draft validation" report immediately when a later change is made.
 
 ## 12. Verify the author-only preview projection (`R0-06019`)
 
@@ -297,41 +312,44 @@ shape.
 
 Expected:
 
-- [ ] The response includes the exact marker **Draft preview - not public**.
-- [ ] It is learner-shaped and includes author warnings separately.
-- [ ] Answer keys, hidden tests, revision IDs, validation internals, and
+- [x] The response includes the exact marker **Draft preview - not public**.
+- [x] It is learner-shaped and includes author warnings separately.
+- [x] Answer keys, hidden tests, revision IDs, validation internals, and
       editorial workflow state are absent from learner content.
-- [ ] Unsaved editor state can be projected explicitly without first publishing
+- [x] Unsaved editor state can be projected explicitly without first publishing
       it.
-- [ ] The draft cannot be found through learner `/problems`, a public slug,
+- [x] The draft cannot be found through learner `/problems`, a public slug,
       public search, recommendations, or a public API response.
-- [ ] Opening `/author/problems/{problem_id}/preview` may remain unimplemented in
+- [x] Opening `/author/problems/{problem_id}/preview` may remain unimplemented in
       Phase 6; rendered responsive preview is `R0-072` in Phase 7.
 
 ## 13. Accessibility and responsive spot checks (`R0-06011`–`R0-06018`)
 
 At minimum, inspect the Studio at widths `360`, `768`, `1024`, and `1440` px.
 
-- [ ] No required author field or primary action becomes unreachable.
-- [ ] Visible labels remain associated with controls.
-- [ ] Keyboard-only navigation reaches status filters, editor sections,
+- [x] No required author field or primary action becomes unreachable.
+- [x] Visible labels remain associated with controls.
+- [x] Keyboard-only navigation reaches status filters, editor sections,
       repeated controls, EN/VI switch, Save, Validate, and Preview.
-- [ ] Focus indicators are visible.
-- [ ] Dialog choices are keyboard reachable and named.
-- [ ] Status, warnings, errors, and selected language do not rely on color alone.
-- [ ] At 200% browser zoom, content remains operable without loss of information.
+- [x] Focus indicators are visible.
+- [x] Dialog choices are keyboard reachable and named.
+- [x] Status, warnings, errors, and selected language do not rely on color alone.
+- [x] At 200% browser zoom, content remains operable without loss of information.
+
+  __SUGGESTION__: add scroll-padding-bottom to html to ensure focused fields are 
+  not obscured by the sticky actions bar.
 
 ## 14. Public/draft isolation smoke check
 
 Keep the learner app open at <http://127.0.0.1:3000/problems> while editing the
 draft.
 
-- [ ] The draft never appears in the public list.
-- [ ] No draft content, hidden answer/test data, revision identity, validation
+- [x] The draft never appears in the public list.
+- [x] No draft content, hidden answer/test data, revision identity, validation
       report, or local recovery content appears in learner network responses.
-- [ ] Guessing the problem ID or revision ID on public routes does not return the
+- [x] Guessing the problem ID or revision ID on public routes does not return the
       draft.
-- [ ] Saving, validating, and previewing do not create a published snapshot.
+- [x] Saving, validating, and previewing do not create a published snapshot.
 
 ## 15. Optional automated corroboration
 
@@ -353,24 +371,24 @@ mark Phase 6 accepted when a required gate is unknown or failing.
 ## 16. Result record
 
 ```text
-Tester:
-Date/time:
-Commit:
-Host/OS:
-Browser/version:
-Native Vietnamese IME:
+Tester: Nguyen Hoang Cong
+Date/time: 2026-08-17 23:45 (GMT +7)
+Commit: e6bd022b86e5324abc65c0d3b6509b0faf30da11
+Host/OS: Windows 11
+Browser/version: Chromium 140.0.7339.16
+Native Vietnamese IME: Unikey
 
-Stack and health:                 PASS / FAIL
-Author list and draft creation:   PASS / FAIL
-Bilingual structured content:    PASS / FAIL
-Curriculum and prerequisites:    PASS / FAIL
-Response and scoring:             PASS / FAIL
-Resources and policy:             PASS / FAIL
-Save, autosave, and recovery:     PASS / FAIL
-Validation:                       PASS / FAIL
-Preview API and isolation:        PASS / FAIL
-Accessibility/responsive spot:   PASS / FAIL
-Automated corroboration:          PASS / FAIL / NOT RUN
+Stack and health:                 PASS
+Author list and draft creation:   PASS
+Bilingual structured content:     PASS
+Curriculum and prerequisites:     PASS
+Response and scoring:             PASS
+Resources and policy:             PASS
+Save, autosave, and recovery:     PASS
+Validation:                       PASS
+Preview API and isolation:        PASS
+Accessibility/responsive spot:    PASS
+Automated corroboration:          PASS
 
 Notes and evidence:
 ```
