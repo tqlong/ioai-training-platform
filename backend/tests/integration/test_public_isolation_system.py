@@ -464,6 +464,6 @@ def test_learner_source_does_not_import_studio_or_author_contract_paths() -> Non
         for path in root.rglob("*"):
             if not path.is_file() or path.suffix not in {".ts", ".tsx"}:
                 continue
-            content = path.read_text()
+            content = path.read_text(encoding="utf-8")
             for marker in forbidden:
                 assert marker not in content, f"{path} contains {marker}"
