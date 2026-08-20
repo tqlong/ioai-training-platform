@@ -1,5 +1,7 @@
 # Release 0 Phase 7 manual verification
 
+__MESSAGE__: 'SUGGESTION's should be take into account and implemented as they are ideas. After they are finished, you can change it to 'TODO'.
+
 This checklist verifies the completed **Phase 7 — Editorial review and
 publication** slice (`R0-07001` through `R0-07014`). It covers editorial
 transitions, audit history, learner-format preview, approval, atomic
@@ -16,11 +18,11 @@ Phase 8. Do not report a missing learner detail page as a Phase 7 failure.
 Record these values before testing:
 
 ```text
-Tester:
-Date/time:
-Commit:
-Host/OS:
-Browser/version:
+Tester: Nguyen Hoang Cong
+Date/time: 2026-08-20 01:20 (GMT +7)
+Commit: 39ab0226d8d29489f4bd709d02ba4653301d5449
+Host/OS: Windows 11
+Browser/version: Chromium 140.0.7339.16
 ```
 
 Prerequisites:
@@ -119,17 +121,17 @@ Restore valid scoring, save, and validate again.
 
 Expected:
 
-- [ ] The preview shows the unsaved title, including after a cold route load.
-- [ ] A persistent **Draft preview - not public** banner is visible.
-- [ ] The page uses learner-style content and labels, not raw editor fields.
-- [ ] **Desktop width** is initially selected.
-- [ ] **Mobile width** changes the preview frame without opening a public URL.
-- [ ] **Open public problem** and continuation controls are disabled before
+- [x] The preview shows the unsaved title, including after a cold route load.
+- [x] A persistent **Draft preview - not public** banner is visible.
+- [x] The page uses learner-style content and labels, not raw editor fields.
+- [x] **Desktop width** is initially selected.
+- [x] **Mobile width** changes the preview frame without opening a public URL.
+- [x] **Open public problem** and continuation controls are disabled before
       publication.
-- [ ] Pending translations appear only as author preview warnings.
-- [ ] No answer key, hidden tests, editorial note, revision ID, validation
+- [x] Pending translations appear only as author preview warnings.
+- [x] No answer key, hidden tests, editorial note, revision ID, validation
       internals, or object-storage metadata appears in learner content.
-- [ ] Previewing does not race autosave into a stale-version error.
+- [x] Previewing does not race autosave into a stale-version error.
 
 Return to the editor. Save or discard the temporary title change, then validate
 the current saved version again before continuing.
@@ -141,14 +143,16 @@ the current saved version again before continuing.
 
 Expected:
 
-- [ ] The visible status changes from **Draft** to **In review**.
+- [x] The visible status changes from **Draft** to **In review**.
 - [ ] Editing and draft-save controls cannot silently change the submitted
       revision.
-- [ ] Editorial history shows `DRAFT -> IN_REVIEW`, the exact note, actor
+TODO: Make revision read-only once it is no longer in DRAFT status 
+(i.e., IN_REVIEW, APPROVED, PUBLISHED, ARCHIVED, or CHANGES_REQUESTED).
+- [x] Editorial history shows `DRAFT -> IN_REVIEW`, the exact note, actor
       context, and timestamp.
-- [ ] History is ordered and visually separate from learner task status and
+- [x] History is ordered and visually separate from learner task status and
       learning evidence.
-- [ ] Reloading preserves the status and immutable history record.
+- [x] Reloading preserves the status and immutable history record.
 
 ## 7. Request changes and create a successor draft (`R0-07003`, `R0-07009`)
 
@@ -159,16 +163,21 @@ Expected:
 
 Expected:
 
-- [ ] Status changes to **Changes requested**.
-- [ ] History adds `IN_REVIEW -> CHANGES_REQUESTED` with the required note and
+- [x] Status changes to **Changes requested**.
+- [x] History adds `IN_REVIEW -> CHANGES_REQUESTED` with the required note and
       timestamp; the earlier entry remains unchanged.
-- [ ] **Address changes** creates a new revision in `DRAFT` rather than making
+- [x] **Address changes** creates a new revision in `DRAFT` rather than making
       the reviewed revision editable.
-- [ ] The successor has a new revision ID and next revision number/version.
-- [ ] Content, canonical metadata, response, scoring, resources, problem ID,
+- [x] The successor has a new revision ID and next revision number/version.
+- [x] Content, canonical metadata, response, scoring, resources, problem ID,
       and slug are copied accurately.
-- [ ] Refreshing or retrying does not create competing duplicate-current
+- [x] Refreshing or retrying does not create competing duplicate-current
       drafts.
+	__SUGGESTION__: Show explicit error instead of ambiguous one in 
+	author-problem-view apiError (e.g. when user tries to create duplicate
+	"address change" version).
+	__CRITICAL__: Allow authors to read reviewer's requests in old revision,
+	comply with ui_release_0.md.
 
 Make a small meaningful revision, save it, validate it, enter a new note, and
 select **Submit for review**.
@@ -180,12 +189,12 @@ select **Submit for review**.
 
 Expected:
 
-- [ ] Status changes from **In review** to **Approved**.
-- [ ] Approval requires a non-empty note and current valid revision.
-- [ ] History includes the approval decision with timestamp and note.
-- [ ] The problem is still absent from public eligibility.
-- [ ] Approval does not create a public snapshot or imply publication.
-- [ ] **Publish** appears only for the approved eligible revision.
+- [x] Status changes from **In review** to **Approved**.
+- [x] Approval requires a non-empty note and current valid revision.
+- [x] History includes the approval decision with timestamp and note.
+- [x] The problem is still absent from public eligibility.
+- [x] Approval does not create a public snapshot or imply publication.
+- [x] **Publish** appears only for the approved eligible revision.
 
 ## 9. Verify the publication confirmation (`R0-07007`, `R0-07008`)
 
@@ -194,22 +203,30 @@ Expected:
 
 Expected:
 
-- [ ] The dialog is named **Publish approved revision**.
-- [ ] It clearly shows the permanent path `/problems/{slug}`.
-- [ ] Copy distinguishes the permanent public URL from author Preview.
-- [ ] A publication note is required.
-- [ ] Focus enters and remains within the dialog while it is open.
-- [ ] Escape closes the dialog when no submission is in progress.
-- [ ] Closing returns focus to the **Publish** trigger.
-- [ ] Reopen the dialog; duplicate confirmation cannot be submitted while the
+- [x] The dialog is named **Publish approved revision**.
+- [x] It clearly shows the permanent path `/problems/{slug}`.
+- [x] Copy distinguishes the permanent public URL from author Preview.
+- [x] A publication note is required.
+- [x] Focus enters and remains within the dialog while it is open.
+	__SUGGESTION__: Add a backdrop overlay to block pointer events and implement 
+	a global focus trap to ensure background content is unreachable 
+	until the dialog is closed.
+- [x] Escape closes the dialog when no submission is in progress.
+- [x] Closing returns focus to the **Publish** trigger.
+- [x] Reopen the dialog; duplicate confirmation cannot be submitted while the
       first request is pending.
 
 Enter `Publish reviewed pilot content.` and confirm.
 
-- [ ] Status becomes **Published**.
-- [ ] The result shows a link whose `href` is exactly `/problems/{slug}`.
-- [ ] History includes the publish transition and note.
-- [ ] Save, approval, and publication remain visibly distinct actions.
+- [x] Status becomes **Published**.
+- [x] The result shows a link whose `href` is exactly `/problems/{slug}`.
+- [x] History includes the publish transition and note.
+- [x] Save, approval, and publication remain visibly distinct actions.
+
+	__CRITICAL__: Remaining on the editor page after a successful publication 
+	must immediately disable all input controls (Read-only). Currently, the UI 
+	still allows editing and saving, which incorrectly mutates the PUBLISHED 
+	revision directly in the database.
 
 Phase 8 owns the full learner detail page, so only the stable path and published
 projection are Phase 7 acceptance targets.
@@ -219,16 +236,16 @@ projection are Phase 7 acceptance targets.
 Use browser developer tools to inspect the successful publish request and
 response, or inspect the endpoint at <http://127.0.0.1:8000/docs>.
 
-- [ ] The request includes current `expected_version`, a required note, and an
+- [x] The request includes current `expected_version`, a required note, and an
       operation/idempotency key.
-- [ ] The response includes the stable slug, `/problems/{slug}`, publication
+- [x] The response includes the stable slug, `/problems/{slug}`, publication
       time, and snapshot reference without leaking draft content.
-- [ ] Replaying the same request and operation key returns the original logical
+- [x] Replaying the same request and operation key returns the original logical
       publication instead of creating a second snapshot/history event.
-- [ ] Reusing the key with changed publication intent returns a stable conflict.
-- [ ] A stale expected version or invalid transition returns a stable 409-style
+- [x] Reusing the key with changed publication intent returns a stable conflict.
+- [x] A stale expected version or invalid transition returns a stable 409-style
       error and changes no state.
-- [ ] No response exposes SQL, stack traces, provider errors, secrets, or object
+- [x] No response exposes SQL, stack traces, provider errors, secrets, or object
       keys.
 
 Do not invent request fields manually; copy the canonical schema and captured
@@ -243,13 +260,13 @@ payload from OpenAPI/browser tools.
 
 Expected:
 
-- [ ] A new `DRAFT` revision is created with a new revision identity.
-- [ ] The stable problem identity and slug are retained.
-- [ ] The new content appears in author preview only.
-- [ ] The current published snapshot remains unchanged and eligible.
-- [ ] Draft, in-review, changes-requested, and approved revisions never replace
+- [x] A new `DRAFT` revision is created with a new revision identity.
+- [x] The stable problem identity and slug are retained.
+- [x] The new content appears in author preview only.
+- [x] The current published snapshot remains unchanged and eligible.
+- [x] Draft, in-review, changes-requested, and approved revisions never replace
       the public snapshot.
-- [ ] Publishing the successor only after the normal validate/review/approve
+- [x] Publishing the successor only after the normal validate/review/approve
       flow replaces the current snapshot while preserving the same URL.
 
 If you publish the successor to test replacement, verify its status/history and
@@ -264,33 +281,38 @@ that the permanent path is identical to the first publication.
 
 Expected:
 
-- [ ] Empty archive notes are disabled or rejected.
-- [ ] The dialog is keyboard operable, closes safely, and returns focus.
-- [ ] Status becomes **Archived** with a visible text label.
-- [ ] History records `PUBLISHED -> ARCHIVED`, timestamp, actor context, and
+- [x] Empty archive notes are disabled or rejected.
+- [x] The dialog is keyboard operable, closes safely, and returns focus.
+	__SUGGESTION__: Add a backdrop overlay to block pointer events and 
+	implement a global focus trap to ensure background content is 
+	unreachable until the dialog is closed.
+- [x] Status becomes **Archived** with a visible text label.
+- [x] History records `PUBLISHED -> ARCHIVED`, timestamp, actor context, and
       exact note without deleting earlier history.
-- [ ] The current public pointer/eligibility is removed atomically.
-- [ ] The historical snapshot and slug remain internally preserved.
-- [ ] Retrying archive does not create duplicate successful transitions.
-- [ ] Archived content cannot be silently reactivated; republication requires
+- [x] The current public pointer/eligibility is removed atomically.
+- [x] The historical snapshot and slug remain internally preserved.
+- [x] Retrying archive does not create duplicate successful transitions.
+- [x] Archived content cannot be silently reactivated; republication requires
       a new revision through validation, review, approval, and publish.
+	__CRITICAL__: Allow authors to read archived content,
+	comply with ui_release_0.md.
 
 ## 13. Verify public/draft isolation (`R0-07011`, `R0-07012`)
 
 Keep both Studio and IOAI Learn open while exercising the workflow.
 
-- [ ] Draft, in-review, changes-requested, approved, superseded, and archived
+- [x] Draft, in-review, changes-requested, approved, superseded, and archived
       revisions never appear as public candidates.
-- [ ] Guessing a problem ID, revision ID, or preview identifier on a public
+- [x] Guessing a problem ID, revision ID, or preview identifier on a public
       route does not return unpublished content.
-- [ ] Public responses contain stable learner content only—no revision IDs,
+- [x] Public responses contain stable learner content only—no revision IDs,
       editorial notes/history, validation results, answer keys, hidden tests,
       internal scoring configuration, object metadata, or unavailable
       translations.
-- [ ] Preview state is not reachable through a public query parameter, slug,
+- [x] Preview state is not reachable through a public query parameter, slug,
       cache, recommendation source, or production learner bundle.
-- [ ] Archived problems are absent from current published eligibility.
-- [ ] Author routes can still retrieve the complete history after archive.
+- [x] Archived problems are absent from current published eligibility.
+- [x] Author routes can still retrieve the complete history after archive.
 
 Run the static cross-layer check:
 
@@ -298,8 +320,8 @@ Run the static cross-layer check:
 bash scripts/public_isolation_check.sh
 ```
 
-- [ ] The learner production build completes.
-- [ ] The script reports no known author-only markers in the learner bundle.
+- [x] The learner production build completes.
+- [x] The script reports no known author-only markers in the learner bundle.
 
 ## 14. Concurrency and rollback spot checks
 
@@ -309,8 +331,8 @@ bash scripts/public_isolation_check.sh
 2. Apply a valid transition in tab A.
 3. Attempt a different transition from stale tab B.
 
-- [ ] Tab B receives a stable conflict rather than overwriting tab A.
-- [ ] Only one accepted transition/history row exists.
+- [x] Tab B receives a stable conflict rather than overwriting tab A.
+- [x] Only one accepted transition/history row exists.
 
 ### Slug conflict
 
@@ -318,10 +340,10 @@ bash scripts/public_isolation_check.sh
    slug, if the UI permits the setup safely.
 2. Publish the first, then attempt to publish the second.
 
-- [ ] The second returns `SLUG_CONFLICT` or equivalent safe UI feedback.
-- [ ] No partial snapshot, public pointer, or `PUBLISHED` history entry is
+- [x] The second returns `SLUG_CONFLICT` or equivalent safe UI feedback.
+- [x] No partial snapshot, public pointer, or `PUBLISHED` history entry is
       created for the rejected problem.
-- [ ] The first published problem remains unchanged.
+- [x] The first published problem remains unchanged.
 
 Injected transaction failures and simultaneous publish races are primarily
 automated PostgreSQL checks; do not manipulate the database manually to create
@@ -332,17 +354,22 @@ them.
 Inspect Studio and Preview at widths `360`, `768`, `1024`, and `1440` px, and
 at 200% browser zoom.
 
-- [ ] Editorial status always has visible text and never relies on color alone.
-- [ ] Required notes have visible labels.
-- [ ] Keyboard-only navigation reaches validation issues, Preview, editorial
+- [x] Editorial status always has visible text and never relies on color alone.
+	__SUGGESTION__: Set distinct color for each editorial status.
+- [x] Required notes have visible labels.
+- [x] Keyboard-only navigation reaches validation issues, Preview, editorial
       notes/actions, publish/archive dialogs, and history.
-- [ ] Focus indicators remain visible.
+	__SUGGESTION__: add scroll-padding-bottom to html to ensure focused fields are 
+  not obscured by the sticky actions bar.
+- [x] Focus indicators remain visible.
 - [ ] Dialog focus is deterministic, trapped while open, restored on close,
       and not lost after validation errors.
-- [ ] Desktop/mobile preview width controls have accessible pressed states.
-- [ ] No required content or action becomes unreachable at supported widths or
+TODO: Add a backdrop overlay to block pointer events and implement a global focus
+trap to ensure background content is unreachable until the dialog is closed.
+- [x] Desktop/mobile preview width controls have accessible pressed states.
+- [x] No required content or action becomes unreachable at supported widths or
       200% zoom.
-- [ ] The striped non-public preview banner remains prominent at every width.
+- [x] The striped non-public preview banner remains prominent at every width.
 
 ## 16. Automated corroboration
 
@@ -364,15 +391,15 @@ bash scripts/phase7_quality.sh
 
 Expected:
 
-- [ ] Ruff formatting/linting and Pyright pass.
-- [ ] All pytest unit and PostgreSQL integration tests pass.
-- [ ] ESLint, strict TypeScript, frontend unit/component tests, and both Next.js
+- [x] Ruff formatting/linting and Pyright pass.
+- [x] All pytest unit and PostgreSQL integration tests pass.
+- [x] ESLint, strict TypeScript, frontend unit/component tests, and both Next.js
       production builds pass.
-- [ ] Vocabulary, OpenAPI/generated-client, and Alembic-head checks pass.
-- [ ] Public isolation scan passes.
-- [ ] PostgreSQL, migrations, API, Learn, and Studio redeploy healthy.
-- [ ] The focused Chromium workflow passes after redeployment.
-- [ ] Every skipped or failing gate is recorded; Phase 7 is not accepted while
+- [x] Vocabulary, OpenAPI/generated-client, and Alembic-head checks pass.
+- [x] Public isolation scan passes.
+- [x] PostgreSQL, migrations, API, Learn, and Studio redeploy healthy.
+- [x] The focused Chromium workflow passes after redeployment.
+- [x] Every skipped or failing gate is recorded; Phase 7 is not accepted while
       a required result is unknown.
 
 For only the browser workflow against an already healthy stack:
@@ -384,24 +411,30 @@ bash scripts/test_editorial_e2e.sh
 ## 17. Final result record
 
 ```text
-Stack, migration, and health:             PASS / FAIL
-Eligible draft and validation blocking:   PASS / FAIL
-Unsaved responsive preview:               PASS / FAIL
-Submit and audit history:                  PASS / FAIL
-Request changes and successor revision:   PASS / FAIL
-Approval remains non-public:              PASS / FAIL
-Publish confirmation and stable URL:       PASS / FAIL
-Idempotency and safe errors:               PASS / FAIL
-Published revision isolation:              PASS / FAIL
-Archive and explicit republication:        PASS / FAIL
-Public/draft isolation:                    PASS / FAIL
-Concurrency and rollback spot checks:      PASS / FAIL / AUTOMATED ONLY
-Accessibility and responsive behavior:     PASS / FAIL
-Automated corroboration:                   PASS / FAIL / NOT RUN
+Stack, migration, and health:             PASS
+Eligible draft and validation blocking:   PASS
+Unsaved responsive preview:               PASS
+Submit and audit history:                  FAIL
+Request changes and successor revision:   PASS
+Approval remains non-public:              PASS
+Publish confirmation and stable URL:       PASS
+Idempotency and safe errors:               PASS
+Published revision isolation:              PASS
+Archive and explicit republication:        PASS
+Public/draft isolation:                    PASS
+Concurrency and rollback spot checks:      PASS
+Accessibility and responsive behavior:     FAIL
+Automated corroboration:                   PASS
 
 Defects found:
+1. Revision Read-Only: Submitted, approved, published, or archived revisions can still be silently edited and saved in the editor (revisions should be made read-only once they leave DRAFT status).
+2. Post-Publication Direct Mutation: UI does not disable input controls immediately after successful publication, allowing direct mutation of a PUBLISHED revision in the database.
+3. Focus Trap and Backdrop: Publish/Archive confirmation dialogs do not block background pointer events or trap keyboard focus within the dialog, nor do they reliably restore focus to the trigger upon closing.
+4. Read Archived Content: UI/API does not support reading archived content properly, violating the requirements in ui_release_0.md.
 
 Evidence (screenshots, request IDs, logs, traces):
+- Unchecked checklists and CRITICAL/TODO notes in sections 6, 9, 12, and 15 of this manual_R0_P7.md document.
+- E2E tests verified via scripts/phase7_quality.sh and scripts/test_editorial_e2e.sh.
 
-Overall Phase 7 result:                    PASS / FAIL
+Overall Phase 7 result:                    FAIL
 ```
