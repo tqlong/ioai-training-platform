@@ -7,7 +7,7 @@ test.describe.serial('Release 0 learner solving loop', () => {
   let problems: Record<string, string>;
 
   test.beforeAll(async ({ request }) => {
-    const prefix = `learner-e2e-${Date.now()}`;
+    const prefix = `learner-e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     problems = {
       single: await publish(request, `${prefix}-single`, 'QUIZ_SINGLE'),
       multiple: await publish(request, `${prefix}-multiple`, 'QUIZ_MULTIPLE'),
@@ -182,7 +182,7 @@ test.describe.serial('Release 0 learner solving loop', () => {
     let response;
     for (let index = 0; index < 6; index += 1) {
       response = await request.post(`${apiBase}/problems/${problems.single}/feedback`, {
-        data: { feedback_key: `abuse-${Date.now()}-${index}`, category: 'OTHER', message: 'Bounded report.' },
+        data: { feedback_key: `abuse-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${index}`, category: 'OTHER', message: 'Bounded report.' },
       });
     }
     expect(response?.status()).toBe(429);

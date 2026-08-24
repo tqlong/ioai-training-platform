@@ -13,7 +13,7 @@ const learnBase = process.env.LEARN_BASE_URL ?? 'http://127.0.0.1:3000';
 const studioBase = process.env.STUDIO_BASE_URL ?? 'http://127.0.0.1:3001';
 
 test('runs the snapshot-bound human queue, result, and correction journey', async ({ page, request }) => {
-  const slug = `assessment-system-${Date.now()}`;
+  const slug = `assessment-system-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const published = await createHumanProblem(request, slug, 'PUBLISHED');
 
   await page.goto(`${learnBase}/problems/${slug}`);
@@ -126,7 +126,7 @@ test('runs the snapshot-bound human queue, result, and correction journey', asyn
 });
 
 test('preserves the automated part of mixed scoring and redacts private rubric data', async ({ request }) => {
-  const slug = `assessment-mixed-${Date.now()}`;
+  const slug = `assessment-mixed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   await createHumanProblem(request, slug, 'PUBLISHED', 'MIXED');
   const receipt = `mixed-private-${slug}`;
   const pendingResponse = await request.post(`${apiBase}/problems/${slug}/submissions`, {
@@ -199,7 +199,7 @@ test('preserves the automated part of mixed scoring and redacts private rubric d
 });
 
 test('keeps storage-disabled mobile submission and keyboard assessment usable', async ({ page, request }) => {
-  const slug = `assessment-mobile-${Date.now()}`;
+  const slug = `assessment-mobile-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   await createHumanProblem(request, slug, 'PUBLISHED');
   await page.addInitScript(() => {
     Object.defineProperty(Storage.prototype, 'getItem', {

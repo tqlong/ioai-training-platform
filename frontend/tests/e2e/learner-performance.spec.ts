@@ -9,7 +9,7 @@ test.describe('Release 0 production learner budgets', () => {
   let privateDraft: ProblemFixture;
 
   test.beforeAll(async ({ request }) => {
-    const prefix = `learner-performance-${Date.now()}`;
+    const prefix = `learner-performance-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     privateDraft = await createHumanProblem(request, `${prefix}-private-draft`, 'DRAFT');
     published = await createHumanProblem(request, `${prefix}-published`, 'PUBLISHED');
   });

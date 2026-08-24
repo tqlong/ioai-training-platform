@@ -16,7 +16,7 @@ test.describe.serial('Release 0 accessibility and responsive system checks', () 
   let attemptId: string;
 
   test.beforeAll(async ({ request }) => {
-    const prefix = `a11y-system-${Date.now()}`;
+    const prefix = `a11y-system-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     approved = await createHumanProblem(request, `${prefix}-approved`, 'APPROVED');
     published = await createHumanProblem(request, `${prefix}-published`, 'PUBLISHED');
     ({ attemptId } = await submitPendingAnswer(request, published.slug));

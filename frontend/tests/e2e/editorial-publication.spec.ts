@@ -17,7 +17,7 @@ test('completes the full editorial publication, successor, archive, and republis
   const created = await createdResponse.json() as {
     problem_id: string; revision_id: string; version: number;
   };
-  const slug = `editorial-e2e-${Date.now()}`;
+  const slug = `editorial-e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const localized = (en: string, vi: string) => ({
     en, vi, en_state: 'COMPLETE', vi_state: 'COMPLETE',
   });
@@ -163,7 +163,7 @@ test('completes the full editorial publication, successor, archive, and republis
 });
 
 test('recovers a failed autosave and explicitly resolves a stale draft conflict', async ({ page, request }) => {
-  const slug = `editorial-recovery-${Date.now()}`;
+  const slug = `editorial-recovery-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const fixture = await createHumanProblem(request, slug, 'DRAFT');
   await page.goto(`/author/problems/${fixture.problemId}`);
   await waitForEditorPolicies(page);
@@ -234,7 +234,7 @@ test('focuses the first validation blocker and identifies unavailable canonical 
 });
 
 test('keeps unsaved learner preview usable at a mobile Studio viewport', async ({ page, request }) => {
-  const fixture = await createHumanProblem(request, `editorial-mobile-${Date.now()}`, 'DRAFT');
+  const fixture = await createHumanProblem(request, `editorial-mobile-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, 'DRAFT');
   await page.goto(`/author/problems/${fixture.problemId}`);
   await waitForEditorPolicies(page);
   await page.getByRole('textbox', { name: 'English title' }).fill('Unsaved mobile preview title');
