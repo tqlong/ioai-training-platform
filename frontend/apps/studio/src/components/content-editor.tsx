@@ -94,7 +94,7 @@ export function ContentEditor({
     return (
     <div className="editor-field">
       <div className="field-label-row">
-        <label htmlFor={inputId}>{languageName} {label}</label>
+        <label htmlFor={inputId}>{languageName} {label}<span aria-hidden="true" className="required-star"> *</span></label>
         <FieldHelp id={guidanceId} label={`${label[0]?.toUpperCase()}${label.slice(1)} help`} text={fieldHelp[label] ?? `Complete the ${label} for the learner.`} />
       </div>
       {multiline ? (

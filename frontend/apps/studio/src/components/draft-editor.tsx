@@ -18,7 +18,10 @@ import {
 } from './curriculum-editor';
 import {
   AssessmentEditor,
+  ConfirmResponseTypeModal,
   emptyAssessmentDraft,
+  hasCustomResponseData,
+  responseTypes,
   type AssessmentDraft,
   type ResponseType,
 } from './assessment-editor';
@@ -39,11 +42,13 @@ export function DraftEditor({
   initialDraft,
   saveDraft = studioApi.saveAuthorDraft,
   reloadDraft = studioApi.getAuthorDraft,
+  validateDraft = studioApi.validateAuthorDraft,
   autosaveDelay = 1200,
 }: {
   initialDraft: AuthorDraft;
   saveDraft?: SaveFunction;
   reloadDraft?: (problemId: string) => Promise<AuthorDraft>;
+  validateDraft?: (revisionId: string, version: number) => Promise<ValidationReport>;
   autosaveDelay?: number;
 }) {
   const initialAutoSlug = initialDraft.slug === null && isContentDraft(initialDraft.content)
@@ -78,6 +83,10 @@ export function DraftEditor({
   const [recoveryAvailable, setRecoveryAvailable] = useState(false);
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [validationFailed, setValidationFailed] = useState(false);
+  const [pendingCurriculumChange, setPendingCurriculumChange] = useState<{
+    nextCurriculum: CurriculumDraft;
+    targetType: ResponseType;
+  } | null>(null);
   const previewing = useRef(false);
   const recoveryKey = `ioai:studio:recovery:${initialDraft.revision_id}`;
 
@@ -145,12 +154,37 @@ export function DraftEditor({
     setAssessment(stored.assessment); setResources(stored.resources);
     setDirtyFields(new Set(['recovered'])); setSaveState('idle'); setRecoveryAvailable(false);
   };
+  const invalidateValidation = () => {
+    setValidationReport(null);
+    setValidationFailed(false);
+  };
   const useServer = async () => {
     const current = await reloadDraft(draft.problem_id);
     safeRemoveRecovery(recoveryKey);
-    setDraft(current); setSlug(current.slug ?? ''); setDirtyFields(new Set());
+    setDraft(current);
+    setSlug(current.slug ?? '');
     setSlugManuallyEdited(current.slug !== null);
-    setConflict(false); setRecoveryAvailable(false); setSaveState('saved');
+    setContent(isContentDraft(current.content) ? current.content : emptyContentDraft());
+    setCurriculum(
+      isCurriculumDraft(current.metadata)
+        ? curriculumFromMetadata(current.metadata)
+        : emptyCurriculumDraft(),
+    );
+    setAssessment(
+      isAssessmentDraft(current.response, current.scoring)
+        ? ({ response: current.response, scoring: current.scoring, scoringValid: true } as AssessmentDraft)
+        : emptyAssessmentDraft('QUIZ_SINGLE'),
+    );
+    setResources(
+      isResourceMetadata(current.metadata)
+        ? resourceFromMetadata(current.metadata)
+        : emptyResourceDraft(),
+    );
+    setDirtyFields(new Set());
+    invalidateValidation();
+    setConflict(false);
+    setRecoveryAvailable(false);
+    setSaveState('saved');
   };
   const keepLocal = async () => {
     const current = await reloadDraft(draft.problem_id);
@@ -174,11 +208,40 @@ export function DraftEditor({
         </div>
       </div>
 
+      {recoveryAvailable && (
+        <aside aria-labelledby="recovery-title" className="recovery-banner" role="region">
+          <div className="recovery-banner-content">
+            <div>
+              <h2 id="recovery-title" className="recovery-banner-heading">Recover unsaved draft</h2>
+              <p>A local recovery copy exists for this revision. Review its target before choosing.</p>
+            </div>
+            <div className="recovery-banner-actions">
+              <button className="recovery-restore-btn" onClick={restoreRecovery} type="button">
+                Restore local copy
+              </button>
+              <button
+                className="recovery-discard-btn"
+                onClick={() => {
+                  safeRemoveRecovery(recoveryKey);
+                  setRecoveryAvailable(false);
+                }}
+                type="button"
+              >
+                Discard local copy
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
+
       <nav aria-label="Editor sections" className="editor-sections">
         {['Basics', 'Content', 'Curriculum', 'Response & scoring', 'Resources', 'Review & publish'].map((label) => (
           <a href={`#${label.toLowerCase().replaceAll(/[^a-z]+/g, '-')}`} key={label}>{label}</a>
         ))}
       </nav>
+
+      {validationFailed && <p role="alert">Validation could not be completed for the current saved version.</p>}
+      {validationReport && <ValidationPanel report={validationReport} />}
 
       <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
         <section aria-labelledby="basics-heading" className="editor-section" id="basics">
@@ -193,10 +256,12 @@ export function DraftEditor({
               aria-label="URL slug"
               id="field-slug"
               onChange={(event) => {
-                setSlug(event.target.value);
-                setSlugManuallyEdited(true);
+                const nextSlug = event.target.value;
+                setSlug(nextSlug);
+                setSlugManuallyEdited(nextSlug.trim().length > 0);
                 setDirtyFields((current) => new Set(current).add('slug'));
                 setSaveState('idle');
+                invalidateValidation();
               }}
               pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
               placeholder="generated-after-title"
@@ -211,15 +276,34 @@ export function DraftEditor({
             if (!slugManuallyEdited) setSlug(slugify(next.title.en));
             setDirtyFields((current) => new Set(current).add('content'));
             setSaveState('idle');
+            invalidateValidation();
           }}
           value={content}
         />
 
         <CurriculumEditorLoader
           onChange={(next) => {
+            const nextTaskTypeCode = next.task_type?.[1];
+            const currentTaskTypeCode = curriculum.task_type?.[1];
+            if (
+              nextTaskTypeCode &&
+              nextTaskTypeCode !== currentTaskTypeCode &&
+              (responseTypes as readonly string[]).includes(nextTaskTypeCode)
+            ) {
+              const targetType = nextTaskTypeCode as ResponseType;
+              if (targetType !== assessment.response.type) {
+                if (hasCustomResponseData(assessment.response)) {
+                  setPendingCurriculumChange({ nextCurriculum: next, targetType });
+                  return;
+                }
+                setAssessment(emptyAssessmentDraft(targetType));
+                setDirtyFields((current) => new Set(current).add('assessment'));
+              }
+            }
             setCurriculum(next);
             setDirtyFields((current) => new Set(current).add('metadata'));
             setSaveState('idle');
+            invalidateValidation();
           }}
           value={curriculum}
         />
@@ -227,8 +311,16 @@ export function DraftEditor({
         <AssessmentEditor
           onChange={(next) => {
             setAssessment(next);
+            if (next.response.type !== assessment.response.type) {
+              setCurriculum((prev) => ({
+                ...prev,
+                task_type: ['TASK_TYPE', next.response.type],
+              }));
+              setDirtyFields((current) => new Set(current).add('metadata'));
+            }
             setDirtyFields((current) => new Set(current).add('assessment'));
             setSaveState('idle');
+            invalidateValidation();
           }}
           value={assessment}
         />
@@ -238,13 +330,14 @@ export function DraftEditor({
             setResources(next);
             setDirtyFields((current) => new Set(current).add('resources'));
             setSaveState('idle');
+            invalidateValidation();
           }}
           value={resources}
         />
 
         <div className="editor-actions">
           <button disabled={!isDirty || saveState === 'saving'} type="submit">Save draft</button>
-          <button disabled={isDirty} onClick={async () => { try { setValidationFailed(false); setValidationReport(await studioApi.validateAuthorDraft(draft.revision_id, draft.version)); } catch { setValidationFailed(true); } }} title={isDirty ? 'Save the current changes before validation.' : undefined} type="button">Validate draft</button>
+          <button disabled={isDirty} onClick={async () => { try { setValidationFailed(false); setValidationReport(await validateDraft(draft.revision_id, draft.version)); } catch { setValidationFailed(true); } }} title={isDirty ? 'Save the current changes before validation.' : undefined} type="button">Validate draft</button>
           <Link
             href={`/author/problems/${draft.problem_id}/preview`}
             onClick={() => {
@@ -266,8 +359,6 @@ export function DraftEditor({
           >Preview as learner</Link>
         </div>
       </form>
-      {validationFailed && <p role="alert">Validation could not be completed for the current saved version.</p>}
-      {validationReport && <ValidationPanel report={validationReport} />}
       <EditorialReviewWorkspace
         dirty={isDirty}
         draft={draft}
@@ -277,7 +368,21 @@ export function DraftEditor({
           setValidationFailed(false);
         }}
       />
-      {recoveryAvailable && <dialog aria-labelledby="recovery-title" open><h2 id="recovery-title">Recover unsaved draft</h2><p>A local recovery copy exists for this revision. Review its target before choosing.</p><button onClick={restoreRecovery} type="button">Restore local copy</button><button onClick={() => { safeRemoveRecovery(recoveryKey); setRecoveryAvailable(false); }} type="button">Discard local copy</button></dialog>}
+      {pendingCurriculumChange && (
+        <ConfirmResponseTypeModal
+          onCancel={() => setPendingCurriculumChange(null)}
+          onConfirm={() => {
+            const { nextCurriculum, targetType } = pendingCurriculumChange;
+            setPendingCurriculumChange(null);
+            setCurriculum(nextCurriculum);
+            setAssessment(emptyAssessmentDraft(targetType));
+            setDirtyFields((current) => new Set(current).add('metadata').add('assessment'));
+            setSaveState('idle');
+            invalidateValidation();
+          }}
+          pendingType={pendingCurriculumChange.targetType}
+        />
+      )}
       {conflict && <dialog aria-labelledby="conflict-title" open><h2 id="conflict-title">Resolve draft conflict</h2><p>The server has a newer revision. Your local recovery copy for version {draft.version} has been retained.</p><button onClick={() => { void keepLocal(); }} type="button">Keep local changes and retry</button><button onClick={() => { void useServer(); }} type="button">Use server version</button><button onClick={() => setConflict(false)} type="button">Review differences before resolving</button></dialog>}
     </section>
   );

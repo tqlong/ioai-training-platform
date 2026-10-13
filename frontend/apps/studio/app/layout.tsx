@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import './globals.css';
+import { StudioHeader } from '../src/components/studio-header';
 
 export const metadata = {
   title: 'IOAI Studio',
@@ -11,15 +11,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <header>
-          <nav aria-label="Primary">
-            <Link href="/author/problems">IOAI Studio</Link>
-            <span>•</span>
-            <Link href="/author/assessments">Assessment queue</Link>
-            <span>•</span>
-            <Link href="/">Home</Link>
-          </nav>
-        </header>
+        <StudioHeader />
         <main>{children}</main>
       </body>
     </html>

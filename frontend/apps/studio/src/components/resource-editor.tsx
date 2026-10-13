@@ -57,7 +57,7 @@ export function ResourceEditor({ value, onChange, vocabulary }: { value: Resourc
   const numeric = (field: keyof ResourceDraft, raw: string) => onChange({ ...value, [field]: Number(raw) });
   return <section aria-labelledby="resources-heading" className="editor-section" id="resources">
     <h2 id="resources-heading">Resources &amp; Release 0 policy</h2>
-    <label><span>Expected minutes</span><input aria-label="Expected minutes" id="field-metadata-expected-minutes" min="1" onChange={(event) => numeric('expected_minutes', event.target.value)} required type="number" value={value.expected_minutes} /></label>
+    <label><span>Expected minutes<span aria-hidden="true" className="required-star"> *</span></span><input aria-label="Expected minutes" id="field-metadata-expected-minutes" min="1" onChange={(event) => numeric('expected_minutes', event.target.value)} required type="number" value={value.expected_minutes} /></label>
     <p>Derived duration: {duration(value.expected_minutes)}</p>
     <fieldset><legend>Data modalities</legend>{byType('DATA_MODALITY').map((item) => <label className="choice-row" key={item.identity.code}><input checked={value.modalities.some((selected) => selected[1] === item.identity.code)} disabled={!item.availability.is_available} onChange={(event) => toggleModality(item.identity.code, event.target.checked)} type="checkbox" /><span>{item.labels.en} [{item.identity.code}]</span></label>)}{!value.modalities.length && <p role="alert">Select at least one data modality.</p>}</fieldset>
     <div className="field-grid">

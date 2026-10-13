@@ -18,6 +18,53 @@ describe('response and scoring editor', () => {
     expect(value.response).not.toHaveProperty('expected');
   });
 
+  it('prompts before switching response type when custom response data exists, and preserves data on cancel', () => {
+    let value = emptyAssessmentDraft('NUMERIC_ANSWER');
+    value.response.expected = '42';
+    const { rerender } = render(
+      <AssessmentEditor
+        onChange={(next) => { value = next; }}
+        value={value}
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Response type' }), { target: { value: 'CODE_FUNCTION' } });
+    expect(screen.getByRole('dialog', { name: 'Change response type' })).toBeTruthy();
+    expect(screen.getByTestId('modal-warning-icon')).toBeTruthy();
+    expect(screen.getByTestId('modal-backdrop')).toBeTruthy();
+    expect(screen.getByText(/discard your current response configuration/i)).toBeTruthy();
+    const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+    const confirmBtn = screen.getByRole('button', { name: 'Confirm change' });
+    const modalDialog = screen.getByRole('dialog', { name: 'Change response type' });
+    expect(document.activeElement).toBe(cancelBtn);
+
+    // Focus trap: Tab on Cancel wraps to Confirm
+    fireEvent.keyDown(cancelBtn, { key: 'Tab' });
+    expect(document.activeElement).toBe(confirmBtn);
+
+    // Focus trap: Shift+Tab on Confirm wraps back to Cancel
+    fireEvent.keyDown(confirmBtn, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(cancelBtn);
+
+    // Escape closes modal and restores scroll
+    fireEvent.keyDown(modalDialog, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Change response type' })).toBeNull();
+    expect(document.body.style.overflow).toBe('');
+    expect(value.response.type).toBe('NUMERIC_ANSWER');
+    expect(value.response.expected).toBe('42');
+
+    // Trigger dialog again and confirm
+    fireEvent.change(screen.getByRole('combobox', { name: 'Response type' }), { target: { value: 'CODE_FUNCTION' } });
+    expect(screen.getByRole('dialog', { name: 'Change response type' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm change' }));
+
+    expect(screen.queryByRole('dialog', { name: 'Change response type' })).toBeNull();
+    expect(value.response.type).toBe('CODE_FUNCTION');
+    expect(value.response).not.toHaveProperty('expected');
+    rerender(<AssessmentEditor onChange={(next) => { value = next; }} value={value} />);
+    expect(screen.getByRole('textbox', { name: 'Function signature' })).toBeTruthy();
+  });
+
   it('supports keyboard-safe repeated quiz choices', () => {
     let value = emptyAssessmentDraft('QUIZ_SINGLE');
     const { rerender } = render(<AssessmentEditor onChange={(next) => { value = next; }} value={value} />);

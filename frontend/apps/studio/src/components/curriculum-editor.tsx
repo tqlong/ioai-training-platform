@@ -98,9 +98,10 @@ export function CurriculumEditor({
     type: string,
     selected: CanonicalIdentity | null,
     update: (next: CanonicalIdentity | null) => void,
+    required = true,
   ) => (
     <label>
-      <span>{label}</span>
+      <span>{label}{required && <span aria-hidden="true" className="required-star"> *</span>}</span>
       <select
         aria-label={label}
         id={`field-metadata-${label.toLowerCase().replaceAll(' ', '-')}`}
@@ -195,7 +196,7 @@ export function CurriculumEditor({
                 onChange={(event) => toggleTopic(item, event.target.checked)}
                 type="checkbox"
               />
-              <span>[TOPIC] {item.labels.en}<small>{item.breadcrumbs.map((part) => part.code).join(' / ')}</small></span>
+              <span>[TOPIC] {item.labels.en}{item.labels.vi ? ` · ${item.labels.vi}` : ''}<small>{item.breadcrumbs.map((part) => part.code).join(' / ')}</small></span>
             </label>
           ))}
         </div>

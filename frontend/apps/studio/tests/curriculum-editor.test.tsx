@@ -118,4 +118,10 @@ describe('canonical curriculum editor', () => {
     render(<CurriculumEditor onChange={() => undefined} value={value} vocabulary={[...vocabulary, unavailable]} />);
     expect(screen.getByRole('alert').textContent).toContain('Select an available Release 0 pathway stage');
   });
+
+  it('displays Vietnamese translation alongside English label for topics', () => {
+    const value = emptyCurriculumDraft();
+    render(<CurriculumEditor onChange={() => undefined} value={value} vocabulary={vocabulary} />);
+    expect(screen.getByText(/Confusion Matrix · VI Confusion Matrix/)).toBeTruthy();
+  });
 });

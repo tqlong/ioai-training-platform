@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
+
 export const responseTypes = ['QUIZ_SINGLE', 'QUIZ_MULTIPLE', 'NUMERIC_ANSWER', 'SHORT_ANSWER', 'CODE_FUNCTION'] as const;
 export type ResponseType = typeof responseTypes[number];
 type TranslationState = 'COMPLETE' | 'PENDING';
@@ -61,9 +63,56 @@ const decimalTotal = (weights: string[]): string => {
   return fraction ? `${whole}.${fraction}` : `${whole}.0`;
 };
 
-export function AssessmentEditor({ value, onChange }: { value: AssessmentDraft; onChange: (value: AssessmentDraft) => void }) {
+export const hasCustomResponseData = (response: ResponseDraft): boolean => {
+  if (response.type === 'QUIZ_SINGLE' || response.type === 'QUIZ_MULTIPLE') {
+    const choices = (response.choices ?? []) as Choice[];
+    const hasChoiceContent = choices.some(
+      (c) => Boolean(c.content.en.trim()) || Boolean(c.content.vi.trim()),
+    );
+    const hasCorrectChoice = Boolean(response.correct_choice_id)
+      || ((response.correct_choice_ids as string[] | undefined)?.length ?? 0) > 0;
+    return hasChoiceContent || hasCorrectChoice || choices.length > 2;
+  }
+  if (response.type === 'NUMERIC_ANSWER') {
+    return Boolean(String(response.expected ?? '').trim()) || Boolean(response.unit);
+  }
+  if (response.type === 'SHORT_ANSWER') {
+    const ref = response.reference_answer as Localized | undefined;
+    const hasRef = Boolean(ref?.en.trim()) || Boolean(ref?.vi.trim());
+    const hasKeywords = ((response.accepted_keywords as string[] | undefined)?.length ?? 0) > 0;
+    return hasRef || hasKeywords || Boolean(response.rubric_guidance);
+  }
+  if (response.type === 'CODE_FUNCTION') {
+    const hasCode = Boolean(String(response.signature ?? '').trim())
+      || Boolean(String(response.starter_code ?? '').trim());
+    const publicTests = (response.public_tests as TestCase[] | undefined) ?? [];
+    const hiddenTests = (response.hidden_tests as TestCase[] | undefined) ?? [];
+    const hasTests = publicTests.some(
+      (t) => Boolean(t.invocation.trim()) || Boolean(t.expected.trim()),
+    ) || hiddenTests.length > 0;
+    return hasCode || hasTests || Boolean(response.rubric_guidance);
+  }
+  return false;
+};
+
+export function AssessmentEditor({
+  value,
+  onChange,
+}: {
+  value: AssessmentDraft;
+  onChange: (value: AssessmentDraft) => void;
+}) {
+  const [pendingType, setPendingType] = useState<ResponseType | null>(null);
+
   const updateResponse = (patch: Record<string, unknown>) => onChange({ ...value, response: { ...value.response, ...patch } });
-  const changeType = (type: ResponseType) => onChange(emptyAssessmentDraft(type));
+  const changeType = (type: ResponseType) => {
+    if (type === value.response.type) return;
+    if (hasCustomResponseData(value.response)) {
+      setPendingType(type);
+      return;
+    }
+    onChange(emptyAssessmentDraft(type));
+  };
   const components = value.scoring.components;
   const total = decimalTotal(components.map((item) => item.weight));
   const valid = total === '1.0' && components.every((item) => /^\d+(?:\.\d+)?$/.test(item.weight) && Number(item.weight) > 0);
@@ -78,13 +127,115 @@ export function AssessmentEditor({ value, onChange }: { value: AssessmentDraft; 
 
   return <section aria-labelledby="assessment-heading" className="editor-section" id="response-scoring">
     <h2 id="assessment-heading">Response &amp; scoring</h2>
-    <label><span>Response type</span><select aria-label="Response type" id="field-response-response-type" onChange={(event) => changeType(event.target.value as ResponseType)} value={value.response.type}>{responseTypes.map((type) => <option key={type} value={type}>{type.replaceAll('_', ' ')}</option>)}</select></label>
+    <label><span>Response type<span aria-hidden="true" className="required-star"> *</span></span><select aria-label="Response type" id="field-response-response-type" onChange={(event) => changeType(event.target.value as ResponseType)} value={value.response.type}>{responseTypes.map((type) => <option key={type} value={type}>{type.replaceAll('_', ' ')}</option>)}</select></label>
     {(value.response.type === 'QUIZ_SINGLE' || value.response.type === 'QUIZ_MULTIPLE') && <QuizFields response={value.response} update={updateResponse} />}
-    {value.response.type === 'NUMERIC_ANSWER' && <div className="field-grid"><label><span>Expected value</span><input aria-label="Expected value" onChange={(event) => updateResponse({ expected: event.target.value })} step="any" type="number" value={String(value.response.expected)} /></label><label><span>Absolute tolerance</span><input aria-label="Absolute tolerance" min="0" onChange={(event) => updateResponse({ absolute_tolerance: event.target.value })} step="any" type="number" value={String(value.response.absolute_tolerance)} /></label><label><span>Unit (optional)</span><input onChange={(event) => updateResponse({ unit: event.target.value || null })} value={String(value.response.unit ?? '')} /></label></div>}
+    {value.response.type === 'NUMERIC_ANSWER' && <div className="field-grid"><label><span>Expected value<span aria-hidden="true" className="required-star"> *</span></span><input aria-label="Expected value" onChange={(event) => updateResponse({ expected: event.target.value })} step="any" type="number" value={String(value.response.expected)} /></label><label><span>Absolute tolerance</span><input aria-label="Absolute tolerance" min="0" onChange={(event) => updateResponse({ absolute_tolerance: event.target.value })} step="any" type="number" value={String(value.response.absolute_tolerance)} /></label><label><span>Unit (optional)</span><input onChange={(event) => updateResponse({ unit: event.target.value || null })} value={String(value.response.unit ?? '')} /></label></div>}
     {value.response.type === 'SHORT_ANSWER' && <ShortAnswerFields response={value.response} update={updateResponse} />}
     {value.response.type === 'CODE_FUNCTION' && <CodeFields response={value.response} update={updateResponse} />}
-    <fieldset><legend>Scoring components</legend><label><span>Pass threshold</span><input aria-label="Pass threshold" max="1" min="0" onChange={event => onChange({ ...value, scoring: { ...value.scoring, pass_threshold: event.target.value } })} step="0.01" type="number" value={threshold} /></label>{components.map((component, index) => <div className="repeated-row" key={index}><label><span>Method {index + 1}</span><select aria-label={`Scoring method ${index + 1}`} onChange={(event) => updateComponents(components.map((item, itemIndex) => itemIndex === index ? { ...item, method: event.target.value, configuration: event.target.value === 'RUBRIC_HUMAN' ? rubric() : null } : item))} value={component.method}>{(value.response.type === 'CODE_FUNCTION' ? ['UNIT_TESTS', 'PARTIAL_TESTS', 'RUBRIC_HUMAN'] : ['EXACT_MATCH', 'RUBRIC_HUMAN']).map((method) => <option key={method}>{method}</option>)}</select></label><label><span>Weight {index + 1}</span><input aria-label={`Scoring weight ${index + 1}`} inputMode="decimal" onChange={(event) => updateComponents(components.map((item, itemIndex) => itemIndex === index ? { ...item, weight: event.target.value } : item))} value={component.weight} /></label>{component.method === 'RUBRIC_HUMAN' ? <RubricEditor value={component.configuration as HumanRubric} onChange={configuration => updateComponents(components.map((item, itemIndex) => itemIndex === index ? { ...item, configuration } : item))} /> : null}{components.length > 1 && <button aria-label={`Remove scoring component ${index + 1}`} onClick={() => updateComponents(components.filter((_, itemIndex) => itemIndex !== index))} type="button">Remove</button>}</div>)}<button onClick={() => updateComponents([...components, { method: defaultMethod(value.response.type), weight: '', configuration: null }])} type="button">Add scoring component</button><p>Exact total: {total}</p>{!valid && <p role="alert">Scoring weights must be positive decimals and must total exactly 1.0.</p>}</fieldset>
+    <fieldset><legend>Scoring components</legend><label><span>Pass threshold<span aria-hidden="true" className="required-star"> *</span></span><input aria-label="Pass threshold" max="1" min="0" onChange={event => onChange({ ...value, scoring: { ...value.scoring, pass_threshold: event.target.value } })} step="0.01" type="number" value={threshold} /></label>{components.map((component, index) => <div className="repeated-row" key={index}><label><span>Method {index + 1}</span><select aria-label={`Scoring method ${index + 1}`} onChange={(event) => updateComponents(components.map((item, itemIndex) => itemIndex === index ? { ...item, method: event.target.value, configuration: event.target.value === 'RUBRIC_HUMAN' ? rubric() : null } : item))} value={component.method}>{(value.response.type === 'CODE_FUNCTION' ? ['UNIT_TESTS', 'PARTIAL_TESTS', 'RUBRIC_HUMAN'] : ['EXACT_MATCH', 'RUBRIC_HUMAN']).map((method) => <option key={method}>{method}</option>)}</select></label><label><span>Weight {index + 1}</span><input aria-label={`Scoring weight ${index + 1}`} inputMode="decimal" onChange={(event) => updateComponents(components.map((item, itemIndex) => itemIndex === index ? { ...item, weight: event.target.value } : item))} value={component.weight} /></label>{component.method === 'RUBRIC_HUMAN' ? <RubricEditor value={component.configuration as HumanRubric} onChange={configuration => updateComponents(components.map((item, itemIndex) => itemIndex === index ? { ...item, configuration } : item))} /> : null}{components.length > 1 && <button aria-label={`Remove scoring component ${index + 1}`} onClick={() => updateComponents(components.filter((_, itemIndex) => itemIndex !== index))} type="button">Remove</button>}</div>)}<button onClick={() => updateComponents([...components, { method: defaultMethod(value.response.type), weight: '', configuration: null }])} type="button">Add scoring component</button><p>Exact total: {total}</p>{!valid && <p role="alert">Scoring weights must be positive decimals and must total exactly 1.0.</p>}</fieldset>
+    {pendingType && (
+      <ConfirmResponseTypeModal
+        onCancel={() => setPendingType(null)}
+        onConfirm={() => {
+          const next = pendingType;
+          setPendingType(null);
+          onChange(emptyAssessmentDraft(next));
+        }}
+        pendingType={pendingType}
+      />
+    )}
   </section>;
+}
+
+export function ConfirmResponseTypeModal({
+  pendingType,
+  onConfirm,
+  onCancel,
+}: {
+  pendingType: ResponseType;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const cancelBtnRef = useRef<HTMLButtonElement | null>(null);
+  const confirmBtnRef = useRef<HTMLButtonElement | null>(null);
+  const modalRef = useRef<HTMLDialogElement | null>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    cancelBtnRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onCancel();
+        return;
+      }
+      if (event.key === 'Tab') {
+        const cancelBtn = cancelBtnRef.current;
+        const confirmBtn = confirmBtnRef.current;
+        if (!cancelBtn || !confirmBtn) return;
+
+        if (event.shiftKey) {
+          if (document.activeElement === confirmBtn || document.activeElement === modalRef.current) {
+            event.preventDefault();
+            cancelBtn.focus();
+          }
+        } else {
+          if (document.activeElement === cancelBtn) {
+            event.preventDefault();
+            confirmBtn.focus();
+          } else if (document.activeElement === confirmBtn) {
+            event.preventDefault();
+            cancelBtn.focus();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onCancel]);
+
+  return (
+    <>
+      <div className="modal-backdrop" data-testid="modal-backdrop" />
+      <dialog aria-labelledby="confirm-response-type-title" className="modal-dialog modal-dialog-centered" open ref={modalRef}>
+        <div className="modal-warning-icon-wrapper" data-testid="modal-warning-icon">
+          <svg
+            aria-hidden="true"
+            className="modal-warning-svg"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+        <h2 id="confirm-response-type-title" className="modal-title-centered">Change response type</h2>
+        <p className="modal-text-centered">
+          Changing the response type to <strong>{pendingType.replaceAll('_', ' ')}</strong> will discard your current response configuration. Do you want to continue?
+        </p>
+        <div className="row-actions row-actions-centered">
+          <button onClick={onCancel} ref={cancelBtnRef} type="button">
+            Cancel
+          </button>
+          <button onClick={onConfirm} ref={confirmBtnRef} type="button">
+            Confirm change
+          </button>
+        </div>
+      </dialog>
+    </>
+  );
 }
 
 function RubricEditor({ value, onChange }: { value: HumanRubric; onChange: (value: HumanRubric) => void }) {

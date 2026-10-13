@@ -72,8 +72,8 @@ there first.
 
 Open <http://127.0.0.1:3001/author/problems>.
 
-- [ ] The header clearly says **IOAI Studio**, not IOAI Learn.
-TODO: Make the header bigger, apply style and use distinct colors.
+- [x] The header clearly says **IOAI Studio**, not IOAI Learn (with distinct 
+      branding, size, styling, and responsive hamburger popup menu on narrow viewports).
 - [x] The page provides a **Create problem** action.
 - [x] Existing rows show problem ID, editorial status, revision/version, 
       last saved time, and validation state.
@@ -99,7 +99,7 @@ Expected:
 - [x] The editor exposes separate **Save draft**, **Validate draft**, and
       **Preview as learner** actions.
 - [x] After navigating back, the draft is listed and can be resumed.
-      __SUGGESTION__: Move "Recover unsaved draft" dialog box to the top of the page and display it prominently.
+      __SUGGESTION__ (Resolved): Moved "Recover unsaved draft" to a prominent top banner.
 ## 5. Edit bilingual structured content (`R0-06013`)
 
 In the **Content** section:
@@ -140,7 +140,7 @@ In the **Curriculum** section:
       competency from canonical vocabulary.
 - [x] Add zero to three secondary competencies; a fourth cannot be persisted.
 - [x] Search for topics using English and Vietnamese labels where available.
-  __SUGGESTION__: Add Vietnamese translation for topics.
+  __SUGGESTION__ (Resolved): Add Vietnamese translation for topics.
 - [x] Topic choices show hierarchy/breadcrumb context.
 - [x] Selecting an overly broad intermediate topic produces a specificity
       warning.
@@ -165,11 +165,11 @@ Change **Response type** through each Phase 6 variant:
       hidden tests.
 - [x] Leave a code signature, starter code, or test value incomplete and save;
       the draft persists, while Validate reports field-level Assessment errors.
-__SUGGESTION__: Sync 'Task Type' and 'Response Type' or only keep one of them.
+__SUGGESTION__ (Resolved): Sync 'Task Type' and 'Response Type' with confirmation modal to protect custom response data on task type change.
 
 For each change, verify only applicable fields remain; configuration belonging
 to the previous variant must not reappear after save/reload.
-__SUGGESTION__: To prevent data loss from accidents in changing 'Response Type', Make Confirm dialog or Use Cache (Delete after reload)
+__SUGGESTION__ (Resolved): Prompt confirmation dialog if custom response data exists before changing 'Response Type'.
 
 Then test scoring:
 
@@ -215,8 +215,7 @@ Expected:
 - [x] Tab B receives **Resolve draft conflict** instead of overwriting tab A.
 - [x] The dialog offers **Keep local changes and retry**, **Use server version**,
       and **Review differences before resolving**.
-- [ ] Choosing the server version loads the newer server state.
-TODO: Update UI with server version on clicking "Use server version" button
+- [x] Choosing the server version loads the newer server state and updates all form inputs.
 - [x] Choosing to retain local work preserves it for an explicit retry.
 - [x] A failed or stale save leaves no partially updated curriculum, response,
       scoring, prerequisite, or resource associations.
@@ -225,7 +224,7 @@ TODO: Update UI with server version on clicking "Use server version" button
 - [x] An English title generates a URL-safe slug automatically; changing the
       title updates an auto-managed slug, while manually editing the slug stops
       further automatic replacement.
-      __SUGGESTION__: fix auto-fill slug not working in case user delete current slug and input new title.
+      __SUGGESTION__ (Resolved): Auto-fill slug works again when author clears current slug and inputs new title.
 
 ## 10. Verify autosave and recovery (`R0-06017`)
 
@@ -274,11 +273,11 @@ Expected:
 
 - [x] Validation is disabled while unsaved changes exist, with guidance to save
       first.
-      __SUGGESTION__: Required fields must be marked with red * and Error message
+      __SUGGESTION__ (Resolved): Required fields must be marked with red * and Error message
       should be displayed on top of the page instead of tooltip only.
 - [x] The report groups issues under **Content**, **Curriculum**,
       **Assessment**, **Resources**, and **Publication**.
-      __SUGGESTION__: The group name should use a different color to avoid 
+      __SUGGESTION__ (Resolved): The group name should use a different color to avoid 
       conflicting with "Errors".
 - [x] Errors use `✖ Error:` plus red treatment; warnings use `⚠ Warning:` plus
       amber treatment, so severity never depends on color alone.
@@ -286,12 +285,11 @@ Expected:
       pending.** and remain non-blocking warnings.
 - [x] Issue links move focus to the corresponding field; the first blocker can
       receive focus deterministically.
-      __SUGGESTION__: Target fields should scroll into view with adequate top 
+      __SUGGESTION__ (Resolved): Target fields should scroll into view with adequate top 
       clearance; avoid pinning them to the absolute top of the viewport. 
 - [x] The report shows `publication_eligible` but offers no Phase 7 approval or
       publication transition.
-- [ ] Saving a later change invalidates the stale validation summary.
-TODO: Hide "Draft validation" report immediately when a later change is made.
+- [x] Saving or making a later change immediately hides and invalidates the stale validation summary.
 
 ## 12. Verify the author-only preview projection (`R0-06019`)
 
@@ -336,7 +334,7 @@ At minimum, inspect the Studio at widths `360`, `768`, `1024`, and `1440` px.
 - [x] Status, warnings, errors, and selected language do not rely on color alone.
 - [x] At 200% browser zoom, content remains operable without loss of information.
 
-  __SUGGESTION__: add scroll-padding-bottom to html to ensure focused fields are 
+  __SUGGESTION__ (Resolved): add scroll-padding-bottom to html to ensure focused fields are 
   not obscured by the sticky actions bar.
 
 ## 14. Public/draft isolation smoke check
