@@ -66,6 +66,9 @@ services:
     environment:
       CI: "true"
       API_INTERNAL_BASE: http://api:8000
+      HOME: /tmp
+      COREPACK_HOME: /tmp/corepack
+      PNPM_HOME: /tmp/pnpm
     depends_on:
       api:
         condition: service_healthy
@@ -77,6 +80,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 60s
 
   studio:
     image: node:22-bookworm
@@ -86,6 +90,9 @@ services:
       - .:/app:cached
     environment:
       API_INTERNAL_BASE: http://api:8000
+      HOME: /tmp
+      COREPACK_HOME: /tmp/corepack
+      PNPM_HOME: /tmp/pnpm
     depends_on:
       api:
         condition: service_healthy
