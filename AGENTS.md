@@ -379,7 +379,10 @@ generation, and production-build checks.
   coverage, local databases, uploaded objects, or secrets.
 - Do not report completion if tests were skipped, failing, or not run. State the
   exact limitation.
-
+- Run all pnpm commands directly in Docker (e.g. via `docker compose exec learn corepack pnpm ...`)
+  instead of on the host, especially on Windows hosts, to prevent symlink corruption,
+  OS binary mismatches, and file permission conflicts.
+  
 ## Definition of done
 
 A Release 0 change is done only when:
