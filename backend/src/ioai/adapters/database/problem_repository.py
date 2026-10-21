@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from ioai.application.problems.assessment import AssessmentUnitOfWork
 from ioai.application.problems.errors import (
+    DraftNotEditableError,
     DraftNotFoundError,
     IdempotencyConflictError,
     RevisionConflictError,
@@ -664,6 +665,7 @@ class SqlAlchemyDraftRepository:
             .where(
                 ProblemRevisionModel.revision_id == revision.revision_id.value,
                 ProblemRevisionModel.lock_version == expected_version,
+                ProblemRevisionModel.editorial_status == EditorialStatus.DRAFT.value,
             )
             .values(
                 lock_version=next_version,
@@ -681,6 +683,10 @@ class SqlAlchemyDraftRepository:
             )
             if current is None:
                 raise DraftNotFoundError(revision.revision_id)
+            if current.editorial_status != EditorialStatus.DRAFT.value:
+                raise DraftNotEditableError(
+                    revision.revision_id, EditorialStatus(current.editorial_status)
+                )
             raise RevisionConflictError(revision.revision_id, current.lock_version)
         problem = self._session.get(ProblemModel, revision.problem_id.value)
         if problem is None:
@@ -706,9 +712,17 @@ class SqlAlchemyEditorialRepository:
         self._session = session
 
     def list_history(self, revision_id: RevisionId) -> tuple[EditorialTransition, ...]:
+        target = self._session.get(ProblemRevisionModel, revision_id.value)
+        if target is None:
+            return ()
         rows = self._session.scalars(
             select(EditorialTransitionModel)
-            .where(EditorialTransitionModel.revision_id == revision_id.value)
+            .join(
+                ProblemRevisionModel,
+                EditorialTransitionModel.revision_id
+                == ProblemRevisionModel.revision_id,
+            )
+            .where(ProblemRevisionModel.problem_id == target.problem_id)
             .order_by(
                 EditorialTransitionModel.occurred_at,
                 EditorialTransitionModel.transition_id,
@@ -716,7 +730,7 @@ class SqlAlchemyEditorialRepository:
         )
         return tuple(
             EditorialTransition(
-                revision_id=revision_id,
+                revision_id=RevisionId(row.revision_id),
                 source=EditorialStatus(row.source_status),
                 target=EditorialStatus(row.target_status),
                 note=row.note,

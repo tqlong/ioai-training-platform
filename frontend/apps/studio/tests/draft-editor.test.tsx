@@ -271,5 +271,103 @@ describe('draft editor coordinator', () => {
     expect(screen.getByRole('spinbutton', { name: 'Expected value' })).toBeTruthy();
     expect((screen.getByRole('combobox', { name: 'Response type' }) as HTMLSelectElement).value).toBe('NUMERIC_ANSWER');
   });
+
+  it('supports 6-section navigation and auto-validates on save', async () => {
+    const validateDraft = vi.fn(async () => ({
+      revision_id: 'revision-1',
+      revision_version: 1,
+      publication_eligible: false,
+      errors: [],
+      warnings: [
+        { code: 'TRANSLATION_PENDING', section: 'CONTENT', field_path: 'content.title.vi', message: 'Translation is explicitly pending.', severity: 'WARNING' },
+      ],
+    }));
+
+    render(
+      <DraftEditor
+        initialDraft={draft}
+        validateDraft={validateDraft}
+        saveDraft={async () => ({ ...draft, version: 2 })}
+      />,
+    );
+
+    // Navigation exists with sections
+    expect(screen.getByRole('navigation', { name: 'Editor sections' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /1\. Basics/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /2\. Content/i })).toBeTruthy();
+
+    // Next section button navigates forward
+    const nextBtn = screen.getByRole('button', { name: /Next section/i });
+    fireEvent.click(nextBtn);
+    expect(screen.getByRole('button', { name: /2\. Content/i }).getAttribute('data-active')).toBe('true');
+
+    // Clicking section tab buttons in Left Rail directly switches active section
+    const assessmentTab = screen.getByRole('button', { name: /3\. Response & scoring/i });
+    fireEvent.click(assessmentTab);
+    expect(assessmentTab.getAttribute('data-active')).toBe('true');
+
+    const curriculumTab = screen.getByRole('button', { name: /4\. Curriculum/i });
+    fireEvent.click(curriculumTab);
+    expect(curriculumTab.getAttribute('data-active')).toBe('true');
+
+    const resourcesTab = screen.getByRole('button', { name: /5\. Resources/i });
+    fireEvent.click(resourcesTab);
+    expect(resourcesTab.getAttribute('data-active')).toBe('true');
+
+    const reviewTab = screen.getByRole('button', { name: /6\. Review & publish/i });
+    fireEvent.click(reviewTab);
+    expect(reviewTab.getAttribute('data-active')).toBe('true');
+
+    const basicsTab = screen.getByRole('button', { name: /1\. Basics/i });
+    fireEvent.click(basicsTab);
+    expect(basicsTab.getAttribute('data-active')).toBe('true');
+
+    // View mode toggle buttons
+    const allModeBtn = screen.getByRole('button', { name: 'All' });
+    fireEvent.click(allModeBtn);
+    expect(allModeBtn.getAttribute('aria-pressed')).toBe('true');
+
+    const focusModeBtn = screen.getByRole('button', { name: 'Focus' });
+    fireEvent.click(focusModeBtn);
+    expect(focusModeBtn.getAttribute('aria-pressed')).toBe('true');
+
+    // No tick marks before validation
+    expect(screen.queryByTestId('section-ok-badge')).toBeNull();
+
+    // Trigger save and ensure auto-validate is called in background
+    fireEvent.change(screen.getByRole('textbox', { name: 'URL slug' }), { target: { value: 'auto-val' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save draft' }));
+    await waitFor(() => expect(validateDraft).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText(/⚠ 1/)).toBeTruthy());
+  });
+
+  it('renders read-only mode for non-draft revisions disabling controls and Save draft', () => {
+    const { container } = render(<DraftEditor initialDraft={{ ...draft, editorial_status: 'PUBLISHED' }} />);
+
+    expect(screen.getByText('Read-only (published)')).toBeTruthy();
+    expect((screen.getByRole('button', { name: 'Save draft' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('textbox', { name: 'URL slug' }) as HTMLInputElement).disabled).toBe(true);
+    const fieldset = container.querySelector('fieldset');
+    expect(fieldset?.disabled).toBe(true);
+    expect(screen.getByText(/This revision is in/)).toBeTruthy();
+  });
+
+  it('locks down editor immediately after publication or non-draft status', async () => {
+    // In DRAFT status, input is enabled
+    const { unmount } = render(<DraftEditor initialDraft={{ ...draft, editorial_status: 'DRAFT' }} />);
+    const slugInput = screen.getByRole('textbox', { name: 'URL slug' }) as HTMLInputElement;
+    expect(slugInput.disabled).toBe(false);
+    unmount();
+
+    // In APPROVED status (ready to publish), input is read-only
+    render(<DraftEditor initialDraft={{ ...draft, editorial_status: 'APPROVED', version: 3 }} />);
+    const approvedSlugInput = screen.getByRole('textbox', { name: 'URL slug' }) as HTMLInputElement;
+    expect(approvedSlugInput.disabled).toBe(true);
+
+    // Navigate to review & publish section and verify Publish button exists
+    const reviewTab = screen.getByRole('button', { name: /6\. Review & publish/i });
+    fireEvent.click(reviewTab);
+    expect(screen.getByRole('button', { name: 'Publish' })).toBeTruthy();
+  });
 });
 

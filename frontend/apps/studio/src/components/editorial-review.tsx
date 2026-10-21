@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
 
 import {
   ApiError,
@@ -99,12 +98,11 @@ export function EditorialReviewWorkspace({
   const closePublish = () => {
     if (publishing) return;
     setPublishOpen(false);
-    window.setTimeout(() => publishTriggerRef.current?.focus(), 0);
+    publishTriggerRef.current?.focus();
   };
   const openPublish = () => {
     setPublishKey(globalThis.crypto?.randomUUID?.() ?? `publish-${draft.version}`);
     setPublishOpen(true);
-    window.setTimeout(() => publishNoteRef.current?.focus(), 0);
   };
   const confirmPublish = async () => {
     setPublishing(true);
@@ -129,26 +127,67 @@ export function EditorialReviewWorkspace({
       setPublishing(false);
     }
   };
-  const trapPublishKeys = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      closePublish();
-      return;
-    }
-    if (event.key !== 'Tab') return;
-    const focusable = Array.from(publishDialogRef.current?.querySelectorAll<HTMLElement>('textarea, button:not([disabled])') ?? []);
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault(); last?.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault(); first?.focus();
-    }
-  };
+
+  useEffect(() => {
+    if (!publishOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    publishNoteRef.current?.focus();
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (!publishing) {
+          event.preventDefault();
+          closePublish();
+        }
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const dialog = publishDialogRef.current;
+      if (!dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('textarea:not([disabled]), button:not([disabled])'));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey) {
+        if (document.activeElement === first || !dialog.contains(document.activeElement)) {
+          event.preventDefault();
+          last?.focus();
+        }
+      } else {
+        if (document.activeElement === last || !dialog.contains(document.activeElement)) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [publishOpen, publishing]);
+
   return <section aria-labelledby="review-publish-heading" className="editorial-review" id="review-publish">
     <h2 id="review-publish-heading">Review &amp; publish</h2>
-    <p>Editorial status: <strong className="editorial-status">{statusLabel(draft.editorial_status)}</strong></p>
+    <p>Editorial status: <strong className="editorial-status" data-status={draft.editorial_status.toLowerCase()}>{statusLabel(draft.editorial_status)}</strong></p>
+    {(() => {
+      const latestChangeRequest = history?.items.slice().reverse().find((item) => item.target_status === 'CHANGES_REQUESTED');
+      if (latestChangeRequest) {
+        return (
+          <div aria-label="Reviewer change requests" className="reviewer-note-callout" role="region">
+            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600 }}>Reviewer requests</h3>
+            <p className="reviewer-note-text" style={{ margin: '0 0 0.5rem 0', whiteSpace: 'pre-wrap' }}>{latestChangeRequest.note}</p>
+            <p className="reviewer-note-meta" style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
+              {latestChangeRequest.actor_context} · <time dateTime={latestChangeRequest.occurred_at}>{new Date(latestChangeRequest.occurred_at).toLocaleString()}</time>
+            </p>
+          </div>
+        );
+      }
+      return null;
+    })()}
     {dirty && <p role="status">Save current changes before an editorial decision.</p>}
     {actions.length > 0 && <div className="editorial-decision">
       <label htmlFor="editorial-note">Editorial note</label>
@@ -176,25 +215,27 @@ export function EditorialReviewWorkspace({
     </div>}
     {publication && <p role="status">Published at <a href={publication.public_url}>{publication.public_url}</a>.</p>}
     {error && <p role="alert">{error}</p>}
-    {publishOpen && <div
-      aria-labelledby="publish-dialog-title"
-      aria-modal="true"
-      className="modal-dialog"
-      onKeyDown={trapPublishKeys}
-      ref={publishDialogRef}
-      role="dialog"
-    >
-      <h3 id="publish-dialog-title">Publish approved revision</h3>
-      <p>This makes the approved snapshot externally visible at the permanent URL:</p>
-      <p><code>/problems/{draft.slug}</code></p>
-      <p>This is different from Draft preview, which is never public.</p>
-      <label htmlFor="publish-note">Publication note</label>
-      <textarea id="publish-note" maxLength={2000} onChange={(event) => setPublishNote(event.target.value)} ref={publishNoteRef} value={publishNote} />
-      <div className="editorial-actions">
-        <button disabled={!publishNote.trim() || publishing} onClick={() => { void confirmPublish(); }} type="button">{publishing ? 'Publishing…' : 'Confirm publish'}</button>
-        <button disabled={publishing} onClick={closePublish} type="button">Cancel</button>
+    {publishOpen && <>
+      <div className="modal-backdrop" data-testid="modal-backdrop" onClick={closePublish} />
+      <div
+        aria-labelledby="publish-dialog-title"
+        aria-modal="true"
+        className="modal-dialog"
+        ref={publishDialogRef}
+        role="dialog"
+      >
+        <h3 id="publish-dialog-title">Publish approved revision</h3>
+        <p>This makes the approved snapshot externally visible at the permanent URL:</p>
+        <p><code>/problems/{draft.slug}</code></p>
+        <p>This is different from Draft preview, which is never public.</p>
+        <label htmlFor="publish-note">Publication note</label>
+        <textarea id="publish-note" maxLength={2000} onChange={(event) => setPublishNote(event.target.value)} ref={publishNoteRef} value={publishNote} />
+        <div className="editorial-actions">
+          <button disabled={!publishNote.trim() || publishing} onClick={() => { void confirmPublish(); }} type="button">{publishing ? 'Publishing…' : 'Confirm publish'}</button>
+          <button disabled={publishing} onClick={closePublish} type="button">Cancel</button>
+        </div>
       </div>
-    </div>}
+    </>}
     <section aria-labelledby="editorial-history-heading">
       <h3 id="editorial-history-heading">Editorial history</h3>
       {history === null ? <p>History is unavailable.</p> : history.items.length === 0 ? <p>No editorial decisions yet.</p> : <ol>

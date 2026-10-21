@@ -121,9 +121,40 @@ describe('editorial review workspace', () => {
     const dialog = screen.getByRole('dialog', { name: 'Publish approved revision' });
     expect(dialog.textContent).toContain('/problems/metrics-basics');
     expect(dialog.textContent).toContain('This is different from Draft preview');
-    fireEvent.keyDown(dialog, { key: 'Escape' });
+    fireEvent.keyDown(window, { key: 'Escape' });
 
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Publish approved revision' })).toBeNull());
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('renders backdrop overlay, locks body scroll, and traps focus in publish dialog', async () => {
+    const approved = { ...draft, editorial_status: 'APPROVED', slug: 'metrics-basics' };
+    render(<EditorialReviewWorkspace draft={approved} loadHistory={async () => history} onDraftChange={() => undefined} publish={vi.fn()} transition={vi.fn()} />);
+    const trigger = screen.getByRole('button', { name: 'Publish' });
+    fireEvent.click(trigger);
+
+    // Backdrop overlay is rendered
+    expect(screen.getByTestId('modal-backdrop')).toBeTruthy();
+    expect(document.body.style.overflow).toBe('hidden');
+
+    const note = screen.getByRole('textbox', { name: 'Publication note' });
+    const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+
+    // Focus starts on note
+    expect(document.activeElement).toBe(note);
+
+    // Shift+Tab on first element wraps to cancelBtn (last focusable when confirm is disabled)
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(cancelBtn);
+
+    // Tab on last element wraps back to note
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: false });
+    expect(document.activeElement).toBe(note);
+
+    // Close via cancel button restores body overflow and trigger focus
+    fireEvent.click(cancelBtn);
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(document.body.style.overflow).not.toBe('hidden');
     expect(document.activeElement).toBe(trigger);
   });
 });

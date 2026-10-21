@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 
 from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
 from ioai.application.problems.errors import (
+    DraftNotEditableError,
     DraftNotFoundError,
     DraftValidationError,
     IdempotencyConflictError,
@@ -56,6 +57,8 @@ class AuthorProblemService(Protocol):
     ) -> tuple[AuthorDraftListItem, ...]: ...
 
     def get(self, problem_id: ProblemId) -> ProblemRevision: ...
+
+    def get_revision(self, revision_id: RevisionId) -> ProblemRevision: ...
 
     def save(
         self, revision_id: RevisionId, request: SaveDraftRequest
@@ -205,6 +208,20 @@ def author_problem_router(service: AuthorProblemService) -> APIRouter:
 def author_revision_router(service: AuthorProblemService) -> APIRouter:
     router = APIRouter(prefix="/author/revisions", tags=["author-revisions"])
 
+    @router.get(
+        "/{revision_id}",
+        response_model=AuthorDraftResponse,
+        responses={404: {"model": ErrorResponse}},
+    )
+    def read_revision(revision_id: str) -> AuthorDraftResponse:
+        try:
+            return _draft_response(service.get_revision(RevisionId(revision_id)))
+        except DraftNotFoundError as error:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "DRAFT_NOT_FOUND", "message": "Revision not found."},
+            ) from error
+
     @router.put(
         "/{revision_id}",
         response_model=AuthorDraftResponse,
@@ -217,6 +234,17 @@ def author_revision_router(service: AuthorProblemService) -> APIRouter:
     def save_draft(revision_id: str, request: SaveDraftRequest) -> AuthorDraftResponse:
         try:
             return _draft_response(service.save(RevisionId(revision_id), request))
+        except DraftNotEditableError as error:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "REVISION_NOT_EDITABLE",
+                    "message": (
+                        f"Revision {error.revision_id.value} is in "
+                        f"{error.status.value} status and cannot be edited."
+                    ),
+                },
+            ) from error
         except RevisionConflictError as error:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,

@@ -105,4 +105,31 @@ describe('dense learner results table', () => {
     expect(linkClick).toHaveBeenCalledTimes(1);
     linkClick.mockRestore();
   });
+
+  it('does not navigate when clicking a disclosure or nested control', () => {
+    const linkClick = vi.spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    render(
+      <ProblemResultsTable
+        items={items}
+        labels={labels}
+        returnUrl="/problems?stage=AI_1_FOUNDATIONS"
+      />,
+    );
+
+    const table = screen.getByRole('table', { name: 'Published problems' });
+    const row = within(table).getAllByRole('row')[1]!;
+
+    // 1. Click on the "+1" topic disclosure summary
+    const disclosureButton = within(row).getByRole('button', { name: 'Show 1 more topic' });
+    fireEvent.click(disclosureButton);
+    expect(linkClick).not.toHaveBeenCalled();
+
+    // 2. Click on the "Details" disclosure summary under compute/evidence
+    const detailsButton = within(row).getByRole('button', { name: 'Show competency and evidence' });
+    fireEvent.click(detailsButton);
+    expect(linkClick).not.toHaveBeenCalled();
+
+    linkClick.mockRestore();
+  });
 });

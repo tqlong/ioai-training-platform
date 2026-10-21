@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 
 import type { ArchiveProblemRequest, ArchiveProblemResult, AuthorDraft, AuthorDraftList, StartRevisionRequest } from '@ioai/api-client';
+import { ApiError } from '@ioai/api-client';
 
 import { studioApi } from '../api';
 
@@ -28,8 +28,9 @@ export function AuthorProblemsView({
   const [archiveTarget, setArchiveTarget] = useState<AuthorDraftList['items'][number] | null>(null);
   const [archiveNote, setArchiveNote] = useState('');
   const [archiving, setArchiving] = useState(false);
-  const archiveTrigger = useRef<HTMLButtonElement | null>(null);
+  const archiveTrigger = useRef<HTMLElement | null>(null);
   const archiveNoteInput = useRef<HTMLTextAreaElement>(null);
+  const archiveDialogRef = useRef<HTMLDivElement>(null);
   const items = useMemo(() => result.items.map((item) => {
     const archivedVersion = archived.get(item.revision_id);
     return archivedVersion === undefined
@@ -78,8 +79,8 @@ export function AuthorProblemsView({
         operation_id: globalThis.crypto?.randomUUID?.() ?? `revise-${item.version}`,
       });
       onOpen(item.problem_id);
-    } catch {
-      setActionError('A new draft revision could not be started. Reload the list and try again.');
+    } catch (caught) {
+      setActionError(caught instanceof ApiError ? caught.message : 'A new draft revision could not be started. Reload the list and try again.');
     } finally {
       setStarting(null);
     }
@@ -87,7 +88,7 @@ export function AuthorProblemsView({
   const closeArchive = () => {
     if (archiving) return;
     setArchiveTarget(null); setArchiveNote('');
-    window.setTimeout(() => archiveTrigger.current?.focus(), 0);
+    archiveTrigger.current?.focus();
   };
   const confirmArchive = async () => {
     if (!archiveTarget) return;
@@ -104,19 +105,54 @@ export function AuthorProblemsView({
         archiveTarget.version + 1,
       ));
       setArchiveTarget(null); setArchiveNote('');
-    } catch {
-      setActionError('The published problem could not be archived. Reload and try again.');
+      archiveTrigger.current?.focus();
+    } catch (caught) {
+      setActionError(caught instanceof ApiError ? caught.message : 'The published problem could not be archived. Reload and try again.');
       window.setTimeout(() => archiveNoteInput.current?.focus(), 0);
     } finally { setArchiving(false); }
   };
-  const archiveKeys = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape') { event.preventDefault(); closeArchive(); }
-    if (event.key !== 'Tab') return;
-    const focusable = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('textarea, button:not([disabled])'));
-    const first = focusable[0]; const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
-  };
+
+  useEffect(() => {
+    if (!archiveTarget) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    archiveNoteInput.current?.focus();
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (!archiving) {
+          event.preventDefault();
+          closeArchive();
+        }
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const dialog = archiveDialogRef.current;
+      if (!dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('textarea:not([disabled]), button:not([disabled])'));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey) {
+        if (document.activeElement === first || !dialog.contains(document.activeElement)) {
+          event.preventDefault();
+          last?.focus();
+        }
+      } else {
+        if (document.activeElement === last || !dialog.contains(document.activeElement)) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [archiveTarget, archiving]);
   return (
     <section aria-labelledby="author-problems-title" className="studio-page">
       <div className="page-heading">
@@ -182,15 +218,46 @@ export function AuthorProblemsView({
               return <tbody id={controlsId} key={group.problemId}>
                 {visibleRevisions.map((draft, index) => (
                   <tr key={draft.revision_id}>
-                    <td><code>{draft.problem_id}</code></td>
-                    <td><span className="status-label">{formatStatus(draft.editorial_status)}</span></td>
-                    <td><code>{draft.revision_id}</code> · v{draft.version}</td>
-                    <td><time dateTime={draft.last_saved_at}>{formatDate(draft.last_saved_at)}</time></td>
-                    <td>{formatValidation(draft.validation_summary)}</td>
-                    <td><div className="row-actions">{['PUBLISHED', 'ARCHIVED', 'CHANGES_REQUESTED'].includes(draft.editorial_status)
-                      ? <button disabled={starting !== null} onClick={() => { void beginRevision(draft); }} type="button">{starting === draft.revision_id ? 'Starting draft…' : draft.editorial_status === 'PUBLISHED' ? 'Edit as new draft' : draft.editorial_status === 'ARCHIVED' ? 'Create new draft' : 'Address changes'}</button>
-                      : <Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link>}
-                      {draft.editorial_status === 'PUBLISHED' && <button onClick={(event) => { archiveTrigger.current = event.currentTarget; setArchiveTarget(draft); window.setTimeout(() => archiveNoteInput.current?.focus(), 0); }} type="button">Archive</button>}
+                    <td>
+                      <span className="card-col-label">Problem</span>
+                      <span className="id-badge">
+                        <code title={draft.problem_id}>{formatShortId(draft.problem_id)}</code>
+                        <span className="sr-only">{draft.problem_id}</span>
+                        <CopyButton label="Copy problem ID" text={draft.problem_id} />
+                      </span>
+                    </td>
+                    <td>
+                      <span className="card-col-label">Status</span>
+                      <span className="status-label" data-status={draft.editorial_status.toLowerCase()}>{formatStatus(draft.editorial_status)}</span>
+                    </td>
+                    <td>
+                      <span className="card-col-label">Revision</span>
+                      <span className="id-badge">
+                        <code title={draft.revision_id}>{formatShortId(draft.revision_id)}</code>
+                        <span className="sr-only">{draft.revision_id}</span>
+                        <CopyButton label="Copy revision ID" text={draft.revision_id} />
+                      </span>{' '}
+                      · v{draft.version}
+                    </td>
+                    <td>
+                      <span className="card-col-label">Last saved</span>
+                      <time dateTime={draft.last_saved_at}>{formatDate(draft.last_saved_at)}</time>
+                    </td>
+                    <td>
+                      <span className="card-col-label">Validation</span>
+                      {formatValidation(draft.validation_summary)}
+                    </td>
+                    <td>
+                      <span className="card-col-label">Actions</span>
+                      <div className="row-actions">{draft.editorial_status === 'DRAFT'
+                      ? <Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link>
+                      : <Link href={`/author/problems/${draft.problem_id}?revision=${draft.revision_id}`}>View</Link>}
+                      {['PUBLISHED', 'ARCHIVED', 'CHANGES_REQUESTED'].includes(draft.editorial_status) && (
+                        <button disabled={starting !== null} onClick={() => { void beginRevision(draft); }} type="button">
+                          {starting === draft.revision_id ? 'Starting draft…' : draft.editorial_status === 'PUBLISHED' ? 'Edit as new draft' : draft.editorial_status === 'ARCHIVED' ? 'Create new draft' : 'Address changes'}
+                        </button>
+                      )}
+                      {draft.editorial_status === 'PUBLISHED' && <button onClick={(event) => { archiveTrigger.current = event.currentTarget; setArchiveTarget(draft); }} type="button">Archive</button>}
                       {index === 0 && group.revisions.length > 1 && <button
                         aria-controls={controlsId}
                         aria-expanded={expanded}
@@ -205,13 +272,22 @@ export function AuthorProblemsView({
           </table>
         </div>
       )}
-      {archiveTarget && <div aria-labelledby="archive-dialog-title" aria-modal="true" className="modal-dialog" onKeyDown={archiveKeys} role="dialog">
-        <h2 id="archive-dialog-title">Archive published problem</h2>
-        <p>This removes <code>/problems/{archiveTarget.problem_id}</code> from public eligibility. Historical snapshots remain auditable.</p>
-        <label htmlFor="archive-note">Archive note</label>
-        <textarea id="archive-note" maxLength={2000} onChange={(event) => setArchiveNote(event.target.value)} ref={archiveNoteInput} value={archiveNote} />
-        <div className="editorial-actions"><button disabled={!archiveNote.trim() || archiving} onClick={() => { void confirmArchive(); }} type="button">{archiving ? 'Archiving…' : 'Confirm archive'}</button><button disabled={archiving} onClick={closeArchive} type="button">Cancel</button></div>
-      </div>}
+      {archiveTarget && <>
+        <div className="modal-backdrop" data-testid="archive-backdrop" onClick={closeArchive} />
+        <div
+          aria-labelledby="archive-dialog-title"
+          aria-modal="true"
+          className="modal-dialog"
+          ref={archiveDialogRef}
+          role="dialog"
+        >
+          <h2 id="archive-dialog-title">Archive published problem</h2>
+          <p>This removes <code>/problems/{archiveTarget.problem_id}</code> from public eligibility. Historical snapshots remain auditable.</p>
+          <label htmlFor="archive-note">Archive note</label>
+          <textarea id="archive-note" maxLength={2000} onChange={(event) => setArchiveNote(event.target.value)} ref={archiveNoteInput} value={archiveNote} />
+          <div className="editorial-actions"><button disabled={!archiveNote.trim() || archiving} onClick={() => { void confirmArchive(); }} type="button">{archiving ? 'Archiving…' : 'Confirm archive'}</button><button disabled={archiving} onClick={closeArchive} type="button">Cancel</button></div>
+        </div>
+      </>}
     </section>
   );
 }
@@ -228,3 +304,50 @@ const formatValidation = (summary: Record<string, unknown> | null) => {
   if (summary.publication_eligible === true) return 'Eligible';
   return `${String(summary.error_count ?? 0)} blockers`;
 };
+
+const formatShortId = (id: string) => {
+  if (id.includes('-')) {
+    const firstSegment = id.split('-')[0];
+    if (firstSegment && firstSegment.length >= 6) {
+      return firstSegment;
+    }
+  }
+  return id.length > 8 ? id.slice(0, 8) : id;
+};
+
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      }
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // fallback
+    }
+  };
+
+  return (
+    <button
+      aria-label={copied ? 'Copied' : label}
+      className={`copy-btn ${copied ? 'copied' : ''}`}
+      onClick={copy}
+      title={copied ? 'Copied!' : label}
+      type="button"
+    >
+      {copied ? (
+        <svg aria-hidden="true" fill="none" height="12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="12">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg aria-hidden="true" fill="none" height="12" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="12">
+          <rect height="13" rx="2" ry="2" width="13" x="9" y="9" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
+    </button>
+  );
+}

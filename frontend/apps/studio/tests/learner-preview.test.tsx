@@ -62,4 +62,89 @@ describe('isolated learner preview', () => {
       'revision-1', expect.objectContaining({ unsaved_state: expect.objectContaining({ slug: 'unsaved-preview' }) }),
     ));
   });
+
+  it('renders author warnings with synced issue style, count badges, and collapsibility in preview group', async () => {
+    const previewWithMultipleIssues: PreviewResponse = {
+      ...preview,
+      author_issues: [
+        {
+          code: 'REQUIRED_FIELD_MISSING',
+          section: 'CONTENT',
+          field_path: 'content.title.en',
+          message: 'English title is required.',
+          severity: 'ERROR',
+        },
+        {
+          code: 'TRANSLATION_PENDING',
+          section: 'CONTENT',
+          field_path: 'content.title.vi',
+          message: 'Translation is explicitly pending.',
+          severity: 'WARNING',
+        },
+      ],
+    };
+
+    render(<LearnerPreview initialDraft={draft} previewDraft={async () => previewWithMultipleIssues} />);
+    await screen.findByRole('heading', { name: 'Precision basics' });
+
+    // Header maintains style: Author warnings ✖ 1 ⚠ 1
+    const warningsHeading = screen.getByRole('heading', { name: /Author warnings/i });
+    expect(warningsHeading.textContent).toContain('Author warnings');
+    expect(warningsHeading.textContent).toContain('✖ 1');
+    expect(warningsHeading.textContent).toContain('⚠ 1');
+
+    // Issues list has synced inner styles
+    const errorItem = screen.getByText('English title is required.').closest('li');
+    expect(errorItem?.getAttribute('data-severity')).toBe('ERROR');
+    expect(errorItem?.querySelector('.validation-path')?.textContent).toBe('(content.title.en)');
+
+    const warningItem = screen.getByText('Translation is explicitly pending.').closest('li');
+    expect(warningItem?.getAttribute('data-severity')).toBe('WARNING');
+    expect(warningItem?.querySelector('.validation-path')?.textContent).toBe('(content.title.vi)');
+
+    // Warnings and preview body share the same viewport container
+    const warningsAside = screen.getByRole('alert');
+    const previewGroup = warningsAside.closest('.preview-viewport-group');
+    expect(previewGroup).toBeTruthy();
+    expect(previewGroup?.querySelector('[data-testid="preview-frame"]')).toBeTruthy();
+
+    // Collapsible behavior
+    const toggleBtn = screen.getByRole('button', { name: 'Collapse' });
+    expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByText('English title is required.')).toBeTruthy();
+
+    // Click to collapse
+    fireEvent.click(toggleBtn);
+    expect(screen.getByRole('button', { name: 'Expand' }).getAttribute('aria-expanded')).toBe('false');
+    // Inner issues list is hidden when collapsed
+    expect(screen.queryByText('English title is required.')).toBeNull();
+    // Header title and counts are maintained even when collapsed
+    expect(warningsHeading.textContent).toContain('Author warnings');
+    expect(warningsHeading.textContent).toContain('✖ 1');
+    expect(warningsHeading.textContent).toContain('⚠ 1');
+
+    // Click to expand again
+    fireEvent.click(screen.getByRole('button', { name: 'Expand' }));
+    expect(screen.getByText('English title is required.')).toBeTruthy();
+  });
+
+  it('aggregates repetitive warnings with the same code and message into smart grouped item', async () => {
+    const previewWithAggregated: PreviewResponse = {
+      ...preview,
+      author_issues: [
+        { code: 'TRANSLATION_PENDING', section: 'CONTENT', field_path: 'content.title.vi', message: 'Translation is explicitly pending.', severity: 'WARNING' },
+        { code: 'TRANSLATION_PENDING', section: 'CONTENT', field_path: 'content.summary.vi', message: 'Translation is explicitly pending.', severity: 'WARNING' },
+        { code: 'TRANSLATION_PENDING', section: 'CONTENT', field_path: 'content.blocks.0.content.vi', message: 'Translation is explicitly pending.', severity: 'WARNING' },
+      ],
+    };
+
+    render(<LearnerPreview initialDraft={draft} previewDraft={async () => previewWithAggregated} />);
+    await screen.findByRole('heading', { name: 'Precision basics' });
+
+    // Displays aggregate count
+    expect(screen.getByText('(3 fields)')).toBeTruthy();
+    expect(screen.getByText('(content.title.vi)')).toBeTruthy();
+    expect(screen.getByText('(content.summary.vi)')).toBeTruthy();
+    expect(screen.getByText('(content.blocks.0.content.vi)')).toBeTruthy();
+  });
 });

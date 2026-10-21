@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from ioai.application.problems.authoring import AuthorDraftListItem, PreviewResult
 from ioai.application.problems.errors import (
+    DraftNotEditableError,
     PublishedProblemNotFoundError,
     RevisionConflictError,
 )
@@ -69,9 +70,15 @@ class FakeAuthorProblemService:
         assert problem_id == self.draft.problem_id
         return self.draft
 
+    def get_revision(self, revision_id: RevisionId) -> ProblemRevision:
+        assert revision_id == self.draft.revision_id
+        return self.draft
+
     def save(
         self, revision_id: RevisionId, request: SaveDraftRequest
     ) -> ProblemRevision:
+        if self.draft.status is not EditorialStatus.DRAFT:
+            raise DraftNotEditableError(revision_id, self.draft.status)
         if request.expected_version != self.draft.version:
             raise RevisionConflictError(revision_id, self.draft.version)
         self.draft = replace(
@@ -255,6 +262,38 @@ def test_invalid_save_payload_returns_safe_actionable_error() -> None:
         "code": "DRAFT_PAYLOAD_INVALID",
         "message": "The draft contains inconsistent field values.",
     }
+
+
+def test_save_rejects_non_draft_revisions() -> None:
+    service = FakeAuthorProblemService()
+    service.draft = replace(service.draft, status=EditorialStatus.PUBLISHED)
+    client = TestClient(create_app(author_problem_service=service))
+    body = {
+        "problem_id": "problem-1",
+        "expected_version": 1,
+        "client_save_key": "save-pub-1",
+        "slug": None,
+        "content": None,
+        "metadata": None,
+        "response": None,
+        "scoring": None,
+    }
+
+    response = client.put("/api/v1/author/revisions/revision-1", json=body)
+    assert response.status_code == 409
+    assert response.json()["detail"] == {
+        "code": "REVISION_NOT_EDITABLE",
+        "message": "Revision revision-1 is in PUBLISHED status and cannot be edited.",
+    }
+
+
+def test_read_revision_by_revision_id() -> None:
+    service = FakeAuthorProblemService()
+    client = TestClient(create_app(author_problem_service=service))
+
+    response = client.get("/api/v1/author/revisions/revision-1")
+    assert response.status_code == 200
+    assert response.json()["revision_id"] == "revision-1"
 
 
 def test_author_validates_current_revision_with_stable_layered_report() -> None:

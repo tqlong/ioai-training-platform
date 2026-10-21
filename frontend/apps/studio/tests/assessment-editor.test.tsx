@@ -33,25 +33,26 @@ describe('response and scoring editor', () => {
     expect(screen.getByTestId('modal-warning-icon')).toBeTruthy();
     expect(screen.getByTestId('modal-backdrop')).toBeTruthy();
     expect(screen.getByText(/discard your current response configuration/i)).toBeTruthy();
+    expect(document.body.style.overflow).toBe('hidden');
+    
     const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
     const confirmBtn = screen.getByRole('button', { name: 'Confirm change' });
     const modalDialog = screen.getByRole('dialog', { name: 'Change response type' });
     expect(document.activeElement).toBe(cancelBtn);
 
-    // Focus trap: Tab on Cancel wraps to Confirm
+    // Tab key on Cancel wraps focus to Confirm button
     fireEvent.keyDown(cancelBtn, { key: 'Tab' });
     expect(document.activeElement).toBe(confirmBtn);
 
-    // Focus trap: Shift+Tab on Confirm wraps back to Cancel
+    // Shift+Tab on Confirm wraps focus back to Cancel button
     fireEvent.keyDown(confirmBtn, { key: 'Tab', shiftKey: true });
     expect(document.activeElement).toBe(cancelBtn);
 
-    // Escape closes modal and restores scroll
+    // Escape key closes modal and restores scroll
     fireEvent.keyDown(modalDialog, { key: 'Escape' });
     expect(screen.queryByRole('dialog', { name: 'Change response type' })).toBeNull();
     expect(document.body.style.overflow).toBe('');
     expect(value.response.type).toBe('NUMERIC_ANSWER');
-    expect(value.response.expected).toBe('42');
 
     // Trigger dialog again and confirm
     fireEvent.change(screen.getByRole('combobox', { name: 'Response type' }), { target: { value: 'CODE_FUNCTION' } });

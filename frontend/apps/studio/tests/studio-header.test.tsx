@@ -1,7 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import { StudioHeader } from '../src/components/studio-header';
 
+const mockPathname = vi.fn(() => '/author/problems');
+vi.mock('next/navigation', () => ({
+  usePathname: () => mockPathname(),
+}));
+
 describe('StudioHeader responsive navigation', () => {
+  beforeEach(() => {
+    mockPathname.mockReturnValue('/author/problems');
+  });
+
   it('renders branding and primary navigation links', () => {
     render(<StudioHeader />);
 
@@ -42,5 +52,20 @@ describe('StudioHeader responsive navigation', () => {
     fireEvent.click(mobileProblemLink);
 
     expect(screen.queryByRole('menu', { name: 'Mobile navigation' })).toBeNull();
+  });
+
+  it('hides Problems, Assessment queue, and Home links and renders problem ID chip with copy button in preview route', () => {
+    mockPathname.mockReturnValue('/author/problems/1e8cf25c-problem/preview');
+    render(<StudioHeader />);
+
+    expect(screen.getByRole('link', { name: 'IOAI Studio' })).toBeTruthy();
+    expect(screen.getByText('#1e8cf25c...')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Copy problem ID' })).toBeTruthy();
+
+    expect(screen.queryByRole('link', { name: 'Problems' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Assessment queue' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Home' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Open navigation menu' })).toBeNull();
+    expect(document.getElementById('studio-header-actions')).toBeTruthy();
   });
 });

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from ioai.domain.problems.identity import RevisionId
 from ioai.domain.problems.revision import ValidationReport
+from ioai.domain.problems.workflow import EditorialStatus
 
 
 class ProblemApplicationError(RuntimeError):
@@ -20,6 +21,16 @@ class RevisionConflictError(ProblemApplicationError):
         self.current_version = current_version
         super().__init__(
             f"revision {revision_id.value} has current version {current_version}"
+        )
+
+
+class DraftNotEditableError(ProblemApplicationError):
+    def __init__(self, revision_id: RevisionId, status: EditorialStatus) -> None:
+        self.revision_id = revision_id
+        self.status = status
+        super().__init__(
+            f"revision {revision_id.value} is in {status.value} "
+            "status and cannot be edited"
         )
 
 

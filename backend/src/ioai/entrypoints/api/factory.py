@@ -452,6 +452,9 @@ class _DefaultAuthorProblemService:
     def get(self, problem_id):
         return self._get(problem_id)
 
+    def get_revision(self, revision_id: RevisionId):
+        return self._get_revision(revision_id)
+
     def save(self, revision_id: RevisionId, request: SaveDraftRequest):
         current = self._get_revision(revision_id)
         content, metadata, response, scoring = decode_revision_payload(

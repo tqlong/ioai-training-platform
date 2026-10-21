@@ -104,6 +104,11 @@ class SaveDraft:
         self, revision: ProblemRevision, *, expected_version: int
     ) -> ProblemRevision:
         with self._unit_of_work_factory() as unit_of_work:
+            current = unit_of_work.drafts.get(revision.revision_id)
+            if current.status is not EditorialStatus.DRAFT:
+                from .errors import DraftNotEditableError
+
+                raise DraftNotEditableError(revision.revision_id, current.status)
             return unit_of_work.drafts.save(
                 revision,
                 expected_version=expected_version,

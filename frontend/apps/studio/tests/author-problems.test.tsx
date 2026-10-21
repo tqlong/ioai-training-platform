@@ -1,5 +1,6 @@
 import type { AuthorDraftList } from '@ioai/api-client';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { ApiError } from '@ioai/api-client';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
@@ -145,5 +146,98 @@ describe('IOAI Studio author problem list', () => {
     await waitFor(() => expect(startRevision).toHaveBeenCalledWith(
       'problem-1', expect.objectContaining({ expected_version: 5 }),
     ));
+  });
+
+  it('renders backdrop overlay, locks body scroll, and traps focus in archive dialog', async () => {
+    const published = { ...result.items[0]!, editorial_status: 'PUBLISHED', version: 4 };
+    render(<AuthorProblemsView
+      archiveProblem={vi.fn()}
+      onOpen={() => undefined}
+      result={{ count: 1, items: [published] }}
+      startRevision={vi.fn()}
+    />);
+
+    const trigger = screen.getByRole('button', { name: 'Archive' });
+    fireEvent.click(trigger);
+
+    // Backdrop is present and body scroll locked
+    expect(screen.getByTestId('archive-backdrop')).toBeTruthy();
+    expect(document.body.style.overflow).toBe('hidden');
+
+    const note = screen.getByRole('textbox', { name: 'Archive note' });
+    const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+
+    expect(document.activeElement).toBe(note);
+
+    // Shift+Tab from note wraps to cancelBtn
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(cancelBtn);
+
+    // Tab from cancelBtn wraps back to note
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: false });
+    expect(document.activeElement).toBe(note);
+
+    // Escape closes dialog and restores focus
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(document.body.style.overflow).not.toBe('hidden');
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('displays specific server error message when startRevision fails with ApiError', async () => {
+    const published = { ...result.items[0]!, editorial_status: 'PUBLISHED', version: 4 };
+    const startRevision = vi.fn(async () => {
+      throw new ApiError('ACTIVE_DRAFT_EXISTS', 'An active draft revision already exists for this problem.', 409);
+    });
+    render(<AuthorProblemsView
+      archiveProblem={vi.fn()}
+      onOpen={() => undefined}
+      result={{ count: 1, items: [published] }}
+      startRevision={startRevision}
+    />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit as new draft' }));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy());
+    expect(screen.getByRole('alert').textContent).toContain('An active draft revision already exists for this problem.');
+  });
+
+  it('provides GitHub-style copy buttons for problem and revision IDs', async () => {
+    const writeText = vi.fn();
+    Object.assign(navigator, {
+      clipboard: {
+        writeText,
+      },
+    });
+
+    render(<AuthorProblemsView result={result} />);
+
+    const copyProblemBtn = screen.getByRole('button', { name: 'Copy problem ID' });
+    const copyRevisionBtn = screen.getByRole('button', { name: 'Copy revision ID' });
+    expect(copyProblemBtn).toBeTruthy();
+    expect(copyRevisionBtn).toBeTruthy();
+
+    act(() => {
+      fireEvent.click(copyProblemBtn);
+    });
+    expect(writeText).toHaveBeenCalledWith('problem-1');
+
+    act(() => {
+      fireEvent.click(copyRevisionBtn);
+    });
+    expect(writeText).toHaveBeenCalledWith('revision-1');
+  });
+
+  it('displays column names in card format for mobile/responsive view', () => {
+    render(<AuthorProblemsView result={result} />);
+
+    const rows = screen.getAllByRole('row');
+    const card = rows[1]!;
+
+    expect(within(card).getByText('Problem').className).toContain('card-col-label');
+    expect(within(card).getByText('Status').className).toContain('card-col-label');
+    expect(within(card).getByText('Revision').className).toContain('card-col-label');
+    expect(within(card).getByText('Last saved').className).toContain('card-col-label');
+    expect(within(card).getByText('Validation').className).toContain('card-col-label');
+    expect(within(card).getByText('Actions').className).toContain('card-col-label');
   });
 });

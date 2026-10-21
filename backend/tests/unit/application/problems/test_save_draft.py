@@ -4,7 +4,10 @@ from dataclasses import replace
 from datetime import UTC, datetime
 
 from ioai.application.problems.authoring import SaveDraft
-from ioai.application.problems.errors import RevisionConflictError
+from ioai.application.problems.errors import (
+    DraftNotEditableError,
+    RevisionConflictError,
+)
 from ioai.domain.problems.identity import ProblemId, RevisionId, StableSlug
 from ioai.domain.problems.revision import ProblemRevision
 from ioai.domain.problems.workflow import EditorialStatus
@@ -14,6 +17,10 @@ class FakeRepository:
     def __init__(self, current: ProblemRevision) -> None:
         self.current = current
         self.saved_at: datetime | None = None
+
+    def get(self, revision_id):
+        assert revision_id == self.current.revision_id
+        return self.current
 
     def save(self, revision, expected_version, saved_at):
         if expected_version != self.current.version:
@@ -70,3 +77,16 @@ def test_save_draft_preserves_conflict_outcome() -> None:
         assert error.current_version == 2
     else:
         raise AssertionError("stale save should fail")
+
+
+def test_save_draft_rejects_non_draft_status() -> None:
+    repository = FakeRepository(replace(draft(), status=EditorialStatus.PUBLISHED))
+    save = SaveDraft(lambda: FakeWork(repository), lambda: datetime.now(UTC))
+
+    try:
+        save(draft(), expected_version=1)
+    except DraftNotEditableError as error:
+        assert error.revision_id == RevisionId("revision-1")
+        assert error.status == EditorialStatus.PUBLISHED
+    else:
+        raise AssertionError("saving non-draft should fail")

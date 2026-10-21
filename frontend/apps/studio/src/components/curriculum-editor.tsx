@@ -168,7 +168,8 @@ export function CurriculumEditor({
 
       <fieldset>
         <legend>Secondary competencies (up to three)</legend>
-        {available('COMPETENCY').map((item) => {
+        <div className="selection-list secondary-competencies-list">
+          {available('COMPETENCY').map((item) => {
           const checked = value.secondary_competencies.some((selected) => selected[1] === item.identity.code);
           return (
             <label className="choice-row" key={item.identity.code}>
@@ -182,6 +183,7 @@ export function CurriculumEditor({
             </label>
           );
         })}
+        </div>
         {value.secondary_competencies.length === 3 && <p>Maximum three secondary competencies selected.</p>}
       </fieldset>
 

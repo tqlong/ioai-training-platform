@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ValidationReport } from '@ioai/api-client';
 
 import { ValidationPanel } from '../src/components/validation-panel';
@@ -30,5 +30,59 @@ describe('draft validation panel', () => {
     unmount();
     expect(title.hasAttribute('aria-invalid')).toBe(false);
     title.remove();
+  });
+
+  it('filters issues by severity tab', () => {
+    render(<ValidationPanel report={report} />);
+
+    // By default "All" is active
+    expect(screen.getByText('Complete the English title.')).toBeTruthy();
+    expect(screen.getByText('Translation pending.')).toBeTruthy();
+
+    // Click "Errors (1)" filter
+    const errorTab = screen.getByRole('tab', { name: /Errors \(1\)/i });
+    fireEvent.click(errorTab);
+    expect(screen.getByText('Complete the English title.')).toBeTruthy();
+    expect(screen.queryByText('Translation pending.')).toBeNull();
+
+    // Click "Warnings (1)" filter
+    const warningTab = screen.getByRole('tab', { name: /Warnings \(1\)/i });
+    fireEvent.click(warningTab);
+    expect(screen.queryByText('Complete the English title.')).toBeNull();
+    expect(screen.getByText('Translation pending.')).toBeTruthy();
+
+    // Click "All" filter
+    const allTab = screen.getByRole('tab', { name: /All/i });
+    fireEvent.click(allTab);
+    expect(screen.getByText('Complete the English title.')).toBeTruthy();
+    expect(screen.getByText('Translation pending.')).toBeTruthy();
+  });
+
+  it('aggregates repetitive warnings with the same message into a compact grouped item', () => {
+    const multiWarningReport: ValidationReport = {
+      revision_id: 'rev-multi',
+      revision_version: 1,
+      publication_eligible: true,
+      errors: [],
+      warnings: [
+        { code: 'TRANSLATION_PENDING', section: 'CONTENT', field_path: 'content.title.vi', message: 'Translation is explicitly pending.', severity: 'WARNING' },
+        { code: 'TRANSLATION_PENDING', section: 'CONTENT', field_path: 'content.summary.vi', message: 'Translation is explicitly pending.', severity: 'WARNING' },
+        { code: 'TRANSLATION_PENDING', section: 'CONTENT', field_path: 'content.blocks.0.content.vi', message: 'Translation is explicitly pending.', severity: 'WARNING' },
+      ],
+    };
+
+    render(<ValidationPanel report={multiWarningReport} />);
+
+    // Should display aggregated count text
+    expect(screen.getByText(/3 fields/i)).toBeTruthy();
+    expect(screen.getByText(/content\.title\.vi/)).toBeTruthy();
+    expect(screen.getByText(/content\.summary\.vi/)).toBeTruthy();
+    expect(screen.getByText(/content\.blocks\.0\.content\.vi/)).toBeTruthy();
+  });
+
+it('renders unvalidated pending state when report is null', () => {
+    render(<ValidationPanel report={null} />);
+    expect(screen.getByText('Not validated yet')).toBeTruthy();
+    expect(screen.getByText('Ready for inspection')).toBeTruthy();
   });
 });

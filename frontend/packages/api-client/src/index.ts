@@ -129,6 +129,7 @@ export type ApiClient = {
   ) => Promise<AuthorVocabularyResponse>;
   createAuthorDraft: () => Promise<AuthorDraft>;
   getAuthorDraft: (problemId: string) => Promise<AuthorDraft>;
+  getAuthorRevision: (revisionId: string) => Promise<AuthorDraft>;
   saveAuthorDraft: (
     revisionId: string,
     request: SaveDraftRequest,
@@ -283,6 +284,12 @@ export const createApiClient = ({
     async getAuthorDraft(problemId) {
       return apiRequest<AuthorDraft>(
         `${normalizedBaseUrl}/author/problems/${encodeURIComponent(problemId)}`,
+        { cache: 'no-store' },
+      );
+    },
+    async getAuthorRevision(revisionId) {
+      return apiRequest<AuthorDraft>(
+        `${normalizedBaseUrl}/author/revisions/${encodeURIComponent(revisionId)}`,
         { cache: 'no-store' },
       );
     },

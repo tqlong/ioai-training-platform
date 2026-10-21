@@ -1,7 +1,5 @@
 # Release 0 Phase 6 manual verification
 
-__MESSAGE__: 'SUGGESTION's should be take into account and implemented as they are ideas. After they are finished, you can change it to 'TODO'.
-
 This checklist verifies the completed **Phase 6 — Problem domain and
 authoring** slice (`R0-06001` through `R0-06020`). It covers the author draft
 domain, persistence, author API, Studio list/editor, autosave and recovery,
