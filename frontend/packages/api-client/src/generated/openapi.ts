@@ -578,6 +578,16 @@ export interface components {
             } | null;
             /** Version */
             version: number;
+            /** Title */
+            title?: {
+                [key: string]: unknown;
+            } | null;
+            /** Slug */
+            slug?: string | null;
+            /** Summary */
+            summary?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** AuthorDraftListResponse */
         AuthorDraftListResponse: {

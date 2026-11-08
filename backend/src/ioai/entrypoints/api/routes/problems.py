@@ -605,4 +605,7 @@ def _summary_response(item: AuthorDraftListItem) -> AuthorDraftListItemResponse:
         editorial_status=item.status.value,
         last_saved_at=item.last_saved_at,
         validation_summary=item.validation_summary,
+        title=item.title,
+        slug=item.slug,
+        summary=item.summary,
     )

@@ -21,6 +21,9 @@ class DraftSummary:
     status: EditorialStatus
     last_saved_at: datetime
     validation_summary: dict[str, object] | None = None
+    title: dict[str, object] | None = None
+    slug: str | None = None
+    summary: dict[str, object] | None = None
 
 
 class DraftRepository(Protocol):

@@ -20,6 +20,9 @@ class AuthorDraftListItem:
     status: EditorialStatus
     last_saved_at: datetime
     validation_summary: dict[str, object] | None = None
+    title: dict[str, object] | None = None
+    slug: str | None = None
+    summary: dict[str, object] | None = None
 
 
 class CreateDraft:
@@ -68,6 +71,9 @@ class ListDrafts:
                 status=item.status,
                 last_saved_at=item.last_saved_at,
                 validation_summary=item.validation_summary,
+                title=item.title,
+                slug=item.slug,
+                summary=item.summary,
             )
             for item in items
         )

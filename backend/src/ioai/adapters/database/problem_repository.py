@@ -576,6 +576,35 @@ def _public_sort_key(
     return (normalized_order, difficulty_rank, row.problem_id)
 
 
+def _draft_summary_from_row(
+    row: ProblemRevisionModel, slug: str | None
+) -> DraftSummary:
+    content_payload = row.content if isinstance(row.content, dict) else {}
+    content_block = (
+        content_payload.get("content")
+        if isinstance(content_payload.get("content"), dict)
+        else content_payload
+    )
+    title = content_block.get("title") if isinstance(content_block, dict) else None
+    summary = content_block.get("summary") if isinstance(content_block, dict) else None
+    if title is None and isinstance(content_payload, dict):
+        title = content_payload.get("title")
+    if summary is None and isinstance(content_payload, dict):
+        summary = content_payload.get("summary")
+
+    return DraftSummary(
+        problem_id=ProblemId(row.problem_id),
+        revision_id=RevisionId(row.revision_id),
+        version=row.lock_version,
+        status=EditorialStatus(row.editorial_status),
+        last_saved_at=row.updated_at,
+        validation_summary=row.validation_summary,
+        title=title if isinstance(title, (dict, str)) else None,
+        slug=slug,
+        summary=summary if isinstance(summary, (dict, str)) else None,
+    )
+
+
 class SqlAlchemyDraftRepository:
     def __init__(self, session: Session) -> None:
         self._session = session
@@ -618,13 +647,16 @@ class SqlAlchemyDraftRepository:
     def list(
         self, *, search: str | None = None, status: EditorialStatus | None = None
     ) -> tuple[DraftSummary, ...]:
-        statement = select(ProblemRevisionModel)
+        statement = select(ProblemRevisionModel, ProblemModel.slug).join(
+            ProblemModel, ProblemModel.problem_id == ProblemRevisionModel.problem_id
+        )
         if search:
             pattern = f"%{search.strip()}%"
             statement = statement.where(
                 or_(
                     ProblemRevisionModel.problem_id.ilike(pattern),
                     ProblemRevisionModel.revision_id.ilike(pattern),
+                    ProblemModel.slug.ilike(pattern),
                 )
             )
         if status is not None:
@@ -636,15 +668,11 @@ class SqlAlchemyDraftRepository:
             ProblemRevisionModel.revision_id,
         )
         return tuple(
-            DraftSummary(
-                problem_id=ProblemId(row.problem_id),
-                revision_id=RevisionId(row.revision_id),
-                version=row.lock_version,
-                status=EditorialStatus(row.editorial_status),
-                last_saved_at=row.updated_at,
-                validation_summary=row.validation_summary,
-            )
-            for row in self._session.scalars(statement)
+
+
+
+            _draft_summary_from_row(row, slug)
+            for row, slug in self._session.execute(statement).all()
         )
 
     def save(
@@ -730,7 +758,7 @@ class SqlAlchemyEditorialRepository:
         )
         return tuple(
             EditorialTransition(
-                revision_id=RevisionId(row.revision_id),
+
                 source=EditorialStatus(row.source_status),
                 target=EditorialStatus(row.target_status),
                 note=row.note,

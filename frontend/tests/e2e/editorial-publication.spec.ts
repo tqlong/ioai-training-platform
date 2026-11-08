@@ -90,6 +90,7 @@ test('completes the full editorial publication, successor, archive, and republis
 
   await page.goto('/author/problems');
   const problemRow = page.getByRole('row', { name: new RegExp(created.problem_id) });
+  await problemRow.getByRole('button', { name: 'More actions' }).click();
   await problemRow.getByRole('button', { name: 'Address changes' }).click();
   await expect(page.getByText('Structured draft · DRAFT')).toBeVisible();
   await waitForEditorPolicies(page);
@@ -122,6 +123,8 @@ test('completes the full editorial publication, successor, archive, and republis
 
   await page.goto('/author/problems');
   await page.getByRole('row', { name: new RegExp(created.problem_id) })
+    .getByRole('button', { name: 'More actions' }).click();
+  await page.getByRole('row', { name: new RegExp(created.problem_id) })
     .getByRole('button', { name: 'Edit as new draft' }).click();
   await expect(page.getByText('Structured draft · DRAFT')).toBeVisible();
   await waitForEditorPolicies(page);
@@ -139,6 +142,8 @@ test('completes the full editorial publication, successor, archive, and republis
 
   await page.goto('/author/problems');
   await page.getByRole('row', { name: new RegExp(created.problem_id) })
+    .getByRole('button', { name: 'More actions' }).click();
+  await page.getByRole('row', { name: new RegExp(created.problem_id) })
     .getByRole('button', { name: 'Archive' }).click();
   const archiveDialog = page.getByRole('dialog', { name: 'Archive published problem' });
   await archiveDialog.getByRole('textbox', { name: 'Archive note' }).fill('Archive after pilot verification.');
@@ -147,6 +152,8 @@ test('completes the full editorial publication, successor, archive, and republis
     .getByText('archived').first()).toBeVisible();
   expect((await request.get(`${apiBase}/problems/${slug}`)).status()).toBe(404);
 
+  await page.getByRole('row', { name: new RegExp(created.problem_id) })
+    .getByRole('button', { name: 'More actions' }).click();
   await page.getByRole('row', { name: new RegExp(created.problem_id) })
     .getByRole('button', { name: 'Create new draft' }).click();
   await expect(page.getByText('Structured draft · DRAFT')).toBeVisible();

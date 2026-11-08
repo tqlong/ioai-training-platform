@@ -33,6 +33,9 @@ class AuthorDraftListItemResponse(BaseModel):
     editorial_status: str
     last_saved_at: datetime
     validation_summary: dict[str, Any] | None
+    title: dict[str, Any] | str | None = None
+    slug: str | None = None
+    summary: dict[str, Any] | str | None = None
 
 
 class AuthorDraftListResponse(BaseModel):
