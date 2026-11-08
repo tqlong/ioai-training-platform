@@ -68,7 +68,7 @@ export function ValidationPanel({
       <aside aria-label="Draft validation" className="validation-panel validation-panel-empty">
         <div className="validation-panel-header">
           <div className="validation-title-block">
-            <span className="validation-title">Draft validation</span>
+            <h2 className="validation-title">Draft validation</h2>
             <p className="validation-eligibility validation-pending">Not validated yet</p>
           </div>
         </div>

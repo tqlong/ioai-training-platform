@@ -369,5 +369,82 @@ describe('draft editor coordinator', () => {
     fireEvent.click(reviewTab);
     expect(screen.getByRole('button', { name: 'Publish' })).toBeTruthy();
   });
+
+  it('renders "All revisions" button and opens revision history modal dialog', async () => {
+    const listRevisions = vi.fn(async () => ({
+      count: 2,
+      items: [
+        {
+          problem_id: 'problem-1',
+          revision_id: 'revision-2',
+          version: 2,
+          editorial_status: 'DRAFT',
+          last_saved_at: '2026-08-09T01:00:00Z',
+          validation_summary: null,
+          title: { en: 'Test Title' },
+          slug: 'test-slug',
+          summary: null,
+        },
+        {
+          problem_id: 'problem-1',
+          revision_id: 'revision-1',
+          version: 1,
+          editorial_status: 'PUBLISHED',
+          last_saved_at: '2026-08-09T00:00:00Z',
+          validation_summary: { publication_eligible: true },
+          title: { en: 'Test Title' },
+          slug: 'test-slug',
+          summary: null,
+        },
+      ],
+    }));
+
+    render(
+      <DraftEditor
+        initialDraft={{ ...draft, revision_id: 'revision-2', version: 2 }}
+        listRevisions={listRevisions}
+      />,
+    );
+
+    const historyBtn = screen.getByRole('button', { name: 'View all revisions' });
+    expect(historyBtn).toBeTruthy();
+    expect(historyBtn.textContent).toBe('All revisions');
+
+    // Click to open modal
+    fireEvent.click(historyBtn);
+    expect(listRevisions).toHaveBeenCalledWith('problem-1');
+
+    // Modal dialog is open
+    const dialog = await screen.findByRole('dialog', { name: /Revision history/ });
+    expect(dialog).toBeTruthy();
+    expect(screen.getByText('Problem #problem-1')).toBeTruthy();
+    expect(screen.getByText('v2')).toBeTruthy();
+    expect(screen.getByText('v1')).toBeTruthy();
+    expect(screen.getByText('Viewing')).toBeTruthy();
+    expect(screen.getByText('Current draft')).toBeTruthy();
+    expect(screen.getByText('View snapshot')).toBeTruthy();
+    expect(screen.getAllByText('Preview as Learner').length).toBeGreaterThan(0);
+
+    // Clicking another revision navigates to that revision
+    const assignMock = vi.fn();
+    Object.defineProperty(window, 'location', {
+      value: { assign: assignMock },
+      writable: true,
+    });
+    const snapshotLink = screen.getByRole('link', { name: 'View snapshot' });
+    fireEvent.click(snapshotLink);
+    expect(assignMock).toHaveBeenCalledWith('/author/problems/problem-1?revision=revision-1');
+  });
+
+  it('updates state when initialDraft prop changes to another revision', () => {
+    const { rerender } = render(<DraftEditor initialDraft={{ ...draft, revision_id: 'rev-1', version: 1 }} />);
+    expect(screen.getByText('rev-1')).toBeTruthy();
+    expect(screen.getByText('Version 1')).toBeTruthy();
+
+    rerender(<DraftEditor initialDraft={{ ...draft, revision_id: 'rev-2', version: 2, editorial_status: 'PUBLISHED' }} />);
+    expect(screen.getByText('rev-2')).toBeTruthy();
+    expect(screen.getByText('Version 2')).toBeTruthy();
+    expect(screen.getByText('PUBLISHED')).toBeTruthy();
+  });
 });
 

@@ -7,6 +7,7 @@ import type { ArchiveProblemRequest, ArchiveProblemResult, AuthorDraft, AuthorDr
 import { ApiError } from '@ioai/api-client';
 
 import { studioApi } from '../api';
+import { RevisionHistoryModal } from './revision-history-modal';
 
 export function AuthorProblemsView({
   result,
@@ -24,19 +25,24 @@ export function AuthorProblemsView({
   const [starting, setStarting] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
   const [archived, setArchived] = useState<Map<string, number>>(new Map());
-  const [expandedProblems, setExpandedProblems] = useState<Set<string>>(new Set());
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [activeHistoryProblemId, setActiveHistoryProblemId] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<AuthorDraftList['items'][number] | null>(null);
   const [archiveNote, setArchiveNote] = useState('');
   const [archiving, setArchiving] = useState(false);
   const archiveTrigger = useRef<HTMLElement | null>(null);
   const archiveNoteInput = useRef<HTMLTextAreaElement>(null);
   const archiveDialogRef = useRef<HTMLDivElement>(null);
+  const historyDrawerRef = useRef<HTMLElement | null>(null);
+  const historyTriggerRef = useRef<HTMLElement | null>(null);
+
   const items = useMemo(() => result.items.map((item) => {
     const archivedVersion = archived.get(item.revision_id);
     return archivedVersion === undefined
       ? item
       : { ...item, editorial_status: 'ARCHIVED', version: archivedVersion };
   }), [archived, result.items]);
+
   const groups = useMemo(() => {
     const byProblem = new Map<string, typeof items>();
     items.forEach((item) => {
@@ -55,20 +61,21 @@ export function AuthorProblemsView({
       || left.problemId.localeCompare(right.problemId)
     ));
   }, [items]);
+
   const filtered = useMemo(() => groups.filter((group) => {
     const needle = search.trim().toLocaleLowerCase();
     const latest = group.revisions[0]!;
+    const titleText = getLocalizedText(latest.title).toLowerCase();
+    const slugText = (latest.slug ?? '').toLowerCase();
     const matchesSearch = !needle || group.problemId.toLocaleLowerCase().includes(needle)
-      || group.revisions.some((revision) => revision.revision_id.toLocaleLowerCase().includes(needle));
+      || group.revisions.some((revision) => revision.revision_id.toLocaleLowerCase().includes(needle))
+      || titleText.includes(needle)
+      || slugText.includes(needle);
     return matchesSearch && (status === 'ALL' || latest.editorial_status === status);
   }), [groups, search, status]);
-  const toggleRevisions = (problemId: string) => setExpandedProblems((current) => {
-    const next = new Set(current);
-    if (next.has(problemId)) next.delete(problemId);
-    else next.add(problemId);
-    return next;
-  });
+
   const setStatusFilter = (next: string) => setStatus(next);
+
   const beginRevision = async (item: AuthorDraftList['items'][number]) => {
     setStarting(item.revision_id);
     setActionError('');
@@ -85,11 +92,23 @@ export function AuthorProblemsView({
       setStarting(null);
     }
   };
+
+  const openHistoryDrawer = (problemId: string, triggerEl?: HTMLElement | null) => {
+    if (triggerEl) historyTriggerRef.current = triggerEl;
+    setActiveHistoryProblemId(problemId);
+  };
+
+  const closeHistoryDrawer = () => {
+    setActiveHistoryProblemId(null);
+    historyTriggerRef.current?.focus();
+  };
+
   const closeArchive = () => {
     if (archiving) return;
     setArchiveTarget(null); setArchiveNote('');
     archiveTrigger.current?.focus();
   };
+
   const confirmArchive = async () => {
     if (!archiveTarget) return;
     setArchiving(true); setActionError('');
@@ -112,6 +131,79 @@ export function AuthorProblemsView({
     } finally { setArchiving(false); }
   };
 
+  // Close 3-dot dropdown menu on click outside or Escape
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.row-actions-menu-container')) {
+        setOpenMenuId(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenMenuId(null);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openMenuId]);
+
+  // Handle Focus Trap, Escape and body scroll for History Drawer
+  useEffect(() => {
+    if (!activeHistoryProblemId) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const focusableSelector = 'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    const focusTimer = window.setTimeout(() => {
+      const drawer = historyDrawerRef.current;
+      if (drawer) {
+        const firstFocusable = drawer.querySelector<HTMLElement>(focusableSelector);
+        firstFocusable?.focus();
+      }
+    }, 0);
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeHistoryDrawer();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const drawer = historyDrawerRef.current;
+      if (!drawer) return;
+      const focusable = Array.from(drawer.querySelectorAll<HTMLElement>(focusableSelector));
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+
+      if (event.shiftKey) {
+        if (document.activeElement === first || !drawer.contains(document.activeElement)) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !drawer.contains(document.activeElement)) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeHistoryProblemId]);
+
+  // Handle Archive Modal keyboard & focus trap
   useEffect(() => {
     if (!archiveTarget) return;
     const previousOverflow = document.body.style.overflow;
@@ -153,6 +245,12 @@ export function AuthorProblemsView({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [archiveTarget, archiving]);
+
+  const activeHistoryGroup = useMemo(
+    () => groups.find((g) => g.problemId === activeHistoryProblemId) ?? null,
+    [groups, activeHistoryProblemId],
+  );
+
   return (
     <section aria-labelledby="author-problems-title" className="studio-page">
       <div className="page-heading">
@@ -166,26 +264,50 @@ export function AuthorProblemsView({
         </Link>
       </div>
 
-      <div aria-label="Problem status" className="status-tabs" role="group">
-        <button aria-pressed={status === 'ALL'} onClick={() => setStatusFilter('ALL')} type="button">All ({groups.length})</button>
-        <button aria-pressed={status === 'DRAFT'} onClick={() => setStatusFilter('DRAFT')} type="button">Draft</button>
-        <button aria-pressed={status === 'IN_REVIEW'} onClick={() => setStatusFilter('IN_REVIEW')} type="button">In review</button>
-        <button aria-pressed={status === 'CHANGES_REQUESTED'} onClick={() => setStatusFilter('CHANGES_REQUESTED')} type="button">Changes requested</button>
-      </div>
-
-      <div className="list-tools">
-        <label>
+      <div className="author-filter-bar">
+        <label className="author-filter-field search-field">
           <span>Search author problems</span>
-          <input name="search" onChange={(event) => setSearch(event.target.value)} placeholder="Search problem or revision ID" type="search" value={search} />
+          <input
+            name="search"
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search problem or revision ID"
+            type="search"
+            value={search}
+          />
         </label>
-        <label>
+
+        <div className="author-filter-field status-field">
+          <span id="status-tabs-label">Editorial status</span>
+          <div aria-labelledby="status-tabs-label" className="status-tabs" role="group">
+            <button aria-pressed={status === 'ALL'} onClick={() => setStatusFilter('ALL')} type="button">All ({groups.length})</button>
+            <button aria-pressed={status === 'DRAFT'} onClick={() => setStatusFilter('DRAFT')} type="button">Draft</button>
+            <button aria-pressed={status === 'IN_REVIEW'} onClick={() => setStatusFilter('IN_REVIEW')} type="button">In review</button>
+            <button aria-pressed={status === 'PUBLISHED'} onClick={() => setStatusFilter('PUBLISHED')} type="button">Published</button>
+            <button aria-pressed={status === 'CHANGES_REQUESTED'} onClick={() => setStatusFilter('CHANGES_REQUESTED')} type="button">Changes requested</button>
+          </div>
+        </div>
+
+        <label className="author-filter-field status-select-field">
           <span>Editorial status</span>
           <select name="status" onChange={(event) => setStatusFilter(event.target.value)} value={status}>
             <option value="ALL">All statuses</option>
             <option value="DRAFT">Draft</option>
             <option value="IN_REVIEW">In review</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="CHANGES_REQUESTED">Changes requested</option>
+            <option value="ARCHIVED">Archived</option>
           </select>
         </label>
+
+        {(search.trim() !== '' || status !== 'ALL') && (
+          <button
+            className="author-filter-clear-btn"
+            onClick={() => { setSearch(''); setStatusFilter('ALL'); }}
+            type="button"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
       {actionError && <p role="alert">{actionError}</p>}
 
@@ -203,75 +325,216 @@ export function AuthorProblemsView({
             <caption className="sr-only">Author problem revisions</caption>
             <thead>
               <tr>
-                <th scope="col">Problem</th>
                 <th scope="col">Status</th>
-                <th scope="col">Revision</th>
-                <th scope="col">Last saved</th>
+                <th scope="col">Problem</th>
+                <th scope="col">Identities</th>
                 <th scope="col">Validation</th>
-                <th scope="col"><span className="sr-only">Actions</span></th>
+                <th scope="col">Updated</th>
+                <th scope="col" className="col-actions"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             {filtered.map((group) => {
-              const expanded = expandedProblems.has(group.problemId);
-              const visibleRevisions = expanded ? group.revisions : group.revisions.slice(0, 1);
-              const controlsId = `problem-revisions-${group.problemId}`;
-              return <tbody id={controlsId} key={group.problemId}>
-                {visibleRevisions.map((draft, index) => (
-                  <tr key={draft.revision_id}>
-                    <td>
-                      <span className="card-col-label">Problem</span>
-                      <span className="id-badge">
-                        <code title={draft.problem_id}>{formatShortId(draft.problem_id)}</code>
-                        <span className="sr-only">{draft.problem_id}</span>
-                        <CopyButton label="Copy problem ID" text={draft.problem_id} />
-                      </span>
-                    </td>
+              const latest = group.revisions[0]!;
+              const title = getLocalizedText(latest.title) || `Problem #${formatShortId(latest.problem_id)}`;
+              const slug = latest.slug ?? '';
+              const summary = getLocalizedText(latest.summary);
+              return (
+                <tbody key={group.problemId}>
+                  <tr key={latest.revision_id}>
                     <td>
                       <span className="card-col-label">Status</span>
-                      <span className="status-label" data-status={draft.editorial_status.toLowerCase()}>{formatStatus(draft.editorial_status)}</span>
+                      <span className="status-label" data-status={latest.editorial_status.toLowerCase()}>{formatStatus(latest.editorial_status)}</span>
                     </td>
                     <td>
-                      <span className="card-col-label">Revision</span>
-                      <span className="id-badge">
-                        <code title={draft.revision_id}>{formatShortId(draft.revision_id)}</code>
-                        <span className="sr-only">{draft.revision_id}</span>
-                        <CopyButton label="Copy revision ID" text={draft.revision_id} />
-                      </span>{' '}
-                      · v{draft.version}
+                      <span className="card-col-label">Problem</span>
+                      <div className="problem-cell">
+                        <Link
+                          className="problem-title-link"
+                          href={latest.editorial_status === 'DRAFT'
+                            ? `/author/problems/${latest.problem_id}`
+                            : `/author/problems/${latest.problem_id}?revision=${latest.revision_id}`}
+                        >
+                          {title}
+                        </Link>
+                        {slug ? (
+                          <span className="problem-slug-text">{slug}</span>
+                        ) : (
+                          <span className="problem-slug-text placeholder">no-slug-set</span>
+                        )}
+                        {summary && (
+                          <span className="problem-summary-text" title={summary}>
+                            {summary}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td>
-                      <span className="card-col-label">Last saved</span>
-                      <time dateTime={draft.last_saved_at}>{formatDate(draft.last_saved_at)}</time>
+                      <span className="card-col-label">Identities</span>
+                      <div className="identities-group">
+                        <div className="id-badge">
+                          <span className="id-badge-label">PID:</span>
+                          <code title={latest.problem_id}>{formatShortId(latest.problem_id)}</code>
+                          <span className="sr-only">{latest.problem_id}</span>
+                          <CopyButton label="Copy problem ID" text={latest.problem_id} />
+                        </div>
+                        <div className="id-badge revision-sub-badge">
+                          <span className="id-badge-label">REV:</span>
+                          <code title={latest.revision_id}>{formatShortId(latest.revision_id)}</code>
+                          <span className="sr-only">{latest.revision_id}</span>
+                          <CopyButton label="Copy revision ID" text={latest.revision_id} />
+                          {group.revisions.length > 1 ? (
+                            <button
+                              aria-haspopup="dialog"
+                              className="version-chip version-chip-btn"
+                              onClick={(e) => openHistoryDrawer(group.problemId, e.currentTarget)}
+                              title="View revision history"
+                              type="button"
+                            >
+                              v{latest.version} ({group.revisions.length} revs)
+                            </button>
+                          ) : (
+                            <span className="version-chip">v{latest.version}</span>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td>
                       <span className="card-col-label">Validation</span>
-                      {formatValidation(draft.validation_summary)}
+                      {formatValidation(latest.validation_summary)}
                     </td>
                     <td>
+                      <span className="card-col-label">Last saved</span>
+                      <time
+                        className="updated-time"
+                        dateTime={latest.last_saved_at}
+                        title={formatExactDateTime(latest.last_saved_at)}
+                      >
+                        {formatRelativeTime(latest.last_saved_at)}
+                      </time>
+                    </td>
+                    <td className="col-actions-cell">
                       <span className="card-col-label">Actions</span>
-                      <div className="row-actions">{draft.editorial_status === 'DRAFT'
-                      ? <Link href={`/author/problems/${draft.problem_id}`}>Resume editing</Link>
-                      : <Link href={`/author/problems/${draft.problem_id}?revision=${draft.revision_id}`}>View</Link>}
-                      {['PUBLISHED', 'ARCHIVED', 'CHANGES_REQUESTED'].includes(draft.editorial_status) && (
-                        <button disabled={starting !== null} onClick={() => { void beginRevision(draft); }} type="button">
-                          {starting === draft.revision_id ? 'Starting draft…' : draft.editorial_status === 'PUBLISHED' ? 'Edit as new draft' : draft.editorial_status === 'ARCHIVED' ? 'Create new draft' : 'Address changes'}
-                        </button>
-                      )}
-                      {draft.editorial_status === 'PUBLISHED' && <button onClick={(event) => { archiveTrigger.current = event.currentTarget; setArchiveTarget(draft); }} type="button">Archive</button>}
-                      {index === 0 && group.revisions.length > 1 && <button
-                        aria-controls={controlsId}
-                        aria-expanded={expanded}
-                        onClick={() => toggleRevisions(group.problemId)}
-                        type="button"
-                      >{expanded ? 'Hide revision history' : `Show all ${group.revisions.length} revisions`}</button>}
-                    </div></td>
+                      <div className="row-actions">
+                        <Link
+                          className="action-btn-preview"
+                          href={`/author/problems/${latest.problem_id}/preview`}
+                          title="Preview as learner"
+                        >
+                          Preview
+                        </Link>
+
+                        <div className="row-actions-menu-container">
+                          <button
+                            aria-expanded={openMenuId === latest.revision_id}
+                            aria-haspopup="menu"
+                            aria-label="More actions"
+                            className="action-menu-trigger-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === latest.revision_id ? null : latest.revision_id);
+                            }}
+                            title="More actions"
+                            type="button"
+                          >
+                            •••
+                          </button>
+
+                          {openMenuId === latest.revision_id && (
+                            <div aria-label="Problem actions" className="action-dropdown-menu" role="menu">
+                              {latest.editorial_status === 'DRAFT' ? (
+                                <Link
+                                  className="action-menu-item"
+                                  href={`/author/problems/${latest.problem_id}`}
+                                  onClick={() => setOpenMenuId(null)}
+                                  role="menuitem"
+                                >
+                                  Resume editing
+                                </Link>
+                              ) : (
+                                <Link
+                                  className="action-menu-item"
+                                  href={`/author/problems/${latest.problem_id}?revision=${latest.revision_id}`}
+                                  onClick={() => setOpenMenuId(null)}
+                                  role="menuitem"
+                                >
+                                  View problem
+                                </Link>
+                              )}
+
+                              {['PUBLISHED', 'ARCHIVED', 'CHANGES_REQUESTED'].includes(latest.editorial_status) && (
+                                <button
+                                  className="action-menu-item"
+                                  disabled={starting !== null}
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    void beginRevision(latest);
+                                  }}
+                                  role="menuitem"
+                                  type="button"
+                                >
+                                  {starting === latest.revision_id
+                                    ? 'Starting draft…'
+                                    : latest.editorial_status === 'PUBLISHED'
+                                    ? 'Edit as new draft'
+                                    : latest.editorial_status === 'ARCHIVED'
+                                    ? 'Create new draft'
+                                    : 'Address changes'}
+                                </button>
+                              )}
+
+                              {group.revisions.length > 1 && (
+                                <button
+                                  className="action-menu-item"
+                                  onClick={(e) => {
+                                    setOpenMenuId(null);
+                                    openHistoryDrawer(group.problemId, e.currentTarget);
+                                  }}
+                                  role="menuitem"
+                                  type="button"
+                                >
+                                  Show all {group.revisions.length} revisions
+                                </button>
+                              )}
+
+                              {latest.editorial_status === 'PUBLISHED' && (
+                                <button
+                                  className="action-menu-item action-menu-danger"
+                                  onClick={(event) => {
+                                    archiveTrigger.current = event.currentTarget;
+                                    setArchiveTarget(latest);
+                                    setOpenMenuId(null);
+                                  }}
+                                  role="menuitem"
+                                  type="button"
+                                >
+                                  Archive
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                   </tr>
-                ))}
-              </tbody>;
+                </tbody>
+              );
             })}
           </table>
         </div>
       )}
+
+      {/* Revision History Popup Modal */}
+      {activeHistoryGroup && (
+        <RevisionHistoryModal
+          isOpen={Boolean(activeHistoryGroup)}
+          onClose={closeHistoryDrawer}
+          problemId={activeHistoryGroup.problemId}
+          revisions={activeHistoryGroup.revisions}
+          triggerRef={historyTriggerRef}
+        />
+      )}
+
+      {/* Archive Problem Modal Dialog */}
       {archiveTarget && <>
         <div className="modal-backdrop" data-testid="archive-backdrop" onClick={closeArchive} />
         <div
@@ -293,11 +556,54 @@ export function AuthorProblemsView({
 }
 
 const formatStatus = (status: string) => status.toLowerCase().replaceAll('_', ' ');
+
+const getLocalizedText = (value: unknown): string => {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    if (typeof record.en === 'string' && record.en.trim()) return record.en.trim();
+    if (typeof record.vi === 'string' && record.vi.trim()) return record.vi.trim();
+  }
+  return '';
+};
+
 const formatDate = (value: string) => new Intl.DateTimeFormat('en', {
   dateStyle: 'medium',
   timeStyle: 'short',
   timeZone: 'UTC',
 }).format(new Date(value));
+
+const formatRelativeTime = (value: string) => {
+  const date = new Date(value);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (Number.isNaN(diffInSeconds) || diffInSeconds < 0) return formatDate(value);
+  if (diffInSeconds < 60) return 'Just now';
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) return `${diffInDays}d ago`;
+  return formatDate(value);
+};
+
+const formatExactDateTime = (value: string) => {
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZoneName: 'short',
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+};
 
 const formatValidation = (summary: Record<string, unknown> | null) => {
   if (!summary) return 'Not validated';

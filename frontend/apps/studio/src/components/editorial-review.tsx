@@ -170,81 +170,209 @@ export function EditorialReviewWorkspace({
     };
   }, [publishOpen, publishing]);
 
-  return <section aria-labelledby="review-publish-heading" className="editorial-review" id="review-publish">
-    <h2 id="review-publish-heading">Review &amp; publish</h2>
-    <p>Editorial status: <strong className="editorial-status" data-status={draft.editorial_status.toLowerCase()}>{statusLabel(draft.editorial_status)}</strong></p>
-    {(() => {
-      const latestChangeRequest = history?.items.slice().reverse().find((item) => item.target_status === 'CHANGES_REQUESTED');
-      if (latestChangeRequest) {
-        return (
-          <div aria-label="Reviewer change requests" className="reviewer-note-callout" role="region">
-            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600 }}>Reviewer requests</h3>
-            <p className="reviewer-note-text" style={{ margin: '0 0 0.5rem 0', whiteSpace: 'pre-wrap' }}>{latestChangeRequest.note}</p>
-            <p className="reviewer-note-meta" style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
-              {latestChangeRequest.actor_context} · <time dateTime={latestChangeRequest.occurred_at}>{new Date(latestChangeRequest.occurred_at).toLocaleString()}</time>
-            </p>
-          </div>
-        );
-      }
-      return null;
-    })()}
-    {dirty && <p role="status">Save current changes before an editorial decision.</p>}
-    {actions.length > 0 && <div className="editorial-decision">
-      <label htmlFor="editorial-note">Editorial note</label>
-      <textarea
-        disabled={pending !== null}
-        id="editorial-note"
-        maxLength={2000}
-        onChange={(event) => setNote(event.target.value)}
-        ref={noteRef}
-        required
-        value={note}
-      />
-      <div className="editorial-actions">
-        {actions.map(({ action, label }) => <button
-          disabled={dirty || !note.trim() || pending !== null}
-          key={action}
-          onClick={() => { void decide(action); }}
-          type="button"
-        >{pending === action ? `${label}…` : label}</button>)}
+  return (
+    <section aria-labelledby="review-publish-heading" className="editor-section editorial-review editorial-review-section" id="review-publish">
+      <div className="section-panel-header">
+        <h2 id="review-publish-heading">Review &amp; publish</h2>
+        <p className="section-panel-desc">
+          Inspect editorial workflow status, provide transition notes, and publish the approved problem.
+        </p>
       </div>
-    </div>}
-    {draft.editorial_status === 'APPROVED' && <div>
-      <p>Approved. Publication remains a separate confirmed action.</p>
-      <button disabled={dirty} onClick={openPublish} ref={publishTriggerRef} type="button">Publish</button>
-    </div>}
-    {publication && <p role="status">Published at <a href={publication.public_url}>{publication.public_url}</a>.</p>}
-    {error && <p role="alert">{error}</p>}
-    {publishOpen && <>
-      <div className="modal-backdrop" data-testid="modal-backdrop" onClick={closePublish} />
-      <div
-        aria-labelledby="publish-dialog-title"
-        aria-modal="true"
-        className="modal-dialog"
-        ref={publishDialogRef}
-        role="dialog"
-      >
-        <h3 id="publish-dialog-title">Publish approved revision</h3>
-        <p>This makes the approved snapshot externally visible at the permanent URL:</p>
-        <p><code>/problems/{draft.slug}</code></p>
-        <p>This is different from Draft preview, which is never public.</p>
-        <label htmlFor="publish-note">Publication note</label>
-        <textarea id="publish-note" maxLength={2000} onChange={(event) => setPublishNote(event.target.value)} ref={publishNoteRef} value={publishNote} />
-        <div className="editorial-actions">
-          <button disabled={!publishNote.trim() || publishing} onClick={() => { void confirmPublish(); }} type="button">{publishing ? 'Publishing…' : 'Confirm publish'}</button>
-          <button disabled={publishing} onClick={closePublish} type="button">Cancel</button>
+
+      <div className="editorial-status-card">
+        <div className="editorial-status-info">
+          <span className="editorial-status-label">Editorial status:</span>
+          <strong className="editorial-status meta-status-tag" data-status={draft.editorial_status.toLowerCase()}>
+            {statusLabel(draft.editorial_status)}
+          </strong>
         </div>
+        <p className="editorial-status-hint">
+          {draft.editorial_status === 'DRAFT' && 'Draft revision is editable. Complete all required fields and resolve validation errors before submitting for review.'}
+          {draft.editorial_status === 'IN_REVIEW' && 'Revision is under review. Reviewers can request changes or approve for publication.'}
+          {draft.editorial_status === 'CHANGES_REQUESTED' && 'Reviewer requested changes before approval. Address feedback to resubmit.'}
+          {draft.editorial_status === 'APPROVED' && 'Revision is approved and ready for public snapshot release.'}
+          {draft.editorial_status === 'PUBLISHED' && 'This snapshot is published at the permanent URL and visible to learners.'}
+          {draft.editorial_status === 'ARCHIVED' && 'This problem is archived and no longer public.'}
+        </p>
       </div>
-    </>}
-    <section aria-labelledby="editorial-history-heading">
-      <h3 id="editorial-history-heading">Editorial history</h3>
-      {history === null ? <p>History is unavailable.</p> : history.items.length === 0 ? <p>No editorial decisions yet.</p> : <ol>
-        {history.items.map((item) => <li key={item.operation_id}>
-          <p><strong>{statusLabel(item.source_status)} → {statusLabel(item.target_status)}</strong></p>
-          <p>{item.note}</p>
-          <p>{item.actor_context} · <time dateTime={item.occurred_at}>{new Date(item.occurred_at).toLocaleString()}</time></p>
-        </li>)}
-      </ol>}
+
+      {(() => {
+        const latestChangeRequest = history?.items.slice().reverse().find((item) => item.target_status === 'CHANGES_REQUESTED');
+        if (latestChangeRequest) {
+          return (
+            <div aria-label="Reviewer change requests" className="reviewer-note-callout" role="region">
+              <div className="reviewer-note-header">
+                <h3 className="reviewer-note-title">Reviewer requests</h3>
+                <span className="reviewer-note-meta">
+                  {latestChangeRequest.actor_context} · <time dateTime={latestChangeRequest.occurred_at}>{new Date(latestChangeRequest.occurred_at).toLocaleString()}</time>
+                </span>
+              </div>
+              <p className="reviewer-note-text">{latestChangeRequest.note}</p>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
+      {dirty && (
+        <p className="editorial-dirty-warning" role="status">
+          Save current changes before an editorial decision.
+        </p>
+      )}
+
+      {actions.length > 0 && (
+        <div className="editor-field editorial-decision-field">
+          <div className="field-label-row">
+            <label htmlFor="editorial-note">Editorial note</label>
+            <span aria-hidden="true" className="required-star"> *</span>
+          </div>
+          <textarea
+            className="editorial-note-textarea"
+            disabled={pending !== null}
+            id="editorial-note"
+            maxLength={2000}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder="Enter a note explaining this transition decision (required)..."
+            ref={noteRef}
+            required
+            rows={3}
+            value={note}
+          />
+          <p className="field-hint">
+            Every status transition requires a descriptive note recorded in the permanent editorial audit trail.
+          </p>
+          <div className="editorial-actions">
+            {actions.map(({ action, label }) => (
+              <button
+                className={`editorial-action-btn ${action === 'approve' || action === 'submit-review' ? 'primary' : 'secondary'}`}
+                disabled={dirty || !note.trim() || pending !== null}
+                key={action}
+                onClick={() => { void decide(action); }}
+                type="button"
+              >
+                {pending === action ? `${label}…` : label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {draft.editorial_status === 'APPROVED' && (
+        <div className="editorial-publish-banner">
+          <div className="editorial-publish-text">
+            <strong className="publish-ready-title">Approved for publication</strong>
+            <p className="publish-ready-desc">Approved. Publication remains a separate confirmed action.</p>
+          </div>
+          <button
+            className="editorial-action-btn editorial-publish-btn primary"
+            disabled={dirty}
+            onClick={openPublish}
+            ref={publishTriggerRef}
+            type="button"
+          >
+            Publish
+          </button>
+        </div>
+      )}
+
+      {publication && (
+        <p className="editorial-published-alert" role="status">
+          Published at <a className="published-link" href={publication.public_url}>{publication.public_url}</a>.
+        </p>
+      )}
+
+      {error && <p className="editorial-error-alert" role="alert">{error}</p>}
+
+      {publishOpen && (
+        <>
+          <div className="modal-backdrop" data-testid="modal-backdrop" onClick={closePublish} />
+          <div
+            aria-labelledby="publish-dialog-title"
+            aria-modal="true"
+            className="modal-dialog publish-modal"
+            ref={publishDialogRef}
+            role="dialog"
+          >
+            <div className="modal-header">
+              <h3 id="publish-dialog-title" className="modal-title">Publish approved revision</h3>
+              <p className="modal-subtitle">
+                This makes the approved snapshot externally visible at the permanent URL:
+              </p>
+              <div className="publish-url-box">
+                <code>/problems/{draft.slug}</code>
+              </div>
+              <p className="modal-notice">This is different from Draft preview, which is never public.</p>
+            </div>
+
+            <div className="editor-field modal-field">
+              <div className="field-label-row">
+                <label htmlFor="publish-note">Publication note</label>
+                <span aria-hidden="true" className="required-star"> *</span>
+              </div>
+              <textarea
+                id="publish-note"
+                maxLength={2000}
+                onChange={(event) => setPublishNote(event.target.value)}
+                placeholder="Enter release note or summary for this publication..."
+                ref={publishNoteRef}
+                rows={3}
+                value={publishNote}
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="modal-btn confirm primary"
+                disabled={!publishNote.trim() || publishing}
+                onClick={() => { void confirmPublish(); }}
+                type="button"
+              >
+                {publishing ? 'Publishing…' : 'Confirm publish'}
+              </button>
+              <button
+                className="modal-btn cancel secondary"
+                disabled={publishing}
+                onClick={closePublish}
+                type="button"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      <section aria-labelledby="editorial-history-heading" className="editorial-history-wrap">
+        <div className="history-section-header">
+          <h3 id="editorial-history-heading">Editorial history</h3>
+          {history && (
+            <span className="history-count">
+              {history.items.length} {history.items.length === 1 ? 'record' : 'records'}
+            </span>
+          )}
+        </div>
+        {history === null ? (
+          <p className="history-empty">History is unavailable.</p>
+        ) : history.items.length === 0 ? (
+          <p className="history-empty">No editorial decisions yet.</p>
+        ) : (
+          <ol className="editorial-history-list">
+            {history.items.map((item) => (
+              <li className="editorial-history-item" key={item.operation_id}>
+                <div className="history-item-top">
+                  <strong className="history-transition-badge">
+                    {statusLabel(item.source_status)} → {statusLabel(item.target_status)}
+                  </strong>
+                  <span className="history-item-meta">
+                    {item.actor_context} · <time dateTime={item.occurred_at}>{new Date(item.occurred_at).toLocaleString()}</time>
+                  </span>
+                </div>
+                <p className="history-item-note">{item.note}</p>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
     </section>
-  </section>;
+  );
 }

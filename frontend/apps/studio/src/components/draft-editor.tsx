@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Copy, Check } from 'lucide-react';
 
-import { ApiError, type AuthorDraft, type SaveDraftRequest, type ValidationReport } from '@ioai/api-client';
+import { ApiError, type AuthorDraft, type AuthorDraftList, type SaveDraftRequest, type ValidationReport } from '@ioai/api-client';
 
 import { studioApi } from '../api';
+import { RevisionHistoryModal, type RevisionHistoryItem } from './revision-history-modal';
 import {
   ContentEditor,
   emptyContentDraft,
@@ -44,12 +45,14 @@ export function DraftEditor({
   saveDraft = studioApi.saveAuthorDraft,
   reloadDraft = studioApi.getAuthorDraft,
   validateDraft = studioApi.validateAuthorDraft,
+  listRevisions = (problemId: string) => studioApi.listAuthorDrafts({ search: problemId }),
   autosaveDelay = 1200,
 }: {
   initialDraft: AuthorDraft;
   saveDraft?: SaveFunction;
   reloadDraft?: (problemId: string) => Promise<AuthorDraft>;
   validateDraft?: (revisionId: string, version: number) => Promise<ValidationReport>;
+  listRevisions?: (problemId: string) => Promise<AuthorDraftList>;
   autosaveDelay?: number;
 }) {
   const initialAutoSlug = initialDraft.slug === null && isContentDraft(initialDraft.content)
@@ -92,6 +95,67 @@ export function DraftEditor({
   const previewing = useRef(false);
   const recoveryKey = `ioai:studio:recovery:${initialDraft.revision_id}`;
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyRevisions, setHistoryRevisions] = useState<RevisionHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const historyTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const openHistory = async () => {
+    setHistoryOpen(true);
+    setHistoryLoading(true);
+    try {
+      const res = await listRevisions(draft.problem_id);
+      const matched = res.items
+        .filter((item) => item.problem_id === draft.problem_id)
+        .sort((a, b) => (
+          Date.parse(b.last_saved_at) - Date.parse(a.last_saved_at)
+          || b.version - a.version
+        ));
+      setHistoryRevisions(matched);
+    } catch {
+      setHistoryRevisions([
+        {
+          problem_id: draft.problem_id,
+          revision_id: draft.revision_id,
+          version: draft.version,
+          editorial_status: draft.editorial_status,
+          last_saved_at: draft.last_saved_at ?? new Date().toISOString(),
+          validation_summary: draft.validation_summary ?? null,
+        },
+      ]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setDraft(initialDraft);
+    const nextAutoSlug = initialDraft.slug === null && isContentDraft(initialDraft.content)
+      ? slugify(initialDraft.content.title.en)
+      : '';
+    setSlug(initialDraft.slug ?? nextAutoSlug);
+    setSlugManuallyEdited(initialDraft.slug !== null);
+    setContent(isContentDraft(initialDraft.content) ? initialDraft.content : emptyContentDraft());
+    setCurriculum(
+      isCurriculumDraft(initialDraft.metadata)
+        ? curriculumFromMetadata(initialDraft.metadata)
+        : emptyCurriculumDraft()
+    );
+    setAssessment(
+      isAssessmentDraft(initialDraft.response, initialDraft.scoring)
+        ? { response: initialDraft.response, scoring: initialDraft.scoring, scoringValid: true } as AssessmentDraft
+        : emptyAssessmentDraft('QUIZ_SINGLE')
+    );
+    setResources(
+      isResourceMetadata(initialDraft.metadata)
+        ? resourceFromMetadata(initialDraft.metadata)
+        : emptyResourceDraft()
+    );
+    setDirtyFields(new Set());
+    setSaveState('idle');
+    setValidationReport(null);
+    setValidationFailed(false);
+  }, [initialDraft.revision_id]);
 
   const handleCopy = (key: string, text: string) => {
     void navigator.clipboard?.writeText?.(text);
@@ -291,7 +355,8 @@ export function DraftEditor({
     <section aria-labelledby="editor-title" className="studio-page editor-page">
       <header className="studio-header editor-dark-header">
         <nav aria-label="Editor header" className="studio-nav">
-          <div className="editor-brand-group">
+          <div className="studio-brand-container">
+            <div className="editor-brand-group">
             <Link href="/author/problems" className="studio-brand">
               <span className="studio-brand-title">IOAI Studio</span>
             </Link>
@@ -313,6 +378,7 @@ export function DraftEditor({
               </button>
             </span>
             <h1 id="editor-title" className="sr-only">Edit problem</h1>
+            </div>
           </div>
 
           <div className="editor-dark-actions">
@@ -377,6 +443,16 @@ export function DraftEditor({
           <span className={`meta-status-tag status-${draft.editorial_status.toLowerCase()}`}>
             {draft.editorial_status}
           </span>
+          <span className="meta-divider" aria-hidden="true">·</span>
+          <button
+            type="button"
+            className="meta-history-btn"
+            onClick={() => { void openHistory(); }}
+            ref={historyTriggerRef}
+            aria-label="View all revisions"
+          >
+            All revisions
+          </button>
         </div>
         <div className="editor-meta-right-spacer" aria-hidden="true" />
       </div>
@@ -616,31 +692,6 @@ export function DraftEditor({
               />
             </div>
             </fieldset>
-
-            <div aria-label="Step navigation" className="editor-step-nav">
-              <button
-                aria-label={prevSection ? `Previous section: ${prevSection.shortLabel}` : 'Previous section'}
-                className="step-nav-btn prev"
-                disabled={!prevSection}
-                onClick={() => prevSection && handleSelectSection(prevSection.id)}
-                type="button"
-              >
-                {prevSection ? `← ${prevSection.shortLabel}` : '←'}
-              </button>
-              <span className="step-nav-indicator">
-                Step {activeIndex + 1} of 6: {SECTIONS[activeIndex].shortLabel}
-              </span>
-              <button
-                aria-label={nextSection ? `Next section: ${nextSection.shortLabel}` : 'Next section'}
-                className="step-nav-btn next"
-                disabled={!nextSection}
-                onClick={() => nextSection && handleSelectSection(nextSection.id)}
-                type="button"
-              >
-                {nextSection ? `${nextSection.shortLabel} →` : '→'}
-              </button>
-            </div>
-
           </form>
 
           <div className={`editor-section-wrap ${activeSection === 'review' ? 'is-active' : 'is-inactive'}`} id="review-publish">
@@ -653,6 +704,30 @@ export function DraftEditor({
                 setValidationFailed(false);
               }}
             />
+          </div>
+
+          <div aria-label="Step navigation" className="editor-step-nav">
+            <button
+              aria-label={prevSection ? `Previous section: ${prevSection.shortLabel}` : 'Previous section'}
+              className="step-nav-btn prev"
+              disabled={!prevSection}
+              onClick={() => prevSection && handleSelectSection(prevSection.id)}
+              type="button"
+            >
+              {prevSection ? `← ${prevSection.shortLabel}` : '←'}
+            </button>
+            <span className="step-nav-indicator">
+              Step {activeIndex + 1} of 6: {SECTIONS[activeIndex].shortLabel}
+            </span>
+            <button
+              aria-label={nextSection ? `Next section: ${nextSection.shortLabel}` : 'Next section'}
+              className="step-nav-btn next"
+              disabled={!nextSection}
+              onClick={() => nextSection && handleSelectSection(nextSection.id)}
+              type="button"
+            >
+              {nextSection ? `${nextSection.shortLabel} →` : '→'}
+            </button>
           </div>
         </div>
 
@@ -707,6 +782,28 @@ export function DraftEditor({
         />
       )}
       {conflict && <dialog aria-labelledby="conflict-title" open><h2 id="conflict-title">Resolve draft conflict</h2><p>The server has a newer revision. Your local recovery copy for version {draft.version} has been retained.</p><button onClick={() => { void keepLocal(); }} type="button">Keep local changes and retry</button><button onClick={() => { void useServer(); }} type="button">Use server version</button><button onClick={() => setConflict(false)} type="button">Review differences before resolving</button></dialog>}
+
+      <RevisionHistoryModal
+        currentRevisionId={draft.revision_id}
+        isOpen={historyOpen}
+        loading={historyLoading}
+        onClose={() => setHistoryOpen(false)}
+        onSelectRevision={(rev) => {
+          if (rev.revision_id === draft.revision_id) {
+            setHistoryOpen(false);
+            return;
+          }
+          const targetUrl = rev.editorial_status === 'DRAFT'
+            ? `/author/problems/${rev.problem_id}`
+            : `/author/problems/${rev.problem_id}?revision=${rev.revision_id}`;
+          if (typeof window !== 'undefined') {
+            window.location.assign(targetUrl);
+          }
+        }}
+        problemId={draft.problem_id}
+        revisions={historyRevisions}
+        triggerRef={historyTriggerRef}
+      />
       </div>
     </section>
   );
